@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-04-23
 **Author:** Solution Architect
-**Status:** Updated after US-001
+**Status:** Updated after US-002
 
 ---
 
@@ -100,14 +100,14 @@ erDiagram
 
 ### Key Dependencies
 
-| Package | Purpose | Documentation |
-|---------|---------|---------------|
-| @supabase/supabase-js | Supabase client | https://supabase.com/docs/reference/javascript |
-| openai | OpenAI SDK | https://platform.openai.com/docs |
-| react-router-dom | Client-side routing | https://reactrouter.com |
-| date-fns | Date formatting | https://date-fns.org |
-| vitest | Unit testing | https://vitest.dev |
-| @testing-library/react | Component testing | https://testing-library.com/react |
+| Package | Purpose | Status | Documentation |
+|---------|---------|--------|---------------|
+| @supabase/supabase-js | Supabase client | ✅ Installed (^2.104.0) | https://supabase.com/docs/reference/javascript |
+| openai | OpenAI SDK | 📋 Planned | https://platform.openai.com/docs |
+| react-router-dom | Client-side routing | 📋 Planned | https://reactrouter.com |
+| date-fns | Date formatting | 📋 Planned | https://date-fns.org |
+| vitest | Unit testing | ✅ Installed (^2.1.3) | https://vitest.dev |
+| @testing-library/react | Component testing | ✅ Installed (^16.0.0) | https://testing-library.com/react |
 
 ---
 
@@ -129,11 +129,13 @@ dotflow/
 │   │   ├── useEntries.ts
 │   │   ├── useSettings.ts
 │   │   └── useAI.ts
-│   ├── services/            # External API integrations (planned)
-│   │   ├── aiService.ts     # OpenAI API calls
-│   │   └── entryService.ts  # Supabase CRUD
-│   ├── types/               # TypeScript type definitions (planned)
-│   │   └── index.ts
+│   ├── lib/                 # Third-party client initializations
+│   │   └── supabase.ts      # Supabase client (US-002)
+│   ├── services/            # External API integrations
+│   │   ├── aiService.ts     # OpenAI API calls (planned)
+│   │   └── entryService.ts  # Supabase CRUD (US-002)
+│   ├── types/               # TypeScript type definitions
+│   │   └── index.ts         # Entry, FollowUp, Connection, EntryWithFollowUps (US-002)
 │   ├── utils/               # Pure utility functions (planned)
 │   │   └── prompts.ts       # AI prompt templates
 │   ├── __tests__/           # Tests mirror source structure

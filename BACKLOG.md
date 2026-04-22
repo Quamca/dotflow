@@ -136,23 +136,23 @@ Create the three database tables in Supabase (entries, followups, connections) a
 **I want to** have Supabase connected with the correct schema
 **So that** entry data can be persisted and retrieved
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 **Story Points:** 2
 **Priority:** P0
 
 **Acceptance Criteria:**
-- [ ] Three tables created in Supabase: `entries`, `followups`, `connections`
-- [ ] `@supabase/supabase-js` installed and configured
-- [ ] `src/services/entryService.ts` created with placeholder CRUD functions
-- [ ] RLS disabled on all tables (MVP — single user)
-- [ ] `.env` with real Supabase keys works locally
+- [x] Three tables created in Supabase: `entries`, `followups`, `connections`
+- [x] `@supabase/supabase-js` installed and configured
+- [x] `src/services/entryService.ts` created with placeholder CRUD functions
+- [x] RLS disabled on all tables (MVP — single user)
+- [x] `.env` with real Supabase keys works locally
 
 **Tasks:**
-- [ ] **TASK-002.1:** Run SQL schema in Supabase SQL Editor - 30min
-- [ ] **TASK-002.2:** Install `@supabase/supabase-js`, create `src/lib/supabase.ts` client - 15min
-- [ ] **TASK-002.3:** Create `src/services/entryService.ts` with stub functions - 30min
-- [ ] **TASK-002.4:** Write tests for entryService stubs (/qa) - 30min
-- [ ] **TASK-002.5:** Manual verification (test write/read from Supabase) - 15min
+- [x] **TASK-002.1:** Run SQL schema in Supabase SQL Editor - 30min
+- [x] **TASK-002.2:** Install `@supabase/supabase-js`, create `src/lib/supabase.ts` client - 15min
+- [x] **TASK-002.3:** Create `src/services/entryService.ts` with stub functions - 30min
+- [x] **TASK-002.4:** Write tests for entryService stubs (/qa) - 30min
+- [x] **TASK-002.5:** Manual verification (test write/read from Supabase) - 15min
 
 ---
 

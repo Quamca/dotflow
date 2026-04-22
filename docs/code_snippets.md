@@ -75,11 +75,48 @@ export default defineConfig({
 
 ---
 
+## 2. Supabase Patterns
+
+### 2.1 Supabase Client Initialization (US-002)
+
+Initialize once in `src/lib/supabase.ts`, import only in service files — never in components:
+
+```typescript
+// src/lib/supabase.ts
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+```
+
+### 2.2 Mocking Supabase Chained Calls in Tests (US-002)
+
+Supabase uses deeply chained calls (`.from().select().order()`). Mock `src/lib/supabase` directly — not `@supabase/supabase-js` — to avoid mock complexity. Cast through `unknown` to satisfy TypeScript without `any`:
+
+```typescript
+vi.mock('../../lib/supabase', () => ({
+  supabase: { from: vi.fn() },
+}))
+
+// In each test — match the chain your function uses:
+vi.mocked(supabase.from).mockReturnValue({
+  select: vi.fn().mockReturnValue({
+    order: vi.fn().mockResolvedValue({ data: [mockEntry], error: null }),
+  }),
+} as unknown as ReturnType<typeof supabase.from>)
+```
+
+---
+
 ## Snippet Index
 
 | Category | Pattern | Section |
 |----------|---------|---------|
 | Testing | Vitest + jest-dom setup (explicit extend) | 4.1 |
+| Supabase | Client initialization pattern | 2.1 |
+| Supabase | Mocking chained calls in tests | 2.2 |
 
 ---
 
