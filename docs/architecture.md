@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 1.0
-**Date:** 2026-04-09
+**Version:** 1.1
+**Date:** 2026-04-23
 **Author:** Solution Architect
-**Status:** Initial architecture
+**Status:** Updated after US-001
 
 ---
 
@@ -116,36 +116,50 @@ erDiagram
 ```
 dotflow/
 ├── src/
-│   ├── components/          # Reusable UI components
+│   ├── components/          # Reusable UI components (planned)
 │   │   ├── EntryForm/
 │   │   ├── EntryList/
 │   │   ├── EntryCard/
 │   │   ├── FollowUpDialog/
 │   │   └── ConnectionBadge/
-│   ├── pages/               # Route-level components
+│   ├── pages/               # Route-level components (planned)
 │   │   ├── HomePage.tsx
 │   │   └── SettingsPage.tsx
-│   ├── hooks/               # Custom React hooks
+│   ├── hooks/               # Custom React hooks (planned)
 │   │   ├── useEntries.ts
 │   │   ├── useSettings.ts
 │   │   └── useAI.ts
-│   ├── services/            # External API integrations
+│   ├── services/            # External API integrations (planned)
 │   │   ├── aiService.ts     # OpenAI API calls
 │   │   └── entryService.ts  # Supabase CRUD
-│   ├── types/               # TypeScript type definitions
+│   ├── types/               # TypeScript type definitions (planned)
 │   │   └── index.ts
-│   ├── utils/               # Pure utility functions
+│   ├── utils/               # Pure utility functions (planned)
 │   │   └── prompts.ts       # AI prompt templates
-│   ├── App.tsx
-│   └── main.tsx
-├── src/__tests__/           # Tests mirror source structure
+│   ├── __tests__/           # Tests mirror source structure
+│   │   ├── setup.ts         # Vitest + jest-dom setup
+│   │   └── setup.test.ts    # TC-000: framework smoke test
+│   ├── App.tsx              # Root component (minimal, US-001)
+│   ├── index.css            # Tailwind directives
+│   ├── main.tsx
+│   └── vite-env.d.ts
 ├── public/
+├── docs/                    # Project documentation
+├── .claude/
+│   └── skills/              # Claude Code agent definitions
 ├── .env.example
+├── .gitignore
+├── .prettierrc
+├── eslint.config.js         # ESLint v9 flat config
 ├── index.html
-├── vite.config.ts
-├── tailwind.config.js
+├── package.json
+├── postcss.config.js
+├── tailwind.config.js       # Tailwind v3
 ├── tsconfig.json
-└── package.json
+├── vite.config.ts           # Vitest config (uses vitest/config import)
+├── BACKLOG.md
+├── CLAUDE.md
+└── README.md
 ```
 
 ---

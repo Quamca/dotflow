@@ -72,7 +72,7 @@ This project uses Claude Code with specialized agents. See [MULTI_AGENT_ARCHITEC
 
 ## Latest
 
-- v0.0.0 — Project initialized (kickoff)
+- v0.1.0 — US-001: React + Vite + TypeScript project initialized (Tailwind CSS, ESLint, Prettier, Vitest + RTL configured)
 
 ---
 

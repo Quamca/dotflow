@@ -1,7 +1,7 @@
 # Dotflow - Development Setup Guide
 
-**Version:** 1.0
-**Date:** 2026-04-09
+**Version:** 1.1
+**Date:** 2026-04-23
 **Platform:** Windows (PowerShell), macOS, Linux
 
 ---
@@ -299,7 +299,23 @@ git branch -d 1-setup-project
 
 ---
 
-## 11. Troubleshooting
+## 11. Key Dependency Versions (US-001)
+
+| Package | Version |
+|---------|---------|
+| react | ^18.3.1 |
+| vite | ^5.4.10 |
+| typescript | ~5.6.2 |
+| tailwindcss | ^3.4.14 |
+| vitest | ^2.1.3 |
+| @testing-library/react | ^16.0.0 |
+| @testing-library/jest-dom | ^6.6.0 |
+| eslint | ^9.13.0 |
+| prettier | ^3.3.3 |
+
+---
+
+## 12. Troubleshooting
 
 ### Issue: Supabase connection fails
 
@@ -328,7 +344,23 @@ npm install
 
 ---
 
-## 12. Useful Commands
+### Issue: `ReferenceError: expect is not defined` in Vitest
+
+**Symptoms:** Tests fail immediately with `expect is not defined` when importing `@testing-library/jest-dom`
+
+**Cause:** `@testing-library/jest-dom` v6 calls `expect.extend()` at module level, but Vitest does not put `expect` in global scope without `globals: true`.
+
+**Solution:** In `src/__tests__/setup.ts`, use explicit imports instead of `import '@testing-library/jest-dom'`:
+
+```typescript
+import { expect } from 'vitest'
+import * as matchers from '@testing-library/jest-dom/matchers'
+expect.extend(matchers)
+```
+
+---
+
+## 13. Useful Commands
 
 | Command | Description |
 |---------|-------------|

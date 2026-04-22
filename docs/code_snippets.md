@@ -1,7 +1,7 @@
 # Dotflow - Code Snippets & Patterns
 
-**Version:** 1.0
-**Date:** 2026-04-09
+**Version:** 1.1
+**Date:** 2026-04-23
 **Purpose:** Reusable code patterns discovered during development
 
 ---
@@ -38,7 +38,34 @@ When implementing similar functionality, check here first to maintain consistenc
 
 ## 4. Testing Patterns
 
-*To be populated during development.*
+### 4.1 Vitest + jest-dom Setup (US-001)
+
+`@testing-library/jest-dom` v6 does not auto-extend Vitest's `expect`. Use the explicit pattern:
+
+```typescript
+// src/__tests__/setup.ts
+import { expect } from 'vitest'
+import * as matchers from '@testing-library/jest-dom/matchers'
+expect.extend(matchers)
+```
+
+Register in `vite.config.ts` using `vitest/config` import (required for test type support):
+
+```typescript
+// vite.config.ts
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/__tests__/setup.ts'],
+  },
+})
+```
+
+**Why `vitest/config` not `vite`:** The `vitest/config` export includes the `test` field in the TypeScript types. Using `vite`'s `defineConfig` causes TS errors on the `test` property.
 
 ---
 
@@ -52,7 +79,7 @@ When implementing similar functionality, check here first to maintain consistenc
 
 | Category | Pattern | Section |
 |----------|---------|---------|
-| — | — | — |
+| Testing | Vitest + jest-dom setup (explicit extend) | 4.1 |
 
 ---
 
