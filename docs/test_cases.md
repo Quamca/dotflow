@@ -1,7 +1,7 @@
 # Dotflow - Test Cases Documentation
 
-**Version:** 1.0
-**Date:** 2026-04-09
+**Version:** 1.1
+**Date:** 2026-04-23
 **Author:** QA Agent
 **Test Framework:** Vitest + React Testing Library
 
@@ -80,6 +80,31 @@ export const mockEntry = {
 ---
 
 ## 3. Test Cases by Feature
+
+## 3.0 FEATURE: Project Setup & Infrastructure
+
+### TC-000: Vitest framework initializes and runs
+
+**Related US:** US-001
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- Vitest configured in vite.config.ts
+- `@testing-library/jest-dom` matchers extended in setup.ts
+
+**Test Steps:**
+1. Run `npm test`
+
+**Expected Result:**
+- Test suite runs without errors
+- `expect` extended with jest-dom matchers
+- All tests pass
+
+**File:** `src/__tests__/setup.test.ts`
+**Status:** ✅ Done
+
+---
 
 ## 3.1 FEATURE: Settings — API Key Management
 
