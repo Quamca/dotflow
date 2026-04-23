@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-04-23
 **Author:** Solution Architect
-**Status:** Updated after US-003
+**Status:** Updated after US-004
 
 ---
 
@@ -104,7 +104,7 @@ erDiagram
 |---------|---------|--------|---------------|
 | @supabase/supabase-js | Supabase client | ✅ Installed (^2.104.0) | https://supabase.com/docs/reference/javascript |
 | openai | OpenAI SDK | 📋 Planned | https://platform.openai.com/docs |
-| react-router-dom | Client-side routing | 📋 Planned | https://reactrouter.com |
+| react-router-dom | Client-side routing | ✅ Installed (^7.14.2) | https://reactrouter.com |
 | date-fns | Date formatting | 📋 Planned | https://date-fns.org |
 | vitest | Unit testing | ✅ Installed (^2.1.3) | https://vitest.dev |
 | @testing-library/react | Component testing | ✅ Installed (^16.0.0) | https://testing-library.com/react |
@@ -122,13 +122,13 @@ dotflow/
 │   │   ├── EntryCard/
 │   │   ├── FollowUpDialog/
 │   │   └── ConnectionBadge/
-│   ├── pages/               # Route-level components (planned)
-│   │   ├── HomePage.tsx
-│   │   └── SettingsPage.tsx
-│   ├── hooks/               # Custom React hooks (planned)
-│   │   ├── useEntries.ts
-│   │   ├── useSettings.ts
-│   │   └── useAI.ts
+│   ├── pages/               # Route-level components
+│   │   ├── HomePage.tsx     # Home screen with entry list + warning banner (US-004)
+│   │   └── SettingsPage.tsx # API key management screen (US-004)
+│   ├── hooks/               # Custom React hooks
+│   │   ├── useSettings.ts   # localStorage API key management (US-004)
+│   │   ├── useEntries.ts    # (planned)
+│   │   └── useAI.ts         # (planned)
 │   ├── lib/                 # Third-party client initializations
 │   │   └── supabase.ts      # Supabase client (US-002)
 │   ├── services/            # External API integrations
@@ -139,9 +139,18 @@ dotflow/
 │   ├── utils/               # Pure utility functions (planned)
 │   │   └── prompts.ts       # AI prompt templates
 │   ├── __tests__/           # Tests mirror source structure
-│   │   ├── setup.ts         # Vitest + jest-dom setup
-│   │   └── setup.test.ts    # TC-000: framework smoke test
-│   ├── App.tsx              # Root component (minimal, US-001)
+│   │   ├── setup.ts         # Vitest + jest-dom + RTL cleanup setup
+│   │   ├── setup.test.ts    # TC-000: framework smoke test
+│   │   ├── hooks/
+│   │   │   └── useSettings.test.ts   # TC-019–022 (US-004)
+│   │   ├── pages/
+│   │   │   ├── HomePage.test.tsx     # TC-002, TC-024 (US-004)
+│   │   │   └── SettingsPage.test.tsx # TC-001, TC-023 (US-004)
+│   │   ├── services/
+│   │   │   └── entryService.test.ts  # TC-012–018 (US-002)
+│   │   └── utils/
+│   │       └── testHelpers.tsx       # renderWithRouter helper
+│   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004)
 │   ├── index.css            # Tailwind directives
 │   ├── main.tsx
 │   └── vite-env.d.ts
