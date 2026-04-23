@@ -1,5 +1,14 @@
-function App() {
-  return <div className="text-blue-500 text-2xl font-bold p-8">Dotflow</div>
-}
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import HomePage from './pages/HomePage'
+import SettingsPage from './pages/SettingsPage'
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+      </Routes>
+    </BrowserRouter>
+  )
+}
