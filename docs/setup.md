@@ -313,6 +313,7 @@ git branch -d 1-setup-project
 | eslint | ^9.13.0 | US-001 |
 | prettier | ^3.3.3 | US-001 |
 | @supabase/supabase-js | ^2.104.0 | US-002 |
+| react-router-dom | ^7.14.2 | US-004 |
 
 ---
 
@@ -341,6 +342,24 @@ git branch -d 1-setup-project
 node --version
 npm cache clean --force
 npm install
+```
+
+---
+
+### Issue: RTL DOM not cleaned up between tests in Vitest
+
+**Symptoms:** Component tests fail when run together — DOM from previous test bleeds into the next
+
+**Cause:** RTL's auto-cleanup relies on `afterEach` in a global scope. Vitest does not enable globals by default, so the auto-cleanup hook never registers.
+
+**Solution:** Explicitly call `cleanup` in `src/__tests__/setup.ts`:
+
+```typescript
+import { expect, afterEach } from 'vitest'
+import * as matchers from '@testing-library/jest-dom/matchers'
+import { cleanup } from '@testing-library/react'
+expect.extend(matchers)
+afterEach(cleanup)
 ```
 
 ---

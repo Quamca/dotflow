@@ -2,7 +2,7 @@
 
 **Project:** Dotflow
 **Version:** 1.0
-**Last Updated:** 2026-04-23 (US-003)
+**Last Updated:** 2026-04-23 (US-004)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -220,7 +220,7 @@ Unlocks all AI features. Without this, the app is just a plain journal. The setu
 - **Excludes:** Any other settings (reserved for future)
 
 **Priority:** P0 (Critical)
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
 ---
 
@@ -233,27 +233,27 @@ Create the Settings screen that allows the user to enter, save, and clear their 
 **I want to** enter my OpenAI API key in Settings
 **So that** AI follow-up questions are enabled when I write entries
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 **Story Points:** 3
 **Priority:** P0
 
 **Acceptance Criteria:**
-- [ ] Settings screen accessible via ⚙ icon from Home
-- [ ] User can type and save an API key
-- [ ] Saved key is displayed masked: `sk-...xxxx` (last 4 chars visible)
-- [ ] User can clear the saved key
-- [ ] Key persists after page refresh (localStorage)
-- [ ] Warning banner on Home screen when no key is set
-- [ ] Info text: "Your key is stored locally on this device only"
+- [x] Settings screen accessible via ⚙ icon from Home
+- [x] User can type and save an API key
+- [x] Saved key is displayed masked: `sk-...xxxx` (last 4 chars visible)
+- [x] User can clear the saved key
+- [x] Key persists after page refresh (localStorage)
+- [x] Warning banner on Home screen when no key is set
+- [x] Info text: "Your key is stored locally on this device only"
 
 **Tasks:**
-- [ ] **TASK-004.1:** Create `src/hooks/useSettings.ts` with get/set/clear API key - 30min
-- [ ] **TASK-004.2:** Create `src/pages/SettingsPage.tsx` with key input form - 45min
-- [ ] **TASK-004.3:** Add masked display logic (show `sk-...xxxx`) - 20min
-- [ ] **TASK-004.4:** Add warning banner component to HomePage - 20min
-- [ ] **TASK-004.5:** Add routing: Home ↔ Settings via ⚙ icon - 20min
-- [ ] **TASK-004.6:** Write tests for useSettings hook and warning banner (/qa) - 45min
-- [ ] **TASK-004.7:** Manual verification - 15min
+- [x] **TASK-004.1:** Create `src/hooks/useSettings.ts` with get/set/clear API key - 30min
+- [x] **TASK-004.2:** Create `src/pages/SettingsPage.tsx` with key input form - 45min
+- [x] **TASK-004.3:** Add masked display logic (show `sk-...xxxx`) - 20min
+- [x] **TASK-004.4:** Add warning banner component to HomePage - 20min
+- [x] **TASK-004.5:** Add routing: Home ↔ Settings via ⚙ icon - 20min
+- [x] **TASK-004.6:** Write tests for useSettings hook and warning banner (/qa) - 45min
+- [x] **TASK-004.7:** Manual verification - 15min
 
 ---
 

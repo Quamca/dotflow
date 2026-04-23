@@ -1,42 +1,53 @@
-# Current Task — US-003: Set up GitHub Actions CI pipeline
+# Current Task — US-004: Settings screen with API key management
 
-**Branch:** 3-github-actions-ci
+**Branch:** 4-settings-api-key
 **Created:** 2026-04-23
 **Status:** 🔄 In Progress
 
 ## Context
-Project infrastructure and database layer are done (US-001, US-002 complete). This US adds automated quality gates: a GitHub Actions workflow that runs lint + test + build on every PR to main. After this US no broken code can be merged to main without the developer noticing — CI will block the PR.
+Infrastructure is complete (US-001–003 done). This is the first user-facing feature. It creates the Settings screen where the user enters their OpenAI API key, stored in localStorage. A warning banner on Home nudges the user to set up the key. Without this, AI features cannot be enabled.
 
 ## Files to Read First
-- docs/architecture.md (section 9 — Deployment Architecture diagram)
-- package.json (to know the exact npm scripts: lint, test, build)
+- docs/wireframes.md (S-001 Home, S-005 Settings — layout and elements)
+- docs/architecture.md (section 1 — Settings Hook in diagram, section 4 — folder structure)
+- docs/design_brief.md (color system, button styles, input field styles)
+- src/App.tsx (current state — needs routing added)
 
 ## Tasks
-1. [ ] **TASK-003.1:** Create `.github/workflows/ci.yml` — Node 20, `npm ci`, then `npm run lint`, `npm test`, `npm run build` in sequence
-2. [ ] **TASK-003.2:** Push branch, open PR to main, verify workflow triggers and passes
-3. [ ] **TASK-003.3:** Enable required status check in GitHub → Settings → Branches → main protection rule (add `ci` check as required)
-4. [ ] **TASK-003.4:** Manual verification — intentionally break lint locally, push, confirm PR is blocked
+1. [ ] **TASK-004.1:** Install `react-router-dom` — `npm install react-router-dom` + install types `npm install -D @types/react-router-dom`
+2. [ ] **TASK-004.2:** Create `src/hooks/useSettings.ts` — get/set/clear API key in localStorage, return `{ apiKey, saveApiKey, clearApiKey }` — typed, no `any`
+3. [ ] **TASK-004.3:** Create `src/pages/SettingsPage.tsx` — API key input form with Save and Clear buttons, masked display (`sk-...xxxx`) after saving, info text "Your key is stored locally on this device only"
+4. [ ] **TASK-004.4:** Create `src/pages/HomePage.tsx` — minimal home page with warning banner (when no API key) and ⚙ icon linking to Settings
+5. [ ] **TASK-004.5:** Update `src/App.tsx` — add BrowserRouter + routes: `/` → HomePage, `/settings` → SettingsPage
+6. [ ] **TASK-004.6 (/qa):** Write tests for `useSettings` hook (save, clear, persist) and warning banner visibility
 
 ## Constraints
-- Use `npm ci` (not `npm install`) for reproducible installs in CI
-- Node version: 20 (matches local dev setup from docs/setup.md)
-- Workflow must trigger on: `pull_request` targeting `main`
-- No secrets needed — no Supabase/OpenAI keys required for lint + test + build
-- Tests use Vitest with jsdom — no browser or network needed
+- API key access ONLY through `useSettings` hook — never read localStorage directly in components
+- Masked display formula: `sk-...` + last 4 chars of key (e.g. `sk-...Ab3x`)
+- No `any` types — key is `string | null`
+- react-router-dom: use `<Link>` and `useNavigate` for navigation
+- Max 300 lines per file, max 50 lines per function
+- Follow design_brief.md color system (Ink `#1C1917`, Cream `#FAFAF9`, Amber `#D97706`)
 
-## Acceptance Criteria (from BACKLOG.md)
-- [ ] `.github/workflows/ci.yml` exists and runs on PR to main
-- [ ] Workflow runs: `npm run lint`, `npm test`, `npm run build`
-- [ ] Failing any step fails the workflow
-- [ ] Branch protection on main requires this check to pass
-- [ ] Workflow completes in under 3 minutes
+## Acceptance Criteria
+- [ ] Settings screen accessible via ⚙ icon from Home
+- [ ] User can type and save an API key
+- [ ] Saved key is displayed masked: `sk-...xxxx` (last 4 chars visible)
+- [ ] User can clear the saved key
+- [ ] Key persists after page refresh (localStorage)
+- [ ] Warning banner on Home screen when no key is set
+- [ ] Info text: "Your key is stored locally on this device only"
 
 ## After Implementation
 - [ ] Run: `npm run lint`
 - [ ] Run: `npm test`
 - [ ] Manual verification steps:
-  1. Otwórz PR na GitHubie — sprawdź że pojawia się check "CI" z żółtą kółką
-  2. Poczekaj na zakończenie — sprawdź że wszystkie 3 kroki (lint, test, build) są zielone
-  3. Wejdź w GitHub → Settings → Branches → main — sprawdź że "ci" jest jako required status check
-  4. (Opcjonalne) Wprowadź błąd lintingu, push, sprawdź że PR jest zablokowany
+  1. Uruchom `npm run dev` — otwórz http://localhost:5173
+  2. Sprawdź że widać baner "Add your API key in Settings" na Home
+  3. Kliknij ⚙ — sprawdź że przechodzi do /settings
+  4. Wpisz dowolny klucz (np. `sk-testkey1234`) i kliknij Save
+  5. Sprawdź że klucz jest zamaskowany (`sk-...1234`)
+  6. Odśwież stronę — sprawdź że klucz nadal jest widoczny
+  7. Wróć na Home — sprawdź że baner NIE jest widoczny
+  8. Kliknij Clear — sprawdź że klucz znika i baner wraca na Home
 - [ ] Potwierdź weryfikację wpisując "weryfikacja OK" lub "1"

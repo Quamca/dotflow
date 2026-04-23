@@ -1,6 +1,6 @@
 # Dotflow - Test Cases Documentation
 
-**Version:** 1.2
+**Version:** 1.3
 **Date:** 2026-04-23
 **Author:** QA Agent
 **Test Framework:** Vitest + React Testing Library
@@ -251,7 +251,7 @@ export const mockEntry = {
 
 ### TC-001: User can save API key
 
-**Related US:** US-003
+**Related US:** US-004
 **Type:** Component
 **Priority:** Critical
 
@@ -269,13 +269,14 @@ export const mockEntry = {
 - Key stored in localStorage
 - Input shows masked key (`sk-...xxxx`)
 
-**Status:** 📋 Planned
+**File:** `src/__tests__/pages/SettingsPage.test.tsx`
+**Status:** ✅ Done
 
 ---
 
 ### TC-002: App shows warning when API key missing
 
-**Related US:** US-003
+**Related US:** US-004
 **Type:** Component
 **Priority:** Critical
 
@@ -289,7 +290,136 @@ export const mockEntry = {
 **Expected Result:**
 - Warning banner visible: "Add your API key in Settings"
 
-**Status:** 📋 Planned
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-019: useSettings returns null when no key stored
+
+**Related US:** US-004
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- localStorage is empty
+
+**Test Steps:**
+1. Render `useSettings` hook via `renderHook`
+
+**Expected Result:**
+- `apiKey` is `null`
+
+**File:** `src/__tests__/hooks/useSettings.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-020: useSettings initializes with existing key from localStorage
+
+**Related US:** US-004
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- `dotflow_openai_api_key` set in localStorage before render
+
+**Test Steps:**
+1. Set localStorage key
+2. Render `useSettings` hook
+
+**Expected Result:**
+- `apiKey` equals the stored key
+
+**File:** `src/__tests__/hooks/useSettings.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-021: useSettings saves key to localStorage when saveApiKey called
+
+**Related US:** US-004
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- localStorage is empty
+
+**Test Steps:**
+1. Render `useSettings` hook
+2. Call `saveApiKey('sk-testkey1234')`
+
+**Expected Result:**
+- `apiKey` state updated
+- localStorage contains the key
+
+**File:** `src/__tests__/hooks/useSettings.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-022: useSettings clears key from localStorage when clearApiKey called
+
+**Related US:** US-004
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- localStorage contains API key
+
+**Test Steps:**
+1. Render `useSettings` hook
+2. Call `clearApiKey()`
+
+**Expected Result:**
+- `apiKey` is `null`
+- localStorage key removed
+
+**File:** `src/__tests__/hooks/useSettings.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-023: Settings page shows input field after clearing key
+
+**Related US:** US-004
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- localStorage contains API key
+
+**Test Steps:**
+1. Render SettingsPage (shows masked key + Clear button)
+2. Click Clear
+
+**Expected Result:**
+- Input field reappears
+- localStorage key removed
+
+**File:** `src/__tests__/pages/SettingsPage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-024: App does not show warning banner when API key is set
+
+**Related US:** US-004
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- localStorage contains API key
+
+**Test Steps:**
+1. Set localStorage key
+2. Render HomePage
+
+**Expected Result:**
+- Warning banner NOT present in DOM
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
 
 ---
 

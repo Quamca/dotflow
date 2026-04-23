@@ -67,11 +67,54 @@ export default defineConfig({
 
 **Why `vitest/config` not `vite`:** The `vitest/config` export includes the `test` field in the TypeScript types. Using `vite`'s `defineConfig` causes TS errors on the `test` property.
 
+### 4.2 RTL Cleanup in Vitest (US-004)
+
+Vitest does not enable globals by default, so RTL's auto-cleanup `afterEach` never registers. Without this, component tests bleed DOM state into each other. Always add explicit cleanup to the setup file:
+
+```typescript
+// src/__tests__/setup.ts
+import { expect, afterEach } from 'vitest'
+import * as matchers from '@testing-library/jest-dom/matchers'
+import { cleanup } from '@testing-library/react'
+
+expect.extend(matchers)
+afterEach(cleanup)
+```
+
 ---
 
 ## 5. React Hook Patterns
 
-*To be populated during development.*
+### 5.1 localStorage Hook with Lazy Initializer (US-004)
+
+Pattern for hooks that read from localStorage on mount without triggering unnecessary re-renders. Pass a function to `useState` (lazy initializer) — it runs once on mount, not on every render:
+
+```typescript
+// src/hooks/useSettings.ts
+import { useState } from 'react'
+
+const API_KEY_STORAGE_KEY = 'dotflow_openai_api_key'
+
+export function useSettings() {
+  const [apiKey, setApiKey] = useState<string | null>(
+    () => localStorage.getItem(API_KEY_STORAGE_KEY)
+  )
+
+  function saveApiKey(key: string) {
+    localStorage.setItem(API_KEY_STORAGE_KEY, key)
+    setApiKey(key)
+  }
+
+  function clearApiKey() {
+    localStorage.removeItem(API_KEY_STORAGE_KEY)
+    setApiKey(null)
+  }
+
+  return { apiKey, saveApiKey, clearApiKey }
+}
+```
+
+**When to use:** Any hook that needs to sync state with localStorage on mount.
 
 ---
 
@@ -115,8 +158,10 @@ vi.mocked(supabase.from).mockReturnValue({
 | Category | Pattern | Section |
 |----------|---------|---------|
 | Testing | Vitest + jest-dom setup (explicit extend) | 4.1 |
+| Testing | RTL cleanup in Vitest (explicit afterEach) | 4.2 |
 | Supabase | Client initialization pattern | 2.1 |
 | Supabase | Mocking chained calls in tests | 2.2 |
+| React Hooks | localStorage hook with lazy initializer | 5.1 |
 
 ---
 

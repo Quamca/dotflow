@@ -98,7 +98,7 @@ The user must be able to enter and save their OpenAI API key. Without it, AI fea
 - If no key is set, AI features show "Add your API key in Settings" message
 - Key is never displayed in full after saving (show masked: `sk-...xxxx`)
 
-**Related User Stories:** US-003
+**Related User Stories:** US-004
 
 ---
 
