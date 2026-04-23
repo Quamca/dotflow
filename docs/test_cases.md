@@ -1,6 +1,6 @@
 # Dotflow - Test Cases Documentation
 
-**Version:** 1.5
+**Version:** 1.6
 **Date:** 2026-04-23
 **Author:** QA Agent
 **Test Framework:** Vitest + React Testing Library
@@ -543,7 +543,7 @@ export const mockEntry = {
 **Priority:** Critical
 
 **Preconditions:**
-- Supabase getEntries mocked to return one entry
+- `getEntries` mocked to return one entry
 
 **Test Steps:**
 1. Render HomePage
@@ -551,9 +551,9 @@ export const mockEntry = {
 
 **Expected Result:**
 - Entry card visible with correct content
-- Date formatted correctly
 
-**Status:** 📋 Planned
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
 
 ---
 
@@ -779,36 +779,143 @@ export const mockEntry = {
 **Priority:** High
 
 **Preconditions:**
-- Supabase getEntries mocked to return empty array
+- `getEntries` mocked to return empty array
 
 **Test Steps:**
 1. Render HomePage
 
 **Expected Result:**
-- Empty state visible with CTA to write first entry
-- No entry cards visible
+- Empty state text visible: "Your story starts here"
 
-**Status:** 📋 Planned
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
 
 ---
 
-### TC-011: Entries sorted newest first
+### TC-011: Error message shown when loading entries fails
 
 **Related US:** US-007
 **Type:** Component
-**Priority:** Medium
+**Priority:** High
 
 **Preconditions:**
-- Supabase mocked to return 2 entries with different dates
+- `getEntries` mocked to reject with an error
 
 **Test Steps:**
 1. Render HomePage
-2. Check order of entry cards
 
 **Expected Result:**
-- Newest entry appears first
+- Error message "Failed to load entries..." visible
 
-**Status:** 📋 Planned
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-035: EntryCard displays content, date, and emotion tags
+
+**Related US:** US-007
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- Entry with content, emotions, and created_at date provided as props
+
+**Test Steps:**
+1. Render EntryCard with mockEntry
+
+**Expected Result:**
+- Content text visible
+- Formatted date visible (e.g. "April 15, 2026")
+- Emotion tag badges visible
+
+**File:** `src/__tests__/components/EntryCard/EntryCard.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-036: EntryCard calls onClick when clicked
+
+**Related US:** US-007
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `onClick` mock function provided
+
+**Test Steps:**
+1. Click the EntryCard button
+
+**Expected Result:**
+- `onClick` called once
+
+**File:** `src/__tests__/components/EntryCard/EntryCard.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-037: EntryDetailPage shows entry content and answered follow-ups
+
+**Related US:** US-007
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `getEntryById` mocked to return entry with 1 answered and 1 skipped follow-up
+
+**Test Steps:**
+1. Render EntryDetailPage at `/entry/uuid-1`
+2. Wait for content to load
+
+**Expected Result:**
+- Entry content visible
+- Answered follow-up question and answer visible
+- Skipped follow-up (null answer) NOT visible
+
+**File:** `src/__tests__/pages/EntryDetailPage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-038: EntryDetailPage shows error when entry not found
+
+**Related US:** US-007
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- `getEntryById` mocked to reject
+
+**Test Steps:**
+1. Render EntryDetailPage with non-existent id
+
+**Expected Result:**
+- Error message "Entry not found" visible
+
+**File:** `src/__tests__/pages/EntryDetailPage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-039: EntryDetailPage navigates to Home when Back is clicked
+
+**Related US:** US-007
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- `getEntryById` mocked to return entry
+- `useNavigate` mocked
+
+**Test Steps:**
+1. Wait for entry to load
+2. Click "← Back" button
+
+**Expected Result:**
+- `navigate('/')` called
+
+**File:** `src/__tests__/pages/EntryDetailPage.test.tsx`
+**Status:** ✅ Done
 
 ---
 
