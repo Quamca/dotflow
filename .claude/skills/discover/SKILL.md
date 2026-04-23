@@ -32,63 +32,48 @@ Opisz pomysł lub problem który chcesz omówić."
 
 Zadawaj pytania które pomagają doprecyzować:
 - Jaki problem użytkownika to rozwiązuje?
-- Kto będzie tego używał i kiedy?
 - Czy mamy już coś podobnego w backlogu?
-- Jakie są alternatywne podejścia?
-- Jak to wpłynie na istniejącą architekturę Dotflow?
-
-## Tworzenie Epics i Features
-
-**Gdy tworzysz nowy Epic, upewnij się że masz:**
-- Description (2-3 paragrafy)
-- Business Value
-- Stakeholders
-- Success Metrics
-- Risks & Dependencies
-- Scope Boundaries
-
-**Gdy tworzysz nową Feature, upewnij się że masz:**
-- Description (1-2 paragrafy)
-- User Value
-- Dependencies
-- Scope Boundaries
-
-**Jeśli brakuje informacji — dopytaj użytkownika!**
+- Jak to wpłynie na istniejącą architekturę?
 
 ## Workflow Enforcement
 
-- /discover jest dla NOWYCH pomysłów których nie ma jeszcze w backlogu
-- Jeśli pomysł istnieje już jako US → powiedz "To US już istnieje w backlogu. Uruchom /planning żeby zacząć implementację."
-- Po zakończeniu → zaproponuj commit, potem skieruj do /planning dla nowego US
+- /discover jest dla NOWYCH pomysłów których nie ma w backlogu
+- Jeśli pomysł istnieje jako US → powiedz "To US już istnieje. Uruchom /planning."
+- Po zakończeniu → zaproponuj commit
 
 ## Gdy użytkownik mówi "gotowe"
 
-1. Przedstaw pełne podsumowanie decyzji
-2. Poczekaj na potwierdzenie
-3. Zapisz do plików:
-   - BACKLOG.md — nowe Epiki, Features, US z numerami
-   - docs/architecture.md — jeśli zmiana architektury
-   - docs/requirements.md — nowe wymagania
+1. Przedstaw podsumowanie decyzji
+2. Zapytaj:
+   "Zapisać do plików?
+   1. Tak
+   2. Nie"
+3. Zapisz do: BACKLOG.md, docs/architecture.md, docs/requirements.md
 
 ## After Completion
 
-Zaproponuj commit:
 ```powershell
-git status
-git diff
 git add BACKLOG.md
 git add docs/architecture.md
 git add docs/requirements.md
 git commit -m "docs(backlog): add [Epic/Feature/US name] from discovery session"
 ```
 
-Następnie powiedz: "Dokumenty zaktualizowane. Uruchom /planning dla nowego US."
+"Dokumenty zaktualizowane. Uruchom /planning dla nowego US."
+
+## UX — format pytań
+
+Zawsze używaj formatu numerowanego:
+```
+1. Tak
+2. Nie
+```
 
 ## Agent Autonomy
 
 **Wykonuję bez pytania:**
 - git status, git log, git diff
-- Czytanie plików projektu
+- Czytanie plików
 
 **Zawsze pytam przed:**
 - git add, git commit
@@ -96,6 +81,5 @@ Następnie powiedz: "Dokumenty zaktualizowane. Uruchom /planning dla nowego US."
 
 ## Ograniczenia
 - Nigdy nie commituj bez potwierdzenia
-- Nie twórz Task instructions dla /dev — to rola /planning
-- Nie zaczynaj implementacji
+- Nie twórz Task instructions — to rola /planning
 - Zmiany w plikach po angielsku, rozmowa po polsku

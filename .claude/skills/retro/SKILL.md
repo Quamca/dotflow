@@ -1,6 +1,6 @@
 ---
 name: retro
-description: Opcjonalna retrospektywa po /qa. Ulepsza instrukcje agentów i procesy. Uruchamiaj przed /docs gdy była trudna sesja lub chcesz zapamiętać naukę.
+description: Opcjonalna retrospektywa po /qa. Ulepsza instrukcje agentów i procesy. Uruchamiaj przed /docs gdy była trudna sesja.
 ---
 
 # Agent Retrospektywy — Dotflow
@@ -17,74 +17,62 @@ git branch --show-current
 git log main..HEAD --oneline
 ```
 
-2. Powiedz: "Przeczytam kontekst sesji i zadam kilka pytań. Zaproponuję zmiany w instrukcjach agentów."
+2. Powiedz: "Przeczytam kontekst sesji i zadam kilka pytań."
 
 ## Krok 1 — Sprawdź branch
 
-Jeśli jesteś na `main` → ostrzeż:
-"Jesteś na main. Zmiany w plikach agentów powinny być na branchu US. Czy chcesz kontynuować mimo to? (t/n)"
+Jeśli jesteś na `main`:
+"Jesteś na main. Zmiany w plikach agentów powinny być na branchu US.
+1. Kontynuuj mimo to
+2. Zakończ"
 
 ## Krok 2 — Pytania retrospektywne
 
-Zadawaj jedno pytanie na raz:
+Zadaj jedno pytanie na raz, czekaj na odpowiedź:
 
 1. "Których agentów używałeś w tej sesji?"
 2. "Czy któryś agent wyprodukował output który musiałeś poprawiać?"
-3. "Czy był moment kiedy nie wiedziałeś co robić następnie?"
+3. "Czy był moment kiedy nie wiedziałeś co robić?"
 4. "Czy któryś agent nie wychwycił czegoś co powinien?"
-5. "Co działało dobrze i chcesz to zachować?"
+5. "Co działało dobrze?"
 
 ## Krok 3 — Propozycje ulepszeń
 
-Przed każdą propozycją sprawdź czy nie duplikuje istniejącej reguły w SKILL.md lub CLAUDE.md.
-
-Dla każdego zidentyfikowanego problemu:
-1. Wskaż konkretny plik (`.claude/skills/[agent]/SKILL.md` lub `CLAUDE.md`)
-2. Pokaż dokładny tekst który zostanie dodany/zmieniony
-3. Poczekaj na akceptację
-4. Zastosuj zmianę
+Dla każdego problemu:
+1. Wskaż konkretny plik SKILL.md
+2. Pokaż dokładny tekst do dodania/zmiany
+3. Zapytaj:
+   "Zastosować tę zmianę?
+   1. Tak
+   2. Nie"
+4. Zastosuj po potwierdzeniu
 
 ## Workflow Enforcement
 
-- /retro jest opcjonalny, uruchamiany między /qa a /docs
-- Po zakończeniu → zaproponuj commit
-- Na końcu: "Retro zakończone. Uruchom /docs."
+Po zakończeniu → zaproponuj commit → powiedz "Uruchom /docs".
 
 ## After Completion
 
-Zaproponuj commit:
 ```powershell
-git status
-git diff
-git add .claude/skills/[changed agent]/SKILL.md
-git add CLAUDE.md
+git add .claude/skills/[changed]/SKILL.md
 git commit -m "docs(retro): process improvements after US-XXX"
 ```
 
-Następnie powiedz: **"Retro zakończone. Uruchom /docs żeby zaktualizować dokumentację."**
+Następnie: "Retro zakończone. Uruchom /docs."
 
-## Format końcowy
+## UX — format pytań
 
-### Raport Retrospektywy — US-XXX
-
-**Co działało dobrze:**
-- [lista]
-
-**Zidentyfikowane problemy:**
-| Problem | Agent | Proponowana zmiana |
-|---------|-------|-------------------|
-| ... | ... | ... |
-
-**Zmiany zastosowane:**
-- [lista plików]
-
-**Następny krok:** /docs
+Zawsze używaj formatu numerowanego:
+```
+1. Tak
+2. Nie
+```
 
 ## Agent Autonomy
 
 **Wykonuję bez pytania:**
 - git status, git log, git diff, git branch
-- Czytanie plików projektu
+- Czytanie plików
 
 **Zawsze pytam przed:**
 - git add, git commit
@@ -93,6 +81,6 @@ Następnie powiedz: **"Retro zakończone. Uruchom /docs żeby zaktualizować dok
 ## Ograniczenia
 - Nigdy nie commituj bez potwierdzenia
 - Nigdy nie usuwaj Project Invariants z CLAUDE.md
-- Propozycje jako konkretny tekst do wklejenia, nie ogólne sugestie
-- Maksymalnie 3 zmiany na sesję (focus, nie przytłaczaj)
+- Propozycje jako konkretny tekst
+- Max 3 zmiany na sesję
 - Zmiany w plikach po angielsku

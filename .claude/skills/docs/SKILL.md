@@ -36,46 +36,37 @@ git log main..HEAD --oneline
 
 ## Update if affected
 
-- `docs/architecture.md` — new components, services, data flows, new dependencies
-- `docs/requirements.md` — new requirements discovered during implementation
-- `docs/code_snippets.md` — new reusable patterns found during development
-- `docs/wireframes.md` — UI changed from wireframe spec
-- `docs/setup.md` — new setup steps, new dependencies, new environment variables
-- `docs/design_brief.md` — visual/UX decisions made during implementation
+- `docs/architecture.md` — new components, services, data flows
+- `docs/requirements.md` — new requirements discovered
+- `docs/code_snippets.md` — new reusable patterns
+- `docs/wireframes.md` — UI changed from wireframe
+- `docs/setup.md` — new setup steps, new dependencies, new env vars
+- `docs/design_brief.md` — visual/UX decisions
 
 ## Do NOT modify
 
-- `docs/test_cases.md` — owned by /qa agent
+- `docs/test_cases.md` — owned by /qa
 - `CLAUDE.md` — updated via /retro only
-- Any source code files
 
 ## Architectural impact check
 
-For every US check:
-- New npm packages installed? → document in `docs/setup.md` and `docs/architecture.md`
-- New files/folders created? → update architecture folder structure diagram
+For every US:
+- New npm packages? → document in `docs/setup.md` and `docs/architecture.md`
+- New files/folders? → update architecture folder structure
 - New environment variables? → update `docs/setup.md` and `.env.example`
-- Technical debt introduced? → flag in BACKLOG.md or README
+- Technical debt? → flag in BACKLOG.md
 - Project Invariant changed? → alert user immediately
 
 ## Commit message format
 
 `docs: update documentation for US-XXX (FileA, FileB, FileC)`
 
-List only files actually modified. Be explicit — do not write "and others".
+List only files actually modified.
 
-## Workflow Enforcement
-
-- /docs is the FINAL agent in the workflow
-- MUST show full closing sequence with PR description template
-- MUST remind about cleanup after merge
-
-## After Completion
+## After Completion — Full Closing Sequence
 
 ### Step 1 — Commit docs
 ```powershell
-git status
-git diff
 git add BACKLOG.md
 git add README.md
 git add docs/[changed files]
@@ -87,20 +78,18 @@ git commit -m "docs: update documentation for US-XXX (BACKLOG, README, [others])
 git push -u origin [branch-name]
 ```
 
-### Step 3 — Create Pull Request
+### Step 3 — Pull Request
 
-Provide this PR description template for the user to copy:
-
+Provide PR description template:
 ```
 Title: feat: US-XXX [short description]
 
 ## Summary
-[What changed and why — 2-3 sentences]
+[What changed and why]
 
 ## Changes
 - [Change 1]
 - [Change 2]
-- [Change 3]
 
 ## Testing
 - [x] npm run lint passes
@@ -108,40 +97,45 @@ Title: feat: US-XXX [short description]
 - [x] Manual verification completed
 
 ## Documentation
-- [x] BACKLOG.md updated (US marked complete)
+- [x] BACKLOG.md updated
 - [x] README.md updated
-- [x] Other docs updated as needed
 
 Closes #[issue_number]
 ```
 
-Say: "Copy the PR description above to GitHub. After creating the PR, merge to main."
+Say: "Skopiuj powyższy opis PR na GitHub i zatwierdź merge. Gdy PR zostanie zmergowany, wpisz '1' żebym wykonał cleanup."
 
-### Step 4 — Cleanup (AFTER merge)
+### Step 4 — Cleanup (automatyczny po potwierdzeniu merge)
 
-**Remind user about this step after they confirm the merge!**
+Zapytaj:
+"Czy PR został już zmergowany?
+1. Tak — wykonaj cleanup
+2. Nie — poczekam"
 
+Gdy użytkownik wybierze `1`, **automatycznie wykonaj**:
 ```powershell
 git checkout main
 git pull
 git branch -d [branch-name]
 ```
 
-## Output
+Potwierdź: "✅ Cleanup zakończony. Jesteś na main."
 
-### Docs Report
-- **US completed:** US-XXX
-- **Files updated:** [explicit list]
-- **Architectural impact:** none / [description]
-- **Technical debt:** none / [description]
-- **New dependencies:** none / [list]
+### Step 5 — Sugestia następnego US
 
-**⚠️ REMINDER after merge:** Run cleanup:
-```powershell
-git checkout main
-git pull
-git branch -d [branch-name]
+Po cleanup automatycznie zasugeruj:
+"✅ US-XXX zamknięty. Następny wg backlogu: **US-YYY — [tytuł]** (P0).
+1. Tak — uruchom /planning
+2. Nie — zakończ sesję"
+
+## UX — format pytań
+
+Zawsze używaj formatu numerowanego:
 ```
+1. Tak
+2. Nie
+```
+Użytkownik odpowiada cyfrą.
 
 ## Agent Autonomy
 
@@ -153,9 +147,14 @@ git branch -d [branch-name]
 - git add, git commit, git push
 - Modifying files
 
+**Execute automatically after user confirms (cyfra 1):**
+- git checkout main
+- git pull
+- git branch -d [branch]
+
 ## Constraints
 - Never commit without confirmation
 - Never modify CLAUDE.md
 - Never delete content — only update or append
 - Always provide full closing sequence
-- Always remind about cleanup after merge
+- Always suggest next US after cleanup
