@@ -297,11 +297,10 @@ Create the New Entry screen with a textarea and Save button. Submitting the entr
 - [ ] Loading state shown while saving
 - [ ] Entry saved to Supabase `entries` table
 - [ ] After save, user redirected to Home
-- [ ] New entry appears at top of entry list
 - [ ] Error state shown if save fails (content preserved)
 
 **Tasks:**
-- [ ] **TASK-005.1:** Implement `entryService.createEntry()` with Supabase INSERT - 30min
+- [x] **TASK-005.1:** Implement `entryService.createEntry()` with Supabase INSERT - 30min (done in US-002)
 - [ ] **TASK-005.2:** Create `src/pages/NewEntryPage.tsx` with textarea and Save button - 45min
 - [ ] **TASK-005.3:** Add disabled state logic (empty textarea) - 15min
 - [ ] **TASK-005.4:** Add loading state and error handling - 30min
