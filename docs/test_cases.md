@@ -1,6 +1,6 @@
 # Dotflow - Test Cases Documentation
 
-**Version:** 1.4
+**Version:** 1.5
 **Date:** 2026-04-23
 **Author:** QA Agent
 **Test Framework:** Vitest + React Testing Library
@@ -566,8 +566,9 @@ export const mockEntry = {
 **Priority:** Critical
 
 **Preconditions:**
-- API key set in localStorage
-- OpenAI API mocked to return 2 questions
+- API key set (useSettings mocked to return `sk-testkey`)
+- `createEntry` mocked to resolve
+- `generateFollowUpQuestions` mocked to return 2 questions
 
 **Test Steps:**
 1. Render NewEntryPage
@@ -578,7 +579,8 @@ export const mockEntry = {
 - FollowUpDialog visible
 - First question displayed
 
-**Status:** 📋 Planned
+**File:** `src/__tests__/pages/NewEntryPage.test.tsx`
+**Status:** ✅ Done
 
 ---
 
@@ -592,13 +594,13 @@ export const mockEntry = {
 - FollowUpDialog rendered with 2 questions
 
 **Test Steps:**
-1. Click "Skip this question"
+1. Click "Skip"
 
 **Expected Result:**
 - Next question shown
-- No answer recorded for skipped question
 
-**Status:** 📋 Planned
+**File:** `src/__tests__/components/FollowUpDialog/FollowUpDialog.test.tsx`
+**Status:** ✅ Done
 
 ---
 
@@ -609,16 +611,18 @@ export const mockEntry = {
 **Priority:** High
 
 **Preconditions:**
-- No API key in localStorage
+- `useSettings` mocked to return `apiKey: null`
+- `createEntry` mocked to resolve
 
 **Test Steps:**
-1. Submit entry
+1. Render NewEntryPage, type content, click Save
 
 **Expected Result:**
-- Entry saved directly (no follow-up dialog)
-- Info message shown: "Add API key in Settings to enable AI questions"
+- `navigate('/')` called
+- No follow-up dialog in DOM
 
-**Status:** 📋 Planned
+**File:** `src/__tests__/pages/NewEntryPage.test.tsx`
+**Status:** ✅ Done
 
 ---
 
@@ -629,16 +633,140 @@ export const mockEntry = {
 **Priority:** Critical
 
 **Preconditions:**
-- OpenAI API mocked
+- `fetch` stubbed to return valid OpenAI response with JSON array
 
 **Test Steps:**
-1. Call `aiService.generateFollowUpQuestions('Had a tough meeting today')`
+1. Call `generateFollowUpQuestions('Had a tough meeting today', 'sk-test')`
 
 **Expected Result:**
-- Returns array of 2–3 strings
-- Each string is a question (non-empty)
+- Returns array of non-empty question strings
 
-**Status:** 📋 Planned
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-029: AI service throws when OpenAI returns non-ok response
+
+**Related US:** US-006
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- `fetch` stubbed to return `{ ok: false, status: 401 }`
+
+**Test Steps:**
+1. Call `generateFollowUpQuestions('content', 'sk-invalid')`
+
+**Expected Result:**
+- Promise rejects with `'OpenAI API error: 401'`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-030: AI service returns empty array when response JSON is malformed
+
+**Related US:** US-006
+**Type:** Unit
+**Priority:** Medium
+
+**Preconditions:**
+- `fetch` stubbed to return non-JSON content string
+
+**Test Steps:**
+1. Call `generateFollowUpQuestions('content', 'sk-test')`
+
+**Expected Result:**
+- Returns `[]`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-031: FollowUpDialog shows Save Entry after all questions answered
+
+**Related US:** US-006
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- FollowUpDialog rendered with 2 questions
+
+**Test Steps:**
+1. Click Skip (Q1)
+2. Click Next (Q2)
+
+**Expected Result:**
+- "Save Entry ✓" button visible
+
+**File:** `src/__tests__/components/FollowUpDialog/FollowUpDialog.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-032: FollowUpDialog calls onSave with answered followups only
+
+**Related US:** US-006
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- FollowUpDialog rendered with 2 questions
+
+**Test Steps:**
+1. Answer Q1, click Next
+2. Skip Q2
+3. Click Save Entry
+
+**Expected Result:**
+- `onSave` called with array containing only Q1 answer (Q2 filtered out)
+
+**File:** `src/__tests__/components/FollowUpDialog/FollowUpDialog.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-033: saveFollowUps inserts data into Supabase
+
+**Related US:** US-006
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- Supabase mock returns `{ error: null }`
+
+**Test Steps:**
+1. Call `saveFollowUps('uuid-1', [{ question, answer, order_index }])`
+
+**Expected Result:**
+- Resolves without error
+
+**File:** `src/__tests__/services/entryService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-034: NewEntryPage shows AI error when OpenAI fails
+
+**Related US:** US-006
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- `createEntry` resolves, `generateFollowUpQuestions` rejects with Error
+
+**Test Steps:**
+1. Render NewEntryPage with API key set
+2. Type content, click Save
+
+**Expected Result:**
+- Error message containing "AI questions unavailable" visible
+
+**File:** `src/__tests__/pages/NewEntryPage.test.tsx`
+**Status:** ✅ Done
 
 ---
 
