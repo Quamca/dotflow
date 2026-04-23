@@ -36,4 +36,10 @@ describe('HomePage', () => {
 
     expect(screen.queryByText(/Add your API key in/i)).not.toBeInTheDocument()
   })
+
+  it('should show Write button on Home screen', () => {
+    renderHomePage()
+
+    expect(screen.getByRole('link', { name: /write/i })).toBeInTheDocument()
+  })
 })

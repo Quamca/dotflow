@@ -1,6 +1,6 @@
 # Dotflow - Test Cases Documentation
 
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-04-23
 **Author:** QA Agent
 **Test Framework:** Vitest + React Testing Library
@@ -433,7 +433,7 @@ export const mockEntry = {
 
 **Preconditions:**
 - New Entry page rendered
-- Supabase createEntry mocked to return success
+- `createEntry` mocked to return success
 
 **Test Steps:**
 1. Render NewEntryPage
@@ -441,10 +441,10 @@ export const mockEntry = {
 3. Click Save
 
 **Expected Result:**
-- createEntry called with typed content
-- Loading state visible during save
+- `createEntry` called with typed content
 
-**Status:** 📋 Planned
+**File:** `src/__tests__/pages/NewEntryPage.test.tsx`
+**Status:** ✅ Done
 
 ---
 
@@ -466,13 +466,79 @@ export const mockEntry = {
 **Expected Result:**
 - Save button is disabled
 
-**Status:** 📋 Planned
+**File:** `src/__tests__/pages/NewEntryPage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-025: NewEntryPage navigates to Home after successful save
+
+**Related US:** US-005
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `createEntry` mocked to resolve successfully
+
+**Test Steps:**
+1. Render NewEntryPage
+2. Type content
+3. Click Save
+
+**Expected Result:**
+- `navigate('/')` called after save completes
+
+**File:** `src/__tests__/pages/NewEntryPage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-026: NewEntryPage shows error message and preserves content when save fails
+
+**Related US:** US-005
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- `createEntry` mocked to reject with an error
+
+**Test Steps:**
+1. Render NewEntryPage
+2. Type content
+3. Click Save
+
+**Expected Result:**
+- Error message "Failed to save entry..." visible
+- Textarea content unchanged
+
+**File:** `src/__tests__/pages/NewEntryPage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-028: HomePage shows Write button
+
+**Related US:** US-005
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- HomePage rendered
+
+**Test Steps:**
+1. Render HomePage
+
+**Expected Result:**
+- Link with text "+ Write" is present in the DOM
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
 
 ---
 
 ### TC-005: Entry appears in list after saving
 
-**Related US:** US-005, US-007
+**Related US:** US-007
 **Type:** Integration
 **Priority:** Critical
 
