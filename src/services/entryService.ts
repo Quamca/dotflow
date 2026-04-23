@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import type { Entry, EntryWithFollowUps } from '../types'
+import type { Entry, EntryWithFollowUps, FollowUpInput } from '../types'
 
 export async function createEntry(content: string): Promise<Entry> {
   const { data, error } = await supabase
@@ -31,4 +31,21 @@ export async function getEntryById(id: string): Promise<EntryWithFollowUps> {
 
   if (error) throw new Error(error.message)
   return data as EntryWithFollowUps
+}
+
+export async function saveFollowUps(
+  entryId: string,
+  followups: FollowUpInput[]
+): Promise<void> {
+  if (followups.length === 0) return
+
+  const rows = followups.map((fu) => ({
+    entry_id: entryId,
+    question: fu.question,
+    answer: fu.answer,
+    order_index: fu.order_index,
+  }))
+
+  const { error } = await supabase.from('followups').insert(rows)
+  if (error) throw new Error(error.message)
 }

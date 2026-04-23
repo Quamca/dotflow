@@ -28,3 +28,9 @@ export interface Connection {
 export interface EntryWithFollowUps extends Entry {
   followups: FollowUp[]
 }
+
+export interface FollowUpInput {
+  question: string
+  answer: string | null
+  order_index: number
+}
