@@ -48,8 +48,12 @@ export default function NewEntryPage() {
         setIsLoading(false)
         return
       }
-    } catch {
-      // AI failed — entry already saved, navigate home silently
+      // AI returned empty array — entry saved, go home
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      setError(`Your entry was saved. AI questions unavailable: ${msg}`)
+      setIsLoading(false)
+      return
     }
 
     navigate('/')
