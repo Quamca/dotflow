@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 1.4
+**Version:** 1.5
 **Date:** 2026-04-23
 **Author:** Solution Architect
-**Status:** Updated after US-004
+**Status:** Updated after US-005
 
 ---
 
@@ -123,7 +123,8 @@ dotflow/
 │   │   ├── FollowUpDialog/
 │   │   └── ConnectionBadge/
 │   ├── pages/               # Route-level components
-│   │   ├── HomePage.tsx     # Home screen with entry list + warning banner (US-004)
+│   │   ├── HomePage.tsx     # Home screen with entry list + warning banner + Write button (US-004, US-005)
+│   │   ├── NewEntryPage.tsx # Entry writing screen with save, loading, error states (US-005)
 │   │   └── SettingsPage.tsx # API key management screen (US-004)
 │   ├── hooks/               # Custom React hooks
 │   │   ├── useSettings.ts   # localStorage API key management (US-004)
@@ -144,13 +145,14 @@ dotflow/
 │   │   ├── hooks/
 │   │   │   └── useSettings.test.ts   # TC-019–022 (US-004)
 │   │   ├── pages/
-│   │   │   ├── HomePage.test.tsx     # TC-002, TC-024 (US-004)
+│   │   │   ├── HomePage.test.tsx     # TC-002, TC-024, TC-028 (US-004, US-005)
+│   │   │   ├── NewEntryPage.test.tsx # TC-003, TC-004, TC-025, TC-026 (US-005)
 │   │   │   └── SettingsPage.test.tsx # TC-001, TC-023 (US-004)
 │   │   ├── services/
 │   │   │   └── entryService.test.ts  # TC-012–018 (US-002)
 │   │   └── utils/
 │   │       └── testHelpers.tsx       # renderWithRouter helper
-│   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004)
+│   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004, US-005)
 │   ├── index.css            # Tailwind directives
 │   ├── main.tsx
 │   └── vite-env.d.ts
