@@ -2,7 +2,7 @@
 
 **Project:** Dotflow
 **Version:** 1.0
-**Last Updated:** 2026-04-23
+**Last Updated:** 2026-04-23 (US-003)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -172,7 +172,7 @@ No direct user value — but gives the developer confidence that every merge to 
 - **Excludes:** Automatic deployment (handled by Vercel), preview environments
 
 **Priority:** P0 (Critical)
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
 ---
 
@@ -185,22 +185,22 @@ Create a GitHub Actions workflow that runs on every PR to main. The workflow exe
 **I want to** have automated quality checks on every PR
 **So that** I never accidentally merge broken code to main
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 **Story Points:** 2
 **Priority:** P0
 
 **Acceptance Criteria:**
-- [ ] `.github/workflows/ci.yml` exists and runs on PR to main
-- [ ] Workflow runs: `npm run lint`, `npm test`, `npm run build`
-- [ ] Failing any step fails the workflow
-- [ ] Branch protection on main requires this check to pass
-- [ ] Workflow completes in under 3 minutes
+- [x] `.github/workflows/ci.yml` exists and runs on PR to main
+- [x] Workflow runs: `npm run lint`, `npm test`, `npm run build`
+- [x] Failing any step fails the workflow
+- [x] Branch protection on main requires this check to pass
+- [x] Workflow completes in under 3 minutes
 
 **Tasks:**
-- [ ] **TASK-003.1:** Create `.github/workflows/ci.yml` with Node 20 + lint + test + build - 45min
-- [ ] **TASK-003.2:** Push to test branch, open PR, verify workflow runs - 15min
-- [ ] **TASK-003.3:** Enable required status check in GitHub branch protection settings - 15min
-- [ ] **TASK-003.4:** Manual verification (intentionally break lint, verify PR blocked) - 15min
+- [x] **TASK-003.1:** Create `.github/workflows/ci.yml` with Node 20 + lint + test + build - 45min
+- [x] **TASK-003.2:** Push to test branch, open PR, verify workflow runs - 15min
+- [x] **TASK-003.3:** Enable required status check in GitHub branch protection settings - 15min
+- [x] **TASK-003.4:** Manual verification (intentionally break lint, verify PR blocked) - 15min
 
 ---
 
