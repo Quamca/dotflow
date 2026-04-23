@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createEntry, getEntries, getEntryById } from '../../services/entryService'
+import { createEntry, getEntries, getEntryById, saveFollowUps } from '../../services/entryService'
 import { supabase } from '../../lib/supabase'
 import type { Entry, EntryWithFollowUps } from '../../types'
 
@@ -143,6 +143,47 @@ describe('entryService', () => {
 
       // Act & Assert
       await expect(getEntryById('non-existent-id')).rejects.toThrow('Entry not found')
+    })
+  })
+
+  describe('saveFollowUps', () => {
+    it('should insert followups to Supabase when called with data', async () => {
+      // Arrange
+      vi.mocked(supabase.from).mockReturnValue({
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      } as unknown as ReturnType<typeof supabase.from>)
+
+      // Act & Assert
+      await expect(
+        saveFollowUps('uuid-1', [
+          { question: 'How did you feel?', answer: 'Frustrated.', order_index: 0 },
+        ])
+      ).resolves.toBeUndefined()
+    })
+
+    it('should do nothing when called with empty array', async () => {
+      // Arrange
+      const fromSpy = vi.mocked(supabase.from)
+
+      // Act
+      await saveFollowUps('uuid-1', [])
+
+      // Assert
+      expect(fromSpy).not.toHaveBeenCalled()
+    })
+
+    it('should throw when Supabase returns an error on insert', async () => {
+      // Arrange
+      vi.mocked(supabase.from).mockReturnValue({
+        insert: vi.fn().mockResolvedValue({ error: { message: 'Insert failed' } }),
+      } as unknown as ReturnType<typeof supabase.from>)
+
+      // Act & Assert
+      await expect(
+        saveFollowUps('uuid-1', [
+          { question: 'Q?', answer: 'A', order_index: 0 },
+        ])
+      ).rejects.toThrow('Insert failed')
     })
   })
 })
