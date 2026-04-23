@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 1.2
+**Version:** 1.3
 **Date:** 2026-04-23
 **Author:** Solution Architect
-**Status:** Updated after US-002
+**Status:** Updated after US-003
 
 ---
 
@@ -149,6 +149,9 @@ dotflow/
 ├── docs/                    # Project documentation
 ├── .claude/
 │   └── skills/              # Claude Code agent definitions
+├── .github/
+│   └── workflows/
+│       └── ci.yml           # GitHub Actions CI pipeline (US-003)
 ├── .env.example
 ├── .gitignore
 ├── .prettierrc

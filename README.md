@@ -72,6 +72,7 @@ This project uses Claude Code with specialized agents. See [MULTI_AGENT_ARCHITEC
 
 ## Latest
 
+- v0.3.0 — US-003: GitHub Actions CI pipeline configured (lint + test + build on PR to main, branch protection enabled)
 - v0.2.0 — US-002: Supabase client configured, database schema created (entries, followups, connections), entryService stubs implemented
 - v0.1.0 — US-001: React + Vite + TypeScript project initialized (Tailwind CSS, ESLint, Prettier, Vitest + RTL configured)
 
