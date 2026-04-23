@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 1.6
+**Version:** 1.7
 **Date:** 2026-04-23
 **Author:** Solution Architect
-**Status:** Updated after US-006
+**Status:** Updated after US-007
 
 ---
 
@@ -105,7 +105,7 @@ erDiagram
 | @supabase/supabase-js | Supabase client | ✅ Installed (^2.104.0) | https://supabase.com/docs/reference/javascript |
 | openai | OpenAI SDK | ❌ Not used — native fetch used instead | https://platform.openai.com/docs |
 | react-router-dom | Client-side routing | ✅ Installed (^7.14.2) | https://reactrouter.com |
-| date-fns | Date formatting | 📋 Planned | https://date-fns.org |
+| date-fns | Date formatting | ❌ Not used — Intl.DateTimeFormat used instead | https://date-fns.org |
 | vitest | Unit testing | ✅ Installed (^2.1.3) | https://vitest.dev |
 | @testing-library/react | Component testing | ✅ Installed (^16.0.0) | https://testing-library.com/react |
 
@@ -119,13 +119,14 @@ dotflow/
 │   ├── components/          # Reusable UI components
 │   │   ├── FollowUpDialog/  # AI follow-up Q&A dialog (US-006)
 │   │   │   └── FollowUpDialog.tsx
+│   │   ├── EntryCard/       # Entry list card — date, content preview, emotion tags (US-007)
+│   │   │   └── EntryCard.tsx
 │   │   ├── EntryForm/       # (planned)
-│   │   ├── EntryList/       # (planned)
-│   │   ├── EntryCard/       # (planned)
 │   │   └── ConnectionBadge/ # (planned)
 │   ├── pages/               # Route-level components
-│   │   ├── HomePage.tsx     # Home screen with entry list + warning banner + Write button (US-004, US-005)
+│   │   ├── HomePage.tsx     # Home screen: entry list, loading skeleton, empty state, warning banner (US-004, US-005, US-007)
 │   │   ├── NewEntryPage.tsx # Entry writing, AI follow-up dialog orchestration (US-005, US-006)
+│   │   ├── EntryDetailPage.tsx # Full entry view with follow-up Q&A (US-007)
 │   │   └── SettingsPage.tsx # API key management screen (US-004)
 │   ├── hooks/               # Custom React hooks
 │   │   ├── useSettings.ts   # localStorage API key management (US-004)
@@ -144,12 +145,15 @@ dotflow/
 │   │   ├── setup.ts         # Vitest + jest-dom + RTL cleanup setup
 │   │   ├── setup.test.ts    # TC-000: framework smoke test
 │   │   ├── components/
+│   │   │   ├── EntryCard/
+│   │   │   │   └── EntryCard.test.tsx       # TC-035–039 (US-007)
 │   │   │   └── FollowUpDialog/
 │   │   │       └── FollowUpDialog.test.tsx  # TC-029–034 (US-006)
 │   │   ├── hooks/
 │   │   │   └── useSettings.test.ts   # TC-019–022 (US-004)
 │   │   ├── pages/
-│   │   │   ├── HomePage.test.tsx     # TC-002, TC-024, TC-028 (US-004, US-005)
+│   │   │   ├── HomePage.test.tsx     # TC-002, TC-005, TC-010–011, TC-024, TC-028 (US-004, US-005, US-007)
+│   │   │   ├── EntryDetailPage.test.tsx # TC-036–039 (US-007)
 │   │   │   ├── NewEntryPage.test.tsx # TC-003–009, TC-025–026, TC-034 (US-005, US-006)
 │   │   │   └── SettingsPage.test.tsx # TC-001, TC-023 (US-004)
 │   │   ├── services/
@@ -157,7 +161,7 @@ dotflow/
 │   │   │   └── entryService.test.ts  # TC-012–018 (US-002, US-006)
 │   │   └── utils/
 │   │       └── testHelpers.tsx       # renderWithRouter helper
-│   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004, US-005)
+│   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004, US-005, US-007)
 │   ├── index.css            # Tailwind directives
 │   ├── main.tsx
 │   └── vite-env.d.ts
@@ -210,11 +214,27 @@ dotflow/
 - "Ask me more" button (adds up to 2 extra questions)
 - Does NOT block — user can always finish
 
-### 5.3 EntryList
+### 5.3 EntryCard
 
-**Responsibility:** Display all entries chronologically. Show connection badges when relevant.
+**Responsibility:** Render a single journal entry as a clickable card in the entry list.
 
-### 5.4 ConnectionBadge
+**Displays:** formatted date (`Intl.DateTimeFormat`, e.g. "April 15, 2026"), 2-line truncated content preview (`line-clamp-2`), emotion tags as pill badges.
+
+**Props:** `entry: Entry`, `onClick: () => void`
+
+**Note:** Date formatting uses native `Intl.DateTimeFormat` — `date-fns` was not installed to keep the bundle lean.
+
+### 5.4 EntryDetailPage
+
+**Responsibility:** Display the full content of a single entry, its emotion tags, and all answered follow-up questions.
+
+**Flow:**
+1. Reads `id` from URL params via `useParams`
+2. Calls `getEntryById(id)` on mount
+3. Filters follow-ups to `answer !== null` (skipped questions are hidden)
+4. "Back" button calls `navigate('/')`
+
+### 5.5 ConnectionBadge
 
 **Responsibility:** Display a subtle "Connected to entry from [date]" link when AI finds similarity.
 

@@ -72,6 +72,7 @@ This project uses Claude Code with specialized agents. See [MULTI_AGENT_ARCHITEC
 
 ## Latest
 
+- v0.7.0 — US-007: Home screen entry list, EntryCard component, Entry Detail view with follow-up Q&A
 - v0.6.0 — US-006: AI follow-up questions dialog, OpenAI GPT-4o-mini integration via native fetch, graceful degradation (no key / API failure)
 - v0.5.0 — US-005: New entry form with save to Supabase, floating Write button on Home, loading and error states
 - v0.4.0 — US-004: Settings screen with API key management, warning banner on Home, client-side routing via react-router-dom

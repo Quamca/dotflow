@@ -2,7 +2,7 @@
 
 **Project:** Dotflow
 **Version:** 1.0
-**Last Updated:** 2026-04-23 (US-006)
+**Last Updated:** 2026-04-23 (US-007)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -12,7 +12,7 @@
 
 | Milestone | Name | Status |
 |-----------|------|--------|
-| M1 | Core Journal + AI Follow-Up | 📋 Planned |
+| M1 | Core Journal + AI Follow-Up | ✅ Completed |
 | M2 | Connections + Patterns | 📋 Planned |
 | M3 | Multi-User + Mobile | 📋 Planned |
 
@@ -69,7 +69,7 @@ Delivers the core value proposition: a journal that asks meaningful follow-up qu
 - **In scope:** Entry creation, AI follow-up, entry list, settings for API key, Supabase storage, Vercel deploy, CI/CD
 - **Out of scope:** Entry connections, pattern summaries, user auth, mobile app, graph view
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
 ---
 
@@ -383,7 +383,7 @@ Makes the journal useful over time. Without this, every entry disappears after w
 - **Excludes:** Connection badges (added in FEATURE-007), search/filter (post-MVP)
 
 **Priority:** P1 (High)
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
 ---
 
@@ -396,28 +396,28 @@ Implement the Home screen that loads and displays all entries from Supabase, sor
 **I want to** see all my past entries and read them in full
 **So that** I can review my thoughts and track how I've been feeling
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 **Story Points:** 5
 **Priority:** P1
 
 **Acceptance Criteria:**
-- [ ] Home screen loads all entries from Supabase on mount
-- [ ] Entries displayed newest first
-- [ ] Each card shows: date (formatted), content preview (2 lines, truncated), emotion tags
-- [ ] Empty state shown when no entries: illustration + "Write your first entry" CTA
-- [ ] Loading skeleton shown while fetching
-- [ ] Clicking card navigates to Entry Detail view
-- [ ] Entry Detail shows: full content, date, all follow-up Q&A (questions + answers)
-- [ ] Back button from Detail returns to Home
+- [x] Home screen loads all entries from Supabase on mount
+- [x] Entries displayed newest first
+- [x] Each card shows: date (formatted), content preview (2 lines, truncated), emotion tags
+- [x] Empty state shown when no entries: illustration + "Write your first entry" CTA
+- [x] Loading skeleton shown while fetching
+- [x] Clicking card navigates to Entry Detail view
+- [x] Entry Detail shows: full content, date, all follow-up Q&A (questions + answers)
+- [x] Back button from Detail returns to Home
 
 **Tasks:**
 - [x] **TASK-007.1:** Implement `entryService.getEntries()` with Supabase SELECT + ORDER BY created_at DESC - done in US-002
 - [x] **TASK-007.2:** Implement `entryService.getEntryById()` with followups JOIN - done in US-002
-- [ ] **TASK-007.3:** Create `src/components/EntryCard/EntryCard.tsx` - 30min
-- [ ] **TASK-007.4:** Update `src/pages/HomePage.tsx` with entry list + loading skeleton + empty state - 45min
-- [ ] **TASK-007.5:** Create `src/pages/EntryDetailPage.tsx` + add `/entry/:id` route to App.tsx - 30min
-- [ ] **TASK-007.6:** Write tests for EntryCard, empty state, and list rendering (/qa) - 45min
-- [ ] **TASK-007.7:** Manual verification - 15min
+- [x] **TASK-007.3:** Create `src/components/EntryCard/EntryCard.tsx` - 30min
+- [x] **TASK-007.4:** Update `src/pages/HomePage.tsx` with entry list + loading skeleton + empty state - 45min
+- [x] **TASK-007.5:** Create `src/pages/EntryDetailPage.tsx` + add `/entry/:id` route to App.tsx - 30min
+- [x] **TASK-007.6:** Write tests for EntryCard, empty state, and list rendering (/qa) - 45min
+- [x] **TASK-007.7:** Manual verification - 15min
 
 ---
 

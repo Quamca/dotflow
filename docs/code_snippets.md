@@ -1,6 +1,6 @@
 # Dotflow - Code Snippets & Patterns
 
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-04-23
 **Purpose:** Reusable code patterns discovered during development
 
@@ -151,6 +151,80 @@ await waitFor(() => {
 ```
 
 **When to use:** Any route page that submits data to a service and redirects on success.
+
+---
+
+### 6.2 useEffect Data Loading with Loading/Error State (US-007)
+
+Pattern for pages that fetch data on mount: `useEffect` drives a three-state (`loading` / `error` / `data`) render. Uses a local `isMounted` flag to avoid state updates on unmounted components when navigating away during fetch.
+
+```typescript
+// src/pages/HomePage.tsx (simplified)
+import { useEffect, useState } from 'react'
+import { getEntries } from '../services/entryService'
+import type { Entry } from '../types'
+
+export default function HomePage() {
+  const [entries, setEntries] = useState<Entry[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadEntries() {
+      try {
+        const data = await getEntries()
+        if (isMounted) setEntries(data)
+      } catch {
+        if (isMounted) setError('Failed to load entries. Please refresh.')
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+
+    loadEntries()
+    return () => { isMounted = false }
+  }, [])
+
+  if (isLoading) return <LoadingSkeleton />
+  if (error) return <p>{error}</p>
+  if (entries.length === 0) return <EmptyState />
+  return <>{entries.map((e) => <EntryCard key={e.id} entry={e} onClick={...} />)}</>
+}
+```
+
+**Key decisions:**
+- `isMounted` flag prevents `setState` on unmounted component (React warning avoided)
+- Three render branches are clearly ordered: loading → error → empty → data
+- `finally` always clears `isLoading` so skeleton never gets stuck
+- Loading skeleton uses `animate-pulse` (Tailwind built-in) — no extra library needed
+
+**Testing this pattern:**
+```typescript
+// Mock the service before each test
+vi.mock('../../services/entryService', () => ({
+  getEntries: vi.fn(),
+}))
+
+beforeEach(() => {
+  vi.mocked(getEntries).mockResolvedValue([])
+})
+
+// Use findBy* (async) to wait for state to settle after fetch
+it('should show empty state when no entries exist', async () => {
+  renderHomePage()
+  expect(await screen.findByText(/your story starts here/i)).toBeInTheDocument()
+})
+
+it('should show error when fetch fails', async () => {
+  vi.mocked(getEntries).mockRejectedValue(new Error('Fetch failed'))
+  renderHomePage()
+  expect(await screen.findByText(/failed to load entries/i)).toBeInTheDocument()
+})
+```
+
+**When to use:** Any page that loads a list of items from a service on mount.
 
 ---
 
@@ -323,6 +397,7 @@ vi.mocked(supabase.from).mockReturnValue({
 | Supabase | Mocking chained calls in tests | 2.2 |
 | React Hooks | localStorage hook with lazy initializer | 5.1 |
 | Page Patterns | Async form submit with navigate | 6.1 |
+| Page Patterns | useEffect data loading with loading/error state | 6.2 |
 
 ---
 
