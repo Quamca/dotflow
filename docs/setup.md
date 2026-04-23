@@ -299,19 +299,20 @@ git branch -d 1-setup-project
 
 ---
 
-## 11. Key Dependency Versions (US-001)
+## 11. Key Dependency Versions
 
-| Package | Version |
-|---------|---------|
-| react | ^18.3.1 |
-| vite | ^5.4.10 |
-| typescript | ~5.6.2 |
-| tailwindcss | ^3.4.14 |
-| vitest | ^2.1.3 |
-| @testing-library/react | ^16.0.0 |
-| @testing-library/jest-dom | ^6.6.0 |
-| eslint | ^9.13.0 |
-| prettier | ^3.3.3 |
+| Package | Version | Added in |
+|---------|---------|----------|
+| react | ^18.3.1 | US-001 |
+| vite | ^5.4.10 | US-001 |
+| typescript | ~5.6.2 | US-001 |
+| tailwindcss | ^3.4.14 | US-001 |
+| vitest | ^2.1.3 | US-001 |
+| @testing-library/react | ^16.0.0 | US-001 |
+| @testing-library/jest-dom | ^6.6.0 | US-001 |
+| eslint | ^9.13.0 | US-001 |
+| prettier | ^3.3.3 | US-001 |
+| @supabase/supabase-js | ^2.104.0 | US-002 |
 
 ---
 

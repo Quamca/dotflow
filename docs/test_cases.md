@@ -1,6 +1,6 @@
 # Dotflow - Test Cases Documentation
 
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-04-23
 **Author:** QA Agent
 **Test Framework:** Vitest + React Testing Library
@@ -102,6 +102,147 @@ export const mockEntry = {
 - All tests pass
 
 **File:** `src/__tests__/setup.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-012: createEntry returns new entry when save succeeds
+
+**Related US:** US-002
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- Supabase client mocked via `vi.mock('../../lib/supabase')`
+
+**Test Steps:**
+1. Mock Supabase chain to return `mockEntry`
+2. Call `createEntry('Had a tough day at work.')`
+
+**Expected Result:**
+- Returns entry object matching `mockEntry`
+
+**File:** `src/__tests__/services/entryService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-013: createEntry throws when Supabase returns an error
+
+**Related US:** US-002
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- Supabase mock returns `{ data: null, error: { message: 'Insert failed' } }`
+
+**Test Steps:**
+1. Call `createEntry('some content')`
+
+**Expected Result:**
+- Promise rejects with `'Insert failed'`
+
+**File:** `src/__tests__/services/entryService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-014: getEntries returns list of entries when fetch succeeds
+
+**Related US:** US-002
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- Supabase mock returns `[mockEntry]`
+
+**Test Steps:**
+1. Call `getEntries()`
+
+**Expected Result:**
+- Returns array containing `mockEntry`
+
+**File:** `src/__tests__/services/entryService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-015: getEntries returns empty array when no entries exist
+
+**Related US:** US-002
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- Supabase mock returns `{ data: null, error: null }`
+
+**Test Steps:**
+1. Call `getEntries()`
+
+**Expected Result:**
+- Returns `[]`
+
+**File:** `src/__tests__/services/entryService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-016: getEntries throws when Supabase returns an error
+
+**Related US:** US-002
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- Supabase mock returns `{ data: null, error: { message: 'Fetch failed' } }`
+
+**Test Steps:**
+1. Call `getEntries()`
+
+**Expected Result:**
+- Promise rejects with `'Fetch failed'`
+
+**File:** `src/__tests__/services/entryService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-017: getEntryById returns entry with follow-ups when found
+
+**Related US:** US-002
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- Supabase mock returns `mockEntryWithFollowUps`
+
+**Test Steps:**
+1. Call `getEntryById('uuid-1')`
+
+**Expected Result:**
+- Returns entry with `followups` array of length 1
+
+**File:** `src/__tests__/services/entryService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-018: getEntryById throws when entry is not found
+
+**Related US:** US-002
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- Supabase mock returns `{ data: null, error: { message: 'Entry not found' } }`
+
+**Test Steps:**
+1. Call `getEntryById('non-existent-id')`
+
+**Expected Result:**
+- Promise rejects with `'Entry not found'`
+
+**File:** `src/__tests__/services/entryService.test.ts`
 **Status:** ✅ Done
 
 ---
