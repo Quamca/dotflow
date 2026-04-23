@@ -72,6 +72,7 @@ This project uses Claude Code with specialized agents. See [MULTI_AGENT_ARCHITEC
 
 ## Latest
 
+- v0.5.0 — US-005: New entry form with save to Supabase, floating Write button on Home, loading and error states
 - v0.4.0 — US-004: Settings screen with API key management, warning banner on Home, client-side routing via react-router-dom
 - v0.3.0 — US-003: GitHub Actions CI pipeline configured (lint + test + build on PR to main, branch protection enabled)
 - v0.2.0 — US-002: Supabase client configured, database schema created (entries, followups, connections), entryService stubs implemented

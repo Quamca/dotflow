@@ -33,6 +33,15 @@ export default function HomePage() {
           <p className="text-sm mt-1">Write your first entry to begin connecting the dots.</p>
         </div>
       </main>
+
+      <div className="fixed bottom-8 left-0 right-0 flex justify-center">
+        <Link
+          to="/new"
+          className="px-6 py-3 rounded-full bg-[#1C1917] text-[#FAFAF9] text-sm font-medium hover:opacity-90 transition-opacity shadow-lg"
+        >
+          + Write
+        </Link>
+      </div>
     </div>
   )
 }

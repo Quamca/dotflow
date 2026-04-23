@@ -1,53 +1,57 @@
-# Current Task — US-004: Settings screen with API key management
+# Current Task — US-005: New entry form and save to Supabase
 
-**Branch:** 4-settings-api-key
+**Branch:** 5-new-entry-form
 **Created:** 2026-04-23
 **Status:** 🔄 In Progress
 
 ## Context
-Infrastructure is complete (US-001–003 done). This is the first user-facing feature. It creates the Settings screen where the user enters their OpenAI API key, stored in localStorage. A warning banner on Home nudges the user to set up the key. Without this, AI features cannot be enabled.
+Implement the New Entry screen — a clean textarea where the user writes a journal entry and saves it to Supabase. `entryService.createEntry()` is already fully implemented from US-002. This US adds the UI page, routing, loading/error states, and the Write button on HomePage.
 
 ## Files to Read First
-- docs/wireframes.md (S-001 Home, S-005 Settings — layout and elements)
-- docs/architecture.md (section 1 — Settings Hook in diagram, section 4 — folder structure)
-- docs/design_brief.md (color system, button styles, input field styles)
-- src/App.tsx (current state — needs routing added)
+- `src/pages/HomePage.tsx` — add "+ Write" button here
+- `src/App.tsx` — add `/new` route here
+- `src/services/entryService.ts` — createEntry() already implemented
+- `src/types/index.ts` — Entry type
+- `docs/wireframes.md` — S-002 spec (New Entry screen)
 
 ## Tasks
-1. [ ] **TASK-004.1:** Install `react-router-dom` — `npm install react-router-dom` + install types `npm install -D @types/react-router-dom`
-2. [ ] **TASK-004.2:** Create `src/hooks/useSettings.ts` — get/set/clear API key in localStorage, return `{ apiKey, saveApiKey, clearApiKey }` — typed, no `any`
-3. [ ] **TASK-004.3:** Create `src/pages/SettingsPage.tsx` — API key input form with Save and Clear buttons, masked display (`sk-...xxxx`) after saving, info text "Your key is stored locally on this device only"
-4. [ ] **TASK-004.4:** Create `src/pages/HomePage.tsx` — minimal home page with warning banner (when no API key) and ⚙ icon linking to Settings
-5. [ ] **TASK-004.5:** Update `src/App.tsx` — add BrowserRouter + routes: `/` → HomePage, `/settings` → SettingsPage
-6. [ ] **TASK-004.6 (/qa):** Write tests for `useSettings` hook (save, clear, persist) and warning banner visibility
+1. [ ] TASK-005.2: Create `src/pages/NewEntryPage.tsx` with textarea and Save button
+2. [ ] TASK-005.3: Add disabled state logic (Save disabled when textarea is empty)
+3. [ ] TASK-005.4: Add loading state (spinner on Save) and error state (error message, content preserved)
+4. [ ] TASK-005.5: Add `/new` route to App.tsx + "+ Write" button on HomePage
+5. [ ] TASK-005.6: Write tests (/qa — after manual verification)
+6. [ ] TASK-005.7: Manual verification
+
+Note: TASK-005.1 (entryService.createEntry) is already complete from US-002 — do not reimplement.
 
 ## Constraints
-- API key access ONLY through `useSettings` hook — never read localStorage directly in components
-- Masked display formula: `sk-...` + last 4 chars of key (e.g. `sk-...Ab3x`)
-- No `any` types — key is `string | null`
-- react-router-dom: use `<Link>` and `useNavigate` for navigation
-- Max 300 lines per file, max 50 lines per function
-- Follow design_brief.md color system (Ink `#1C1917`, Cream `#FAFAF9`, Amber `#D97706`)
+- Never call Supabase directly from components — use `entryService.createEntry()`
+- Use `useNavigate()` from react-router-dom for redirect after save (not window.location)
+- Preserve textarea content on save failure — do NOT clear on error
+- Save button disabled when `content.trim() === ''`
+- No character limit on textarea
+- Design system: Ink `#1C1917`, Cream `#FAFAF9`, Stone `#E7E5E4`, Warm Stone `#78716C`, Amber `#D97706`
 
 ## Acceptance Criteria
-- [ ] Settings screen accessible via ⚙ icon from Home
-- [ ] User can type and save an API key
-- [ ] Saved key is displayed masked: `sk-...xxxx` (last 4 chars visible)
-- [ ] User can clear the saved key
-- [ ] Key persists after page refresh (localStorage)
-- [ ] Warning banner on Home screen when no key is set
-- [ ] Info text: "Your key is stored locally on this device only"
+- [ ] New Entry screen accessible from Home via "+ Write" button
+- [ ] Free-form textarea, no character limit
+- [ ] Save button disabled when textarea is empty
+- [ ] Loading state shown while saving (spinner on button)
+- [ ] Entry saved to Supabase `entries` table
+- [ ] After save, user redirected to Home
+- [ ] Error state shown if save fails (content preserved)
 
 ## After Implementation
 - [ ] Run: `npm run lint`
 - [ ] Run: `npm test`
-- [ ] Manual verification steps:
-  1. Uruchom `npm run dev` — otwórz http://localhost:5173
-  2. Sprawdź że widać baner "Add your API key in Settings" na Home
-  3. Kliknij ⚙ — sprawdź że przechodzi do /settings
-  4. Wpisz dowolny klucz (np. `sk-testkey1234`) i kliknij Save
-  5. Sprawdź że klucz jest zamaskowany (`sk-...1234`)
-  6. Odśwież stronę — sprawdź że klucz nadal jest widoczny
-  7. Wróć na Home — sprawdź że baner NIE jest widoczny
-  8. Kliknij Clear — sprawdź że klucz znika i baner wraca na Home
-- [ ] Potwierdź weryfikację wpisując "weryfikacja OK" lub "1"
+- [ ] Manual verification steps (po polsku):
+  1. Uruchom `npm run dev`, otwórz http://localhost:5173
+  2. Sprawdź czy na Home widoczny jest przycisk "+ Write"
+  3. Kliknij "+ Write" — sprawdź czy przechodzi na /new
+  4. Sprawdź czy przycisk Save jest nieaktywny (szary) gdy textarea pusta
+  5. Wpisz tekst — sprawdź czy Save staje się aktywny
+  6. Kliknij Save — sprawdź spinner podczas zapisu
+  7. Sprawdź czy po zapisie wracasz na Home
+  8. Wejdź w Supabase Dashboard → Table Editor → entries — sprawdź czy wpis się pojawił
+  9. Wróć na /new, wpisz tekst, kliknij "← Back" — sprawdź czy wracasz na Home bez zapisu
+- [ ] Potwierdź weryfikację wpisując 1

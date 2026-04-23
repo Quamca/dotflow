@@ -1,6 +1,6 @@
 # Dotflow - Code Snippets & Patterns
 
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-04-23
 **Purpose:** Reusable code patterns discovered during development
 
@@ -33,6 +33,73 @@ When implementing similar functionality, check here first to maintain consistenc
 ## 3. Error Handling Patterns
 
 *To be populated during development.*
+
+---
+
+## 6. Page Patterns
+
+### 6.1 Async Form Submit with Navigate (US-005)
+
+Pattern for route-level form pages: async submit handler with loading state, error handling that preserves form content, and `useNavigate` redirect on success.
+
+```typescript
+// src/pages/NewEntryPage.tsx
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { createEntry } from '../services/entryService'
+
+export default function NewEntryPage() {
+  const navigate = useNavigate()
+  const [content, setContent] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit() {
+    if (!content.trim()) return
+    setIsLoading(true)
+    setError(null)
+    try {
+      await createEntry(content.trim())
+      navigate('/')
+    } catch {
+      setError('Failed to save entry. Please try again.')
+      setIsLoading(false)  // only reset on error — success navigates away
+    }
+  }
+
+  return (
+    // ...
+    <button
+      onClick={handleSubmit}
+      disabled={!content.trim() || isLoading}
+    >
+      {isLoading ? 'Saving...' : 'Save →'}
+    </button>
+  )
+}
+```
+
+**Key decisions:**
+- `setIsLoading(false)` is called only in the `catch` block — on success the component unmounts via `navigate('/')` so resetting state is unnecessary
+- Content is NOT cleared on error — preserves user's text
+- Button disabled on both empty content and during loading
+
+**Testing this pattern:**
+```typescript
+// Mock useNavigate to assert redirect
+const mockNavigate = vi.fn()
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return { ...actual, useNavigate: () => mockNavigate }
+})
+
+// Verify navigate called after success
+await waitFor(() => {
+  expect(mockNavigate).toHaveBeenCalledWith('/')
+})
+```
+
+**When to use:** Any route page that submits data to a service and redirects on success.
 
 ---
 
@@ -162,6 +229,7 @@ vi.mocked(supabase.from).mockReturnValue({
 | Supabase | Client initialization pattern | 2.1 |
 | Supabase | Mocking chained calls in tests | 2.2 |
 | React Hooks | localStorage hook with lazy initializer | 5.1 |
+| Page Patterns | Async form submit with navigate | 6.1 |
 
 ---
 

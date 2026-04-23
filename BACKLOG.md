@@ -2,7 +2,7 @@
 
 **Project:** Dotflow
 **Version:** 1.0
-**Last Updated:** 2026-04-23 (US-004)
+**Last Updated:** 2026-04-23 (US-005)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -273,7 +273,7 @@ This is the primary daily action. Without a great writing experience, nothing el
 - **Excludes:** AI follow-up (FEATURE-005), connection detection (FEATURE-007)
 
 **Priority:** P0 (Critical)
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
 ---
 
@@ -286,28 +286,27 @@ Create the New Entry screen with a textarea and Save button. Submitting the entr
 **I want to** write a free-form journal entry and save it
 **So that** my thoughts are recorded and I can review them later
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 **Story Points:** 5
 **Priority:** P0
 
 **Acceptance Criteria:**
-- [ ] New Entry screen accessible from Home via Write button
-- [ ] Free-form textarea, no character limit
-- [ ] Save button disabled when textarea is empty
-- [ ] Loading state shown while saving
-- [ ] Entry saved to Supabase `entries` table
-- [ ] After save, user redirected to Home
-- [ ] New entry appears at top of entry list
-- [ ] Error state shown if save fails (content preserved)
+- [x] New Entry screen accessible from Home via Write button
+- [x] Free-form textarea, no character limit
+- [x] Save button disabled when textarea is empty
+- [x] Loading state shown while saving
+- [x] Entry saved to Supabase `entries` table
+- [x] After save, user redirected to Home
+- [x] Error state shown if save fails (content preserved)
 
 **Tasks:**
-- [ ] **TASK-005.1:** Implement `entryService.createEntry()` with Supabase INSERT - 30min
-- [ ] **TASK-005.2:** Create `src/pages/NewEntryPage.tsx` with textarea and Save button - 45min
-- [ ] **TASK-005.3:** Add disabled state logic (empty textarea) - 15min
-- [ ] **TASK-005.4:** Add loading state and error handling - 30min
-- [ ] **TASK-005.5:** Add routing: Home → New Entry → Home after save - 20min
-- [ ] **TASK-005.6:** Write tests for form submission and error states (/qa) - 45min
-- [ ] **TASK-005.7:** Manual verification - 15min
+- [x] **TASK-005.1:** Implement `entryService.createEntry()` with Supabase INSERT - 30min (done in US-002)
+- [x] **TASK-005.2:** Create `src/pages/NewEntryPage.tsx` with textarea and Save button - 45min
+- [x] **TASK-005.3:** Add disabled state logic (empty textarea) - 15min
+- [x] **TASK-005.4:** Add loading state and error handling - 30min
+- [x] **TASK-005.5:** Add routing: Home → New Entry → Home after save - 20min
+- [x] **TASK-005.6:** Write tests for form submission and error states (/qa) - 45min
+- [x] **TASK-005.7:** Manual verification - 15min
 
 ---
 
