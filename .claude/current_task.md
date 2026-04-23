@@ -1,66 +1,58 @@
-# Current Task — US-006: AI follow-up question generation and dialog
+# Current Task — US-007: Home screen entry list and entry detail view
 
-**Branch:** 6-ai-followup-questions
+**Branch:** 7-entry-list-view
 **Created:** 2026-04-23
 **Status:** 🔄 In Progress
 
 ## Context
-Implement the AI follow-up question feature — the core differentiator of Dotflow. After an entry is saved to Supabase, if the user has an API key set, call OpenAI to generate 2–3 follow-up questions and display them one at a time in a FollowUpDialog. The user answers or skips each question. After the dialog, followups are saved and the user is redirected to Home. If no API key or OpenAI fails, the entry saves directly without dialog.
+Implement the Home screen entry list and Entry Detail view — the last missing piece of the M1 MVP core loop. Users can currently write entries but have no way to read them back. After this US, the app shows all past entries on Home (newest first), with a clickable card leading to a full detail view including follow-up Q&A. `getEntries()` and `getEntryById()` are already implemented in entryService.ts — only UI needs to be built.
 
 ## Files to Read First
-- `src/pages/NewEntryPage.tsx` — change save flow: entry saves first, then show dialog if API key set
-- `src/services/entryService.ts` — add `saveFollowUps()` function here
-- `src/hooks/useSettings.ts` — read apiKey from here (already implemented)
-- `src/types/index.ts` — FollowUp type already defined
-- `docs/wireframes.md` — S-003 spec (Follow-Up Dialog screen)
-- `docs/architecture.md` — AI Service Pattern, section 8 (Follow-Up Questions Prompt)
+- `src/pages/HomePage.tsx` — existing Home page (has header, banner, Write button — needs entry list added)
+- `src/pages/NewEntryPage.tsx` — reference for design patterns and Tailwind color system
+- `src/services/entryService.ts` — getEntries() and getEntryById() already implemented
+- `src/types/index.ts` — Entry and EntryWithFollowUps types
+- `src/App.tsx` — needs new Route for /entry/:id
+- `docs/wireframes.md` — S-001 (Home / Entry List) and S-004 (Entry Detail) specs
 
 ## Tasks
-1. [ ] TASK-006.1: Create `src/services/aiService.ts` with `generateFollowUpQuestions(content: string, apiKey: string): Promise<string[]>` — calls OpenAI REST API directly (no SDK install needed), returns array of question strings
-2. [ ] TASK-006.2: Create `src/utils/prompts.ts` with follow-up question prompt (see architecture.md section 8)
-3. [ ] TASK-006.5: Add `saveFollowUps(entryId: string, followups: Array<{ question: string; answer: string | null; order_index: number }>): Promise<void>` to `src/services/entryService.ts`
-4. [ ] TASK-006.3 + 006.4: Create `src/components/FollowUpDialog/FollowUpDialog.tsx` with full dialog logic: one question at a time, answer textarea, Skip, Next, Ask me more (max total 5), I'm done, Save Entry ✓
-5. [ ] TASK-006.6: Integrate dialog into `NewEntryPage.tsx` — new flow: createEntry → if apiKey: generateQuestions → show FollowUpDialog → saveFollowUps → navigate('/'); if no apiKey: navigate('/') directly
-6. [ ] TASK-006.7: Handle graceful degradation — no API key: skip dialog, show info message; OpenAI failure: skip dialog, show error message; entry always saved regardless
-7. [ ] TASK-006.8: Write tests (/qa — after manual verification)
-8. [ ] TASK-006.9: Manual verification
+1. [ ] TASK-007.3: Create `src/components/EntryCard/EntryCard.tsx` — displays date (formatted with Intl.DateTimeFormat, e.g. "April 9, 2026"), content preview (2 lines truncated with line-clamp), emotion tags as badges; clickable card navigates to /entry/:id
+2. [ ] TASK-007.4: Update `src/pages/HomePage.tsx` — add useEffect to load entries on mount via getEntries(); show: loading skeleton (3 animate-pulse cards), empty state ("Your story starts here" + Write CTA), or list of EntryCard components; preserve existing header, banner, and Write button
+3. [ ] TASK-007.5: Create `src/pages/EntryDetailPage.tsx` — loads entry via getEntryById(id) from URL params; shows: full content, formatted date, emotion tags, follow-up Q&A section (each answered question + answer); Back button returns to Home; add Route `/entry/:id` in App.tsx
+4. [ ] TASK-007.6: Write tests (/qa — after manual verification)
+5. [ ] TASK-007.7: Manual verification
 
 ## Constraints
-- Call OpenAI API via native `fetch` — do NOT install the `openai` npm package (no backend, direct REST call from browser)
-- OpenAI endpoint: `https://api.openai.com/v1/chat/completions`, model: `gpt-4o-mini`
-- All OpenAI calls go through `src/services/aiService.ts` — never call fetch to OpenAI from components
-- All Supabase calls go through `src/services/entryService.ts` — never call supabase from components
-- Read API key only via `useSettings` hook in components
-- Entry is saved FIRST (createEntry), THEN dialog is shown — entry.id is needed to link followups
-- FollowUpDialog receives: questions array, onSave(answers) callback, onSkipAll() callback
-- FollowUpDialog max questions: 5 (3 default + 2 from "Ask me more")
+- Use `Intl.DateTimeFormat` for date formatting — do NOT install date-fns (not needed for this scope)
 - Design system: Ink `#1C1917`, Cream `#FAFAF9`, Stone `#E7E5E4`, Warm Stone `#78716C`, Amber `#D97706`
-- No `any` type — use proper TypeScript types
-- Keep FollowUpDialog under 300 lines — extract helpers if needed
+- All Supabase calls go through `src/services/entryService.ts` — never call supabase from components
+- Use `useNavigate` / `useParams` from react-router-dom for navigation and URL param reading
+- Loading skeleton: use Tailwind `animate-pulse` — no new libraries
+- No `any` type — use Entry and EntryWithFollowUps from types/index.ts
+- Keep each file under 300 lines
+- EntryCard receives `entry: Entry` and `onClick: () => void` as props
 
 ## Acceptance Criteria
-- [ ] After entry submission (with API key set), FollowUpDialog appears
-- [ ] AI generates 2–3 relevant questions based on entry content
-- [ ] Questions shown one at a time with answer textarea
-- [ ] User can skip any question (no answer recorded)
-- [ ] "Ask me more" button adds up to 2 extra questions (max total: 5)
-- [ ] "I'm done" button ends Q&A early and shows Save Entry
-- [ ] All answered follow-ups saved to `followups` table linked to entry
-- [ ] If no API key: entry saves directly, info message shown
-- [ ] If OpenAI call fails: entry saves directly, error message shown
+- [ ] Home screen loads all entries from Supabase on mount
+- [ ] Entries displayed newest first
+- [ ] Each card shows: date (formatted), content preview (2 lines, truncated), emotion tags
+- [ ] Empty state shown when no entries: illustration + "Write your first entry" CTA
+- [ ] Loading skeleton shown while fetching
+- [ ] Clicking card navigates to Entry Detail view
+- [ ] Entry Detail shows: full content, date, all follow-up Q&A (questions + answers)
+- [ ] Back button from Detail returns to Home
 
 ## After Implementation
 - [ ] Run: `npm run lint`
 - [ ] Run: `npm test`
 - [ ] Manual verification steps (po polsku):
-  1. Upewnij się, że masz ustawiony klucz API w Settings
-  2. Uruchom `npm run dev`, otwórz http://localhost:5173
-  3. Kliknij "+ Write", wpisz tekst np. "Miałem dziś trudne spotkanie w pracy" i kliknij Save →
-  4. Sprawdź czy przycisk zmienia się na "Thinking..." podczas ładowania pytań
-  5. Sprawdź czy dialog pojawia się z pierwszym pytaniem
-  6. Odpowiedz na pytanie i kliknij Next →
-  7. Kliknij "Skip" na kolejnym pytaniu — sprawdź czy przechodzi dalej bez zapisu
-  8. Kliknij "Save Entry ✓" — sprawdź czy wracasz na Home
-  9. Sprawdź w Supabase Dashboard → followups table: czy odpowiedzi są zapisane z poprawnym entry_id
-  10. Usuń klucz API w Settings, wróć na /new, wpisz tekst, kliknij Save — sprawdź czy wpis zapisuje się od razu BEZ dialogu, z info komunikatem
+  1. Uruchom `npm run dev`, otwórz http://localhost:5173
+  2. Sprawdź stan pusty: jeśli nie ma wpisów — widać "Your story starts here" z przyciskiem Write
+  3. Kliknij "+ Write", napisz wpis, zapisz — wróć na Home
+  4. Sprawdź czy nowy wpis pojawia się na liście jako karta z datą i fragmentem tekstu
+  5. Napisz drugi wpis i sprawdź czy najnowszy jest na górze
+  6. Kliknij kartę wpisu — sprawdź czy otwiera się widok szczegółów z pełną treścią
+  7. Jeśli wpis miał odpowiedzi na pytania AI — sprawdź czy są widoczne w sekcji "Follow-up"
+  8. Kliknij "← Back" — sprawdź czy wracasz na listę
+  9. Odśwież stronę — sprawdź czy skeleton (szare karty) pojawia się przed załadowaniem listy
 - [ ] Potwierdź weryfikację wpisując 1

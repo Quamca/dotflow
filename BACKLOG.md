@@ -411,11 +411,11 @@ Implement the Home screen that loads and displays all entries from Supabase, sor
 - [ ] Back button from Detail returns to Home
 
 **Tasks:**
-- [ ] **TASK-007.1:** Implement `entryService.getEntries()` with Supabase SELECT + ORDER BY created_at DESC - 30min
-- [ ] **TASK-007.2:** Implement `entryService.getEntryById()` with followups JOIN - 30min
+- [x] **TASK-007.1:** Implement `entryService.getEntries()` with Supabase SELECT + ORDER BY created_at DESC - done in US-002
+- [x] **TASK-007.2:** Implement `entryService.getEntryById()` with followups JOIN - done in US-002
 - [ ] **TASK-007.3:** Create `src/components/EntryCard/EntryCard.tsx` - 30min
-- [ ] **TASK-007.4:** Create `src/pages/HomePage.tsx` with list + loading + empty states - 45min
-- [ ] **TASK-007.5:** Create `src/pages/EntryDetailPage.tsx` - 30min
+- [ ] **TASK-007.4:** Update `src/pages/HomePage.tsx` with entry list + loading skeleton + empty state - 45min
+- [ ] **TASK-007.5:** Create `src/pages/EntryDetailPage.tsx` + add `/entry/:id` route to App.tsx - 30min
 - [ ] **TASK-007.6:** Write tests for EntryCard, empty state, and list rendering (/qa) - 45min
 - [ ] **TASK-007.7:** Manual verification - 15min
 
