@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 1.5
+**Version:** 1.6
 **Date:** 2026-04-23
 **Author:** Solution Architect
-**Status:** Updated after US-005
+**Status:** Updated after US-006
 
 ---
 
@@ -103,7 +103,7 @@ erDiagram
 | Package | Purpose | Status | Documentation |
 |---------|---------|--------|---------------|
 | @supabase/supabase-js | Supabase client | ✅ Installed (^2.104.0) | https://supabase.com/docs/reference/javascript |
-| openai | OpenAI SDK | 📋 Planned | https://platform.openai.com/docs |
+| openai | OpenAI SDK | ❌ Not used — native fetch used instead | https://platform.openai.com/docs |
 | react-router-dom | Client-side routing | ✅ Installed (^7.14.2) | https://reactrouter.com |
 | date-fns | Date formatting | 📋 Planned | https://date-fns.org |
 | vitest | Unit testing | ✅ Installed (^2.1.3) | https://vitest.dev |
@@ -116,15 +116,16 @@ erDiagram
 ```
 dotflow/
 ├── src/
-│   ├── components/          # Reusable UI components (planned)
-│   │   ├── EntryForm/
-│   │   ├── EntryList/
-│   │   ├── EntryCard/
-│   │   ├── FollowUpDialog/
-│   │   └── ConnectionBadge/
+│   ├── components/          # Reusable UI components
+│   │   ├── FollowUpDialog/  # AI follow-up Q&A dialog (US-006)
+│   │   │   └── FollowUpDialog.tsx
+│   │   ├── EntryForm/       # (planned)
+│   │   ├── EntryList/       # (planned)
+│   │   ├── EntryCard/       # (planned)
+│   │   └── ConnectionBadge/ # (planned)
 │   ├── pages/               # Route-level components
 │   │   ├── HomePage.tsx     # Home screen with entry list + warning banner + Write button (US-004, US-005)
-│   │   ├── NewEntryPage.tsx # Entry writing screen with save, loading, error states (US-005)
+│   │   ├── NewEntryPage.tsx # Entry writing, AI follow-up dialog orchestration (US-005, US-006)
 │   │   └── SettingsPage.tsx # API key management screen (US-004)
 │   ├── hooks/               # Custom React hooks
 │   │   ├── useSettings.ts   # localStorage API key management (US-004)
@@ -133,23 +134,27 @@ dotflow/
 │   ├── lib/                 # Third-party client initializations
 │   │   └── supabase.ts      # Supabase client (US-002)
 │   ├── services/            # External API integrations
-│   │   ├── aiService.ts     # OpenAI API calls (planned)
-│   │   └── entryService.ts  # Supabase CRUD (US-002)
+│   │   ├── aiService.ts     # OpenAI GPT-4o-mini via native fetch (US-006)
+│   │   └── entryService.ts  # Supabase CRUD + saveFollowUps (US-002, US-006)
 │   ├── types/               # TypeScript type definitions
 │   │   └── index.ts         # Entry, FollowUp, Connection, EntryWithFollowUps (US-002)
-│   ├── utils/               # Pure utility functions (planned)
-│   │   └── prompts.ts       # AI prompt templates
+│   ├── utils/               # Pure utility functions
+│   │   └── prompts.ts       # AI prompt templates (US-006)
 │   ├── __tests__/           # Tests mirror source structure
 │   │   ├── setup.ts         # Vitest + jest-dom + RTL cleanup setup
 │   │   ├── setup.test.ts    # TC-000: framework smoke test
+│   │   ├── components/
+│   │   │   └── FollowUpDialog/
+│   │   │       └── FollowUpDialog.test.tsx  # TC-029–034 (US-006)
 │   │   ├── hooks/
 │   │   │   └── useSettings.test.ts   # TC-019–022 (US-004)
 │   │   ├── pages/
 │   │   │   ├── HomePage.test.tsx     # TC-002, TC-024, TC-028 (US-004, US-005)
-│   │   │   ├── NewEntryPage.test.tsx # TC-003, TC-004, TC-025, TC-026 (US-005)
+│   │   │   ├── NewEntryPage.test.tsx # TC-003–009, TC-025–026, TC-034 (US-005, US-006)
 │   │   │   └── SettingsPage.test.tsx # TC-001, TC-023 (US-004)
 │   │   ├── services/
-│   │   │   └── entryService.test.ts  # TC-012–018 (US-002)
+│   │   │   ├── aiService.test.ts     # TC-010–011 (US-006)
+│   │   │   └── entryService.test.ts  # TC-012–018 (US-002, US-006)
 │   │   └── utils/
 │   │       └── testHelpers.tsx       # renderWithRouter helper
 │   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004, US-005)
@@ -182,18 +187,18 @@ dotflow/
 
 ## 5. Component Architecture
 
-### 5.1 EntryForm
+### 5.1 NewEntryPage
 
-**Responsibility:** Capture new journal entry text and handle the full entry creation flow (submit → AI questions → save).
+**Responsibility:** Capture new journal entry text and orchestrate the full entry creation flow (save → AI questions → save follow-ups).
 
-**Flow:**
+**Flow (US-006 entry-first design):**
 1. User types entry content
-2. User submits
-3. Component calls `useAI.generateFollowUpQuestions(content)`
-4. FollowUpDialog renders with 2–3 questions
-5. User answers (or skips)
-6. Component calls `entryService.createEntry(content, followups)`
-7. AI connection check runs in background
+2. User submits — entry saved to Supabase immediately (get `entry.id`)
+3. If no API key → navigate('/') directly
+4. If API key present → call `aiService.generateFollowUpQuestions(content, apiKey)`
+5. On success → render `FollowUpDialog` with questions
+6. On AI failure → show error message (entry already saved)
+7. User answers/skips → `entryService.saveFollowUps(entry.id, followups)` → navigate('/')
 
 ### 5.2 FollowUpDialog
 
@@ -222,22 +227,26 @@ dotflow/
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant F as EntryForm
+    participant P as NewEntryPage
     participant AI as aiService
     participant DB as entryService
     participant S as Supabase
 
-    U->>F: types entry, clicks Save
-    F->>AI: generateFollowUpQuestions(content)
-    AI-->>F: [question1, question2, question3]
-    F->>U: shows FollowUpDialog
-    U->>F: answers questions (or skips)
-    F->>DB: createEntry(content, followups)
-    DB->>S: INSERT entry + followups
-    S-->>DB: entry.id
-    DB->>AI: findConnections(entry.id, content)
-    AI-->>DB: [connectionSuggestion]
-    DB->>S: INSERT connection (if score > threshold)
+    U->>P: types entry, clicks Save
+    P->>DB: createEntry(content)
+    DB->>S: INSERT entry
+    S-->>DB: entry (with id)
+    DB-->>P: entry
+    alt API key set
+        P->>AI: generateFollowUpQuestions(content, apiKey)
+        AI-->>P: [question1, question2, question3]
+        P->>U: shows FollowUpDialog
+        U->>P: answers questions (or skips)
+        P->>DB: saveFollowUps(entry.id, answeredFollowups)
+        DB->>S: INSERT followups
+    else No API key
+        P->>U: navigate('/')
+    end
 ```
 
 ### 6.2 AI Follow-Up Question Generation

@@ -1,6 +1,6 @@
 # Dotflow - Code Snippets & Patterns
 
-**Version:** 1.2
+**Version:** 1.3
 **Date:** 2026-04-23
 **Purpose:** Reusable code patterns discovered during development
 
@@ -20,7 +20,58 @@ When implementing similar functionality, check here first to maintain consistenc
 
 ## 1. AI Service Patterns
 
-*To be populated during development.*
+### 1.1 OpenAI REST API via Native Fetch (US-006)
+
+Call OpenAI directly without the `openai` npm package — native `fetch` keeps the bundle lean and avoids SDK version drift. Parse the JSON response defensively (returns `[]` on malformed JSON), cap at 3 questions, throw on non-ok HTTP status.
+
+```typescript
+// src/services/aiService.ts
+import { FOLLOW_UP_SYSTEM_PROMPT } from '../utils/prompts'
+
+export async function generateFollowUpQuestions(
+  content: string,
+  apiKey: string
+): Promise<string[]> {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: FOLLOW_UP_SYSTEM_PROMPT },
+        { role: 'user', content },
+      ],
+      temperature: 0.7,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`OpenAI API error: ${response.status}`)
+  }
+
+  const data = await response.json()
+  const raw = data.choices[0].message.content
+
+  try {
+    const questions = JSON.parse(raw) as string[]
+    return questions.filter((q) => q.trim() !== '').slice(0, 3)
+  } catch {
+    return []
+  }
+}
+```
+
+**Key decisions:**
+- Throw on non-ok HTTP so callers can display the right error (entry already saved, AI unavailable)
+- Return `[]` on malformed JSON instead of throwing — allows graceful degradation
+- Cap at 3 regardless of what the model returns
+
+**Note:** On localhost, some ad blockers intercept OpenAI API calls (shows "Failed to fetch"). Test in incognito if AI features don't trigger.
+
+**When to use:** Any new OpenAI API call in this project — follow this pattern for consistency.
 
 ---
 
@@ -134,6 +185,46 @@ export default defineConfig({
 
 **Why `vitest/config` not `vite`:** The `vitest/config` export includes the `test` field in the TypeScript types. Using `vite`'s `defineConfig` causes TS errors on the `test` property.
 
+### 4.3 Mocking Global fetch in Vitest (US-006)
+
+Use `vi.stubGlobal` to replace the native `fetch` for aiService tests. Always unstub in `afterEach` to prevent leaking into other test files:
+
+```typescript
+// src/__tests__/services/aiService.test.ts
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
+it('should return questions when OpenAI responds successfully', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({
+        choices: [{ message: { content: JSON.stringify(['Q1?', 'Q2?']) } }],
+      }),
+    })
+  )
+
+  const result = await generateFollowUpQuestions('content', 'sk-test')
+  expect(result).toEqual(['Q1?', 'Q2?'])
+})
+
+it('should throw on non-ok response', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401 }))
+
+  await expect(generateFollowUpQuestions('content', 'sk-bad')).rejects.toThrow(
+    'OpenAI API error: 401'
+  )
+})
+```
+
+**Why `vi.stubGlobal` not `vi.mock('fetch')`:** `fetch` is a global, not a module — `vi.mock` only works for module imports. `vi.unstubAllGlobals()` in `afterEach` is the clean counterpart.
+
+**When to use:** Any service test that calls native `fetch` directly.
+
 ### 4.2 RTL Cleanup in Vitest (US-004)
 
 Vitest does not enable globals by default, so RTL's auto-cleanup `afterEach` never registers. Without this, component tests bleed DOM state into each other. Always add explicit cleanup to the setup file:
@@ -224,8 +315,10 @@ vi.mocked(supabase.from).mockReturnValue({
 
 | Category | Pattern | Section |
 |----------|---------|---------|
+| AI Service | OpenAI REST API via native fetch | 1.1 |
 | Testing | Vitest + jest-dom setup (explicit extend) | 4.1 |
 | Testing | RTL cleanup in Vitest (explicit afterEach) | 4.2 |
+| Testing | Mocking global fetch with vi.stubGlobal | 4.3 |
 | Supabase | Client initialization pattern | 2.1 |
 | Supabase | Mocking chained calls in tests | 2.2 |
 | React Hooks | localStorage hook with lazy initializer | 5.1 |

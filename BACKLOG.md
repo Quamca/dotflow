@@ -2,7 +2,7 @@
 
 **Project:** Dotflow
 **Version:** 1.0
-**Last Updated:** 2026-04-23 (US-005)
+**Last Updated:** 2026-04-23 (US-006)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -326,7 +326,7 @@ This is the differentiating feature. Follow-up questions nudge the user toward d
 - **Excludes:** Connection detection (FEATURE-007), pattern analysis (FEATURE-008)
 
 **Priority:** P0 (Critical)
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
 ---
 
@@ -339,31 +339,31 @@ After the user submits an entry, trigger an OpenAI API call to generate 2–3 fo
 **I want to** be asked 2–3 follow-up questions after writing an entry
 **So that** I reflect more deeply on what I wrote
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 **Story Points:** 8
 **Priority:** P0
 
 **Acceptance Criteria:**
-- [ ] After entry submission (with API key set), FollowUpDialog appears
-- [ ] AI generates 2–3 relevant questions based on entry content
-- [ ] Questions shown one at a time with answer textarea
-- [ ] User can skip any question (no answer recorded)
-- [ ] "Ask me more" button adds up to 2 extra questions (max total: 5)
-- [ ] "I'm done" button ends Q&A and shows Save Entry
-- [ ] All answered follow-ups saved to `followups` table linked to entry
-- [ ] If no API key: entry saves directly, info message shown
-- [ ] If OpenAI call fails: entry saves directly, error message shown
+- [x] After entry submission (with API key set), FollowUpDialog appears
+- [x] AI generates 2–3 relevant questions based on entry content
+- [x] Questions shown one at a time with answer textarea
+- [x] User can skip any question (no answer recorded)
+- [x] "Ask me more" button adds up to 2 extra questions (max total: 5)
+- [x] "I'm done" button ends Q&A and shows Save Entry
+- [x] All answered follow-ups saved to `followups` table linked to entry
+- [x] If no API key: entry saves directly, info message shown
+- [x] If OpenAI call fails: entry saves directly, error message shown
 
 **Tasks:**
-- [ ] **TASK-006.1:** Create `src/services/aiService.ts` with `generateFollowUpQuestions()` - 60min
-- [ ] **TASK-006.2:** Create follow-up question prompt in `src/utils/prompts.ts` - 30min
-- [ ] **TASK-006.3:** Create `src/components/FollowUpDialog/FollowUpDialog.tsx` - 60min
-- [ ] **TASK-006.4:** Implement skip, answer, next, ask-me-more, I'm done logic - 45min
-- [ ] **TASK-006.5:** Implement `followupService.saveFollowUps()` in entryService - 30min
-- [ ] **TASK-006.6:** Integrate dialog into NewEntryPage flow - 30min
-- [ ] **TASK-006.7:** Handle no-API-key and API-failure graceful degradation - 30min
-- [ ] **TASK-006.8:** Write tests for aiService, dialog interactions, and degradation (/qa) - 60min
-- [ ] **TASK-006.9:** Manual verification - 20min
+- [x] **TASK-006.1:** Create `src/services/aiService.ts` with `generateFollowUpQuestions()` - 60min
+- [x] **TASK-006.2:** Create follow-up question prompt in `src/utils/prompts.ts` - 30min
+- [x] **TASK-006.3:** Create `src/components/FollowUpDialog/FollowUpDialog.tsx` - 60min
+- [x] **TASK-006.4:** Implement skip, answer, next, ask-me-more, I'm done logic - 45min
+- [x] **TASK-006.5:** Implement `followupService.saveFollowUps()` in entryService - 30min
+- [x] **TASK-006.6:** Integrate dialog into NewEntryPage flow - 30min
+- [x] **TASK-006.7:** Handle no-API-key and API-failure graceful degradation - 30min
+- [x] **TASK-006.8:** Write tests for aiService, dialog interactions, and degradation (/qa) - 60min
+- [x] **TASK-006.9:** Manual verification - 20min
 
 ---
 
