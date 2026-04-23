@@ -40,12 +40,20 @@ Jeśli US nie gotowe — wymień braki i zaproponuj poprawki do BACKLOG.md.
 ## User Acceptance Scenario (obowiązkowy)
 
 Opisz w prostym języku co użytkownik zobaczy i zrobi po wdrożeniu.
-Bez terminologii technicznej.
+Bez terminologii technicznej. Używaj analogii z życia codziennego gdy tłumaczysz pojęcia.
 
 Na końcu zapytaj:
 "Czy akceptujesz ten scenariusz?
 1. Tak — generuję task instruction i możemy zacząć
-2. Nie — powiedz co zmienić"
+2. Nie — powiedz co zmienić
+3. Wyjaśnij"
+
+## Pierwsze użycie nowego narzędzia
+
+Gdy US wymaga nowego narzędzia/serwisu którego jeszcze nie używaliśmy — wyjaśnij przez analogię z życia codziennego, nie przez definicję techniczną. Jedno zdanie max.
+
+Przykład dobry: "GitHub Actions to automatyczny inspektor — sprawdza Twój kod przy każdym PR zanim trafi do main."
+Przykład zły: "GitHub Actions to CI/CD pipeline który uruchamia workflow na triggerach."
 
 ## Workflow Enforcement
 
@@ -55,11 +63,6 @@ Na końcu zapytaj:
   "Plik current_task.md już istnieje dla innego US. Nadpisać?
   1. Tak
   2. Nie"
-
-## Pierwsze użycie nowego narzędzia
-
-Gdy US wymaga nowego narzędzia/serwisu którego jeszcze nie używaliśmy — dodaj krótkie wyjaśnienie:
-"ℹ️ **[Nazwa narzędzia]** — [jedno zdanie po co to jest i dlaczego tego używamy]"
 
 ## Documentation Sync Rule
 
@@ -72,7 +75,7 @@ Jeśli znajdziesz rozbieżność między oczekiwaniami a dokumentacją:
 ## Generowanie Task instruction
 
 Po akceptacji scenariusza, utwórz `.claude/current_task.md` i poinformuj:
-"✅ Task instruction zapisana. Wpisz **'rozpocznij implementację'** żeby zacząć."
+"✅ Task instruction zapisana. Wpisz **1** żeby rozpocząć implementację."
 
 Struktura pliku:
 ```markdown
@@ -106,7 +109,7 @@ Struktura pliku:
 - [ ] Manual verification steps (po polsku):
   1. [Krok 1]
   2. [Krok 2]
-- [ ] Potwierdź weryfikację wpisując "weryfikacja OK" lub "1"
+- [ ] Potwierdź weryfikację wpisując 1
 ```
 
 ## After Completion
@@ -118,14 +121,25 @@ git add .claude/current_task.md
 git commit -m "docs(planning): prepare task instruction for US-XXX"
 ```
 
+Następnie poinformuj:
+"✅ Task instruction zapisana. Wpisz **1** żeby rozpocząć implementację."
+
 ## UX — format pytań
 
-Zawsze używaj formatu numerowanego:
+Zawsze używaj formatu numerowanego. Dla pytań tak/nie:
 ```
 1. Tak
 2. Nie
+3. Wyjaśnij
 ```
-Użytkownik odpowiada cyfrą.
+Dla pytań gdzie "tak" pojawia się często:
+```
+1. Tak
+2. Tak, nie pytaj więcej
+3. Nie
+4. Wyjaśnij
+```
+Użytkownik odpowiada cyfrą. Gdy wybierze "Wyjaśnij" — tłumacz przez analogię z życia, bez żargonu technicznego.
 
 ## Agent Autonomy
 

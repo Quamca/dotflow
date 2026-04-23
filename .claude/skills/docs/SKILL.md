@@ -103,14 +103,15 @@ Title: feat: US-XXX [short description]
 Closes #[issue_number]
 ```
 
-Say: "Skopiuj powyższy opis PR na GitHub i zatwierdź merge. Gdy PR zostanie zmergowany, wpisz '1' żebym wykonał cleanup."
+Say: "Skopiuj powyższy opis PR na GitHub i zatwierdź merge. Gdy PR zostanie zmergowany, wpisz 1."
 
 ### Step 4 — Cleanup (automatyczny po potwierdzeniu merge)
 
 Zapytaj:
 "Czy PR został już zmergowany?
 1. Tak — wykonaj cleanup
-2. Nie — poczekam"
+2. Nie — poczekam
+3. Wyjaśnij co to jest merge"
 
 Gdy użytkownik wybierze `1`, **automatycznie wykonaj**:
 ```powershell
@@ -126,7 +127,8 @@ Potwierdź: "✅ Cleanup zakończony. Jesteś na main."
 Po cleanup automatycznie zasugeruj:
 "✅ US-XXX zamknięty. Następny wg backlogu: **US-YYY — [tytuł]** (P0).
 1. Tak — uruchom /planning
-2. Nie — zakończ sesję"
+2. Nie — zakończ sesję
+3. Wyjaśnij co będziemy robić w tym US"
 
 ## UX — format pytań
 
@@ -134,8 +136,16 @@ Zawsze używaj formatu numerowanego:
 ```
 1. Tak
 2. Nie
+3. Wyjaśnij
 ```
-Użytkownik odpowiada cyfrą.
+Dla pytań które się powtarzają:
+```
+1. Tak
+2. Tak, nie pytaj więcej
+3. Nie
+4. Wyjaśnij
+```
+Gdy wybierze "Wyjaśnij" — tłumacz przez analogię z życia, bez żargonu technicznego.
 
 ## Agent Autonomy
 

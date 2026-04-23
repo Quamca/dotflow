@@ -26,7 +26,8 @@ git diff
 3. Ask:
 "Czy manualna weryfikacja została zakończona?
 1. Tak — przechodzimy do testów
-2. Nie — wróć po weryfikacji"
+2. Nie — wróć po weryfikacji
+3. Wyjaśnij"
 
 4. If yes, ask:
 "Co testuję?
@@ -109,12 +110,13 @@ vi.stubGlobal('localStorage', localStorageMock)
 
 ## Workflow Enforcement
 
-- Zawsze pytaj o weryfikację manualną (format 1/2)
+- Zawsze pytaj o weryfikację manualną (format 1/2/3)
 - Po testach → zaproponuj commit
 - Na końcu zapytaj:
   "Chcesz uruchomić /retro przed /docs?
   1. Tak
-  2. Nie — przejdź do /docs"
+  2. Nie — przejdź do /docs
+  3. Wyjaśnij"
 
 ## After Writing Tests
 
@@ -134,7 +136,8 @@ git commit -m "test([scope]): add tests for US-XXX [short description]"
 Then ask:
 "Testy gotowe i zakommitowane.
 1. Uruchom /retro przed /docs
-2. Przejdź od razu do /docs"
+2. Przejdź od razu do /docs
+3. Wyjaśnij co to jest /retro"
 
 ## UX — format pytań
 
@@ -142,8 +145,9 @@ Zawsze używaj formatu numerowanego:
 ```
 1. Tak
 2. Nie
+3. Wyjaśnij
 ```
-Użytkownik odpowiada cyfrą.
+Gdy wybierze "Wyjaśnij" — tłumacz przez analogię z życia, bez żargonu.
 
 ## Agent Autonomy
 
