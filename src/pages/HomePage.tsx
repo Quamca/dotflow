@@ -1,8 +1,23 @@
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useSettings } from '../hooks/useSettings'
+import { getEntries } from '../services/entryService'
+import EntryCard from '../components/EntryCard/EntryCard'
+import type { Entry } from '../types'
 
 export default function HomePage() {
+  const navigate = useNavigate()
   const { apiKey } = useSettings()
+  const [entries, setEntries] = useState<Entry[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    getEntries()
+      .then(setEntries)
+      .catch(() => setError('Failed to load entries. Please refresh.'))
+      .finally(() => setIsLoading(false))
+  }, [])
 
   return (
     <div className="min-h-screen bg-[#FAFAF9]">
@@ -27,11 +42,26 @@ export default function HomePage() {
         </div>
       )}
 
-      <main className="px-6 py-8">
-        <div className="text-center text-[#78716C] mt-16">
-          <p className="text-lg">Your story starts here.</p>
-          <p className="text-sm mt-1">Write your first entry to begin connecting the dots.</p>
-        </div>
+      <main className="px-6 py-6 max-w-2xl mx-auto pb-28">
+        {isLoading && <LoadingSkeleton />}
+
+        {!isLoading && error && (
+          <p className="text-sm text-red-600 mt-4">{error}</p>
+        )}
+
+        {!isLoading && !error && entries.length === 0 && <EmptyState />}
+
+        {!isLoading && !error && entries.length > 0 && (
+          <div className="flex flex-col gap-3">
+            {entries.map((entry) => (
+              <EntryCard
+                key={entry.id}
+                entry={entry}
+                onClick={() => navigate(`/entry/${entry.id}`)}
+              />
+            ))}
+          </div>
+        )}
       </main>
 
       <div className="fixed bottom-8 left-0 right-0 flex justify-center">
@@ -42,6 +72,30 @@ export default function HomePage() {
           + Write
         </Link>
       </div>
+    </div>
+  )
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="flex flex-col gap-3 mt-2" aria-label="Loading entries">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="rounded-xl border border-[#E7E5E4] bg-white px-5 py-4 animate-pulse">
+          <div className="h-3 w-24 bg-[#E7E5E4] rounded mb-3" />
+          <div className="h-4 w-full bg-[#E7E5E4] rounded mb-2" />
+          <div className="h-4 w-3/4 bg-[#E7E5E4] rounded" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center text-center mt-24 gap-4">
+      <div className="text-3xl tracking-widest text-[#E7E5E4] select-none">✦ · ✦</div>
+      <p className="text-[#1C1917] text-lg font-medium">Your story starts here.</p>
+      <p className="text-[#78716C] text-sm">Write your first entry to begin connecting the dots.</p>
     </div>
   )
 }
