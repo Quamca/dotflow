@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 1.7
+**Version:** 1.8
 **Date:** 2026-04-23
 **Author:** Solution Architect
-**Status:** Updated after US-007
+**Status:** Updated after US-101
 
 ---
 
@@ -122,10 +122,11 @@ dotflow/
 │   │   ├── EntryCard/       # Entry list card — date, content preview, emotion tags (US-007)
 │   │   │   └── EntryCard.tsx
 │   │   ├── EntryForm/       # (planned)
-│   │   └── ConnectionBadge/ # (planned)
+│   │   └── ConnectionBadge/ # "Connected to [date]" badge with navigation (US-101)
+│   │       └── ConnectionBadge.tsx
 │   ├── pages/               # Route-level components
-│   │   ├── HomePage.tsx     # Home screen: entry list, loading skeleton, empty state, warning banner (US-004, US-005, US-007)
-│   │   ├── NewEntryPage.tsx # Entry writing, AI follow-up dialog orchestration (US-005, US-006)
+│   │   ├── HomePage.tsx     # Home screen: entry list, loading skeleton, empty state, warning banner, connection badges (US-004, US-005, US-007, US-101)
+│   │   ├── NewEntryPage.tsx # Entry writing, AI follow-up dialog orchestration, fire-and-forget connection detection (US-005, US-006, US-101)
 │   │   ├── EntryDetailPage.tsx # Full entry view with follow-up Q&A (US-007)
 │   │   └── SettingsPage.tsx # API key management screen (US-004)
 │   ├── hooks/               # Custom React hooks
@@ -135,8 +136,8 @@ dotflow/
 │   ├── lib/                 # Third-party client initializations
 │   │   └── supabase.ts      # Supabase client (US-002)
 │   ├── services/            # External API integrations
-│   │   ├── aiService.ts     # OpenAI GPT-4o-mini via native fetch (US-006)
-│   │   └── entryService.ts  # Supabase CRUD + saveFollowUps (US-002, US-006)
+│   │   ├── aiService.ts     # OpenAI GPT-4o-mini via native fetch: generateFollowUpQuestions, findConnection (US-006, US-101)
+│   │   └── entryService.ts  # Supabase CRUD: createEntry, getEntries, getEntryById, saveFollowUps, saveConnection, getConnectionsForEntry (US-002, US-006, US-101)
 │   ├── types/               # TypeScript type definitions
 │   │   └── index.ts         # Entry, FollowUp, Connection, EntryWithFollowUps (US-002)
 │   ├── utils/               # Pure utility functions
@@ -145,6 +146,8 @@ dotflow/
 │   │   ├── setup.ts         # Vitest + jest-dom + RTL cleanup setup
 │   │   ├── setup.test.ts    # TC-000: framework smoke test
 │   │   ├── components/
+│   │   │   ├── ConnectionBadge/
+│   │   │   │   └── ConnectionBadge.test.tsx # TC-048–049 (US-101)
 │   │   │   ├── EntryCard/
 │   │   │   │   └── EntryCard.test.tsx       # TC-035–039 (US-007)
 │   │   │   └── FollowUpDialog/
@@ -152,13 +155,13 @@ dotflow/
 │   │   ├── hooks/
 │   │   │   └── useSettings.test.ts   # TC-019–022 (US-004)
 │   │   ├── pages/
-│   │   │   ├── HomePage.test.tsx     # TC-002, TC-005, TC-010–011, TC-024, TC-028 (US-004, US-005, US-007)
+│   │   │   ├── HomePage.test.tsx     # TC-002, TC-005, TC-010–011, TC-024, TC-028, TC-050 (US-004, US-005, US-007, US-101)
 │   │   │   ├── EntryDetailPage.test.tsx # TC-036–039 (US-007)
 │   │   │   ├── NewEntryPage.test.tsx # TC-003–009, TC-025–026, TC-034 (US-005, US-006)
 │   │   │   └── SettingsPage.test.tsx # TC-001, TC-023 (US-004)
 │   │   ├── services/
-│   │   │   ├── aiService.test.ts     # TC-010–011 (US-006)
-│   │   │   └── entryService.test.ts  # TC-012–018 (US-002, US-006)
+│   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043 (US-006, US-101)
+│   │   │   └── entryService.test.ts  # TC-012–018, TC-044–047 (US-002, US-006, US-101)
 │   │   └── utils/
 │   │       └── testHelpers.tsx       # renderWithRouter helper
 │   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004, US-005, US-007)
@@ -193,9 +196,9 @@ dotflow/
 
 ### 5.1 NewEntryPage
 
-**Responsibility:** Capture new journal entry text and orchestrate the full entry creation flow (save → AI questions → save follow-ups).
+**Responsibility:** Capture new journal entry text and orchestrate the full entry creation flow (save → AI questions → save follow-ups → background connection detection).
 
-**Flow (US-006 entry-first design):**
+**Flow (US-006 + US-101 entry-first design):**
 1. User types entry content
 2. User submits — entry saved to Supabase immediately (get `entry.id`)
 3. If no API key → navigate('/') directly
@@ -203,6 +206,7 @@ dotflow/
 5. On success → render `FollowUpDialog` with questions
 6. On AI failure → show error message (entry already saved)
 7. User answers/skips → `entryService.saveFollowUps(entry.id, followups)` → navigate('/')
+8. **After navigate:** `detectAndSaveConnection()` runs fire-and-forget in background (never blocks UI)
 
 ### 5.2 FollowUpDialog
 
@@ -236,7 +240,16 @@ dotflow/
 
 ### 5.5 ConnectionBadge
 
-**Responsibility:** Display a subtle "Connected to entry from [date]" link when AI finds similarity.
+**Responsibility:** Display a subtle "↔ Connected to [date]" button when AI finds a meaningful connection to a past entry. Clicking navigates to the connected entry.
+
+**Props:** `targetId: string`, `targetDate: string` (ISO timestamp)
+
+**Rendering note:** ConnectionBadge is rendered as a sibling element below EntryCard in HomePage — NOT inside EntryCard. This avoids the invalid HTML pattern of nesting `<button>` inside `<button>` (EntryCard's outer element is also a button).
+
+**Data flow:**
+- HomePage loads connections in background via `Promise.allSettled` after entries display
+- Each entry's `connections[entry.id]` lookup resolves to a `Connection` record
+- If found, `targetEntry` is located in the loaded entries array and `ConnectionBadge` is rendered
 
 ---
 
@@ -269,7 +282,35 @@ sequenceDiagram
     end
 ```
 
-### 6.2 AI Follow-Up Question Generation
+### 6.2 Background Connection Detection (US-101)
+
+```mermaid
+sequenceDiagram
+    participant P as NewEntryPage
+    participant AI as aiService
+    participant DB as entryService
+    participant S as Supabase
+
+    Note over P: After navigate('/') — fire-and-forget
+    P->>DB: getEntries() — fetch up to 10 past entries
+    DB-->>P: pastEntries[]
+    P->>AI: findConnection(newEntry, pastEntries, apiKey)
+    AI-->>P: { connected, entry_id, score, note }
+    alt score >= 0.7
+        P->>DB: saveConnection(sourceId, targetId, score, note)
+        DB->>S: INSERT connection
+    else score < 0.7
+        Note over P: no-op — silent
+    end
+```
+
+**Key design decisions:**
+- `findConnection()` never throws — returns `{ connected: false }` fallback on any error
+- Entire `detectAndSaveConnection()` function is wrapped in try/catch — silently ignored on failure
+- `void` prefix ensures the promise is fire-and-forget, not awaited
+- UI is never blocked or shown an error from connection detection
+
+### 6.3 AI Follow-Up Question Generation
 
 **Prompt strategy:** System prompt defines the role. User message contains the entry. AI responds with JSON array of questions. Questions are chosen based on what's MISSING from the entry:
 - No emotion mentioned → ask about feelings

@@ -2,7 +2,7 @@
 
 **Project:** Dotflow
 **Version:** 1.0
-**Last Updated:** 2026-04-23 (US-007)
+**Last Updated:** 2026-04-23 (US-101)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -449,7 +449,7 @@ Delivers the differentiated value proposition. Connection detection and pattern 
 - **In scope:** Connection detection on entry save, connection badge in entry list/detail, pattern summary generation
 - **Out of scope:** Graph visualization (Post-MVP), automated insights via email
 
-**Status:** 📋 Planned
+**Status:** 🔄 In Progress
 
 ---
 
@@ -469,7 +469,7 @@ The moment a user sees "Connected to entry from 3 weeks ago" and reads the linke
 - **Excludes:** Graph view (future), manual connection creation (future)
 
 **Priority:** P0 (Critical for M2)
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
 ---
 
@@ -482,27 +482,27 @@ After a new entry is saved, run a background AI check comparing it to the 10 mos
 **I want to** see when a new entry connects to a past entry
 **So that** I can recognize recurring patterns in my thoughts and behavior
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 **Story Points:** 8
 **Priority:** P0
 
 **Acceptance Criteria:**
-- [ ] Connection check runs in background after entry save (does not delay UI)
-- [ ] AI compares new entry to 10 most recent past entries
-- [ ] If similarity score ≥ 0.7, connection stored in `connections` table
-- [ ] Connection badge appears on entry card: "Connected to [date]"
-- [ ] Clicking badge navigates to connected entry
-- [ ] If no connection found: no badge, no error
+- [x] Connection check runs in background after entry save (does not delay UI)
+- [x] AI compares new entry to 10 most recent past entries
+- [x] If similarity score ≥ 0.7, connection stored in `connections` table
+- [x] Connection badge appears on entry card: "Connected to [date]"
+- [x] Clicking badge navigates to connected entry
+- [x] If no connection found: no badge, no error
 
 **Tasks:**
-- [ ] **TASK-101.1:** Create connection detection prompt in `src/utils/prompts.ts` - 45min
-- [ ] **TASK-101.2:** Implement `aiService.findConnection()` - 60min
-- [ ] **TASK-101.3:** Implement `entryService.saveConnection()` - 30min
-- [ ] **TASK-101.4:** Implement `entryService.getConnectionsForEntry()` - 20min
-- [ ] **TASK-101.5:** Create `src/components/ConnectionBadge/ConnectionBadge.tsx` - 30min
-- [ ] **TASK-101.6:** Integrate connection check into entry save flow (background) - 30min
-- [ ] **TASK-101.7:** Write tests for connection detection and badge rendering (/qa) - 60min
-- [ ] **TASK-101.8:** Manual verification - 20min
+- [x] **TASK-101.1:** Create connection detection prompt in `src/utils/prompts.ts` - 45min
+- [x] **TASK-101.2:** Implement `aiService.findConnection()` - 60min
+- [x] **TASK-101.3:** Implement `entryService.saveConnection()` - 30min
+- [x] **TASK-101.4:** Implement `entryService.getConnectionsForEntry()` - 20min
+- [x] **TASK-101.5:** Create `src/components/ConnectionBadge/ConnectionBadge.tsx` - 30min
+- [x] **TASK-101.6:** Integrate connection check into entry save flow (background) - 30min
+- [x] **TASK-101.7:** Write tests for connection detection and badge rendering (/qa) - 60min
+- [x] **TASK-101.8:** Manual verification - 20min
 
 ---
 

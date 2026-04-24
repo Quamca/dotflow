@@ -1,6 +1,6 @@
 # Dotflow - Code Snippets & Patterns
 
-**Version:** 1.4
+**Version:** 1.5
 **Date:** 2026-04-23
 **Purpose:** Reusable code patterns discovered during development
 
@@ -72,6 +72,60 @@ export async function generateFollowUpQuestions(
 **Note:** On localhost, some ad blockers intercept OpenAI API calls (shows "Failed to fetch"). Test in incognito if AI features don't trigger.
 
 **When to use:** Any new OpenAI API call in this project — follow this pattern for consistency.
+
+### 1.2 Fire-and-Forget Background AI Call (US-101)
+
+Pattern for triggering a background AI task after an async action (e.g., entry save) without blocking the UI. The function never throws — errors are swallowed silently. Caller uses `void` to explicitly discard the promise.
+
+```typescript
+// src/pages/NewEntryPage.tsx
+
+async function detectAndSaveConnection(newEntry: Entry, apiKey: string): Promise<void> {
+  try {
+    const allEntries = await getEntries()
+    const pastEntries = allEntries.filter((e) => e.id !== newEntry.id).slice(0, 10)
+    if (pastEntries.length === 0) return
+    const result = await findConnection(newEntry, pastEntries, apiKey)
+    if (result.connected && result.entry_id && result.score >= 0.7) {
+      await saveConnection(newEntry.id, result.entry_id, result.score, result.note)
+    }
+  } catch {
+    // silently ignore — connection detection is best-effort
+  }
+}
+
+// In handleSubmit, after saving the entry:
+if (apiKey) { void detectAndSaveConnection(entry, apiKey) }
+```
+
+**Key decisions:**
+- `void` prefix makes the fire-and-forget intent explicit — the promise is not awaited
+- Outer try/catch ensures no uncaught rejection reaches the browser console
+- `findConnection()` also never throws (its own internal fallback) — double safety
+- Score threshold `>= 0.7` is enforced here (not inside findConnection) to keep the service pure
+
+**Companion: resilient background loading in HomePage**
+
+When loading connections in the entry list, use `Promise.allSettled` so individual failures don't break the entire list. Wrap each call in `Promise.resolve().then(() => fn())` to safely convert synchronous throws into rejected promises:
+
+```typescript
+// src/pages/HomePage.tsx (inside useEffect load())
+void Promise.allSettled(
+  loadedEntries.map((e) => Promise.resolve().then(() => getConnectionsForEntry(e.id)))
+).then((results) => {
+  const connectionMap: Record<string, Connection> = {}
+  results.forEach((result, index) => {
+    if (result.status === 'fulfilled' && result.value.length > 0) {
+      connectionMap[loadedEntries[index].id] = result.value[0]
+    }
+  })
+  setConnections(connectionMap)
+})
+```
+
+**Why `Promise.resolve().then(() => fn())`:** If `fn()` throws synchronously (e.g., mock not set up in tests), `Promise.allSettled` cannot catch it — only rejected promises are handled. Wrapping in `.then()` converts any synchronous throw into a rejected promise that `allSettled` can safely handle.
+
+**When to use:** Any background task that should not block the UI, should not show errors to the user, and may fail without consequence.
 
 ---
 
@@ -390,6 +444,7 @@ vi.mocked(supabase.from).mockReturnValue({
 | Category | Pattern | Section |
 |----------|---------|---------|
 | AI Service | OpenAI REST API via native fetch | 1.1 |
+| AI Service | Fire-and-forget background AI call | 1.2 |
 | Testing | Vitest + jest-dom setup (explicit extend) | 4.1 |
 | Testing | RTL cleanup in Vitest (explicit afterEach) | 4.2 |
 | Testing | Mocking global fetch with vi.stubGlobal | 4.3 |
