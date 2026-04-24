@@ -1,58 +1,66 @@
-# Current Task — US-007: Home screen entry list and entry detail view
+# Current Task — US-101: AI connection detection on entry save
 
-**Branch:** 7-entry-list-view
-**Created:** 2026-04-23
+**Branch:** 101-connection-detection
+**Created:** 2026-04-24
 **Status:** 🔄 In Progress
 
 ## Context
-Implement the Home screen entry list and Entry Detail view — the last missing piece of the M1 MVP core loop. Users can currently write entries but have no way to read them back. After this US, the app shows all past entries on Home (newest first), with a clickable card leading to a full detail view including follow-up Q&A. `getEntries()` and `getEntryById()` are already implemented in entryService.ts — only UI needs to be built.
+After a new entry is saved, the AI silently compares it to the 10 most recent past entries. If it finds a meaningful emotional or situational similarity (score ≥ 0.7), a connection is stored in the `connections` table and a badge appears on the entry card. This is the core differentiator of Dotflow — showing users patterns they may not notice themselves. The `connections` table already exists in Supabase (created in US-002). The AI call runs fire-and-forget in the background: the UI never waits for it and no spinner is shown.
 
 ## Files to Read First
-- `src/pages/HomePage.tsx` — existing Home page (has header, banner, Write button — needs entry list added)
-- `src/pages/NewEntryPage.tsx` — reference for design patterns and Tailwind color system
-- `src/services/entryService.ts` — getEntries() and getEntryById() already implemented
-- `src/types/index.ts` — Entry and EntryWithFollowUps types
-- `src/App.tsx` — needs new Route for /entry/:id
-- `docs/wireframes.md` — S-001 (Home / Entry List) and S-004 (Entry Detail) specs
+- `src/services/aiService.ts` — existing OpenAI call pattern (extend with findConnection)
+- `src/services/entryService.ts` — existing CRUD (extend with saveConnection, getConnectionsForEntry)
+- `src/utils/prompts.ts` — existing prompts (add CONNECTION_DETECTION_SYSTEM_PROMPT)
+- `src/types/index.ts` — check existing Connection type
+- `src/components/EntryCard/EntryCard.tsx` — extend with optional connection prop
+- `src/pages/NewEntryPage.tsx` — where background check will be triggered
+- `src/pages/HomePage.tsx` — where connections are loaded and passed to EntryCard
+- `docs/architecture.md` — Section 8 has the connection detection prompt template
 
 ## Tasks
-1. [ ] TASK-007.3: Create `src/components/EntryCard/EntryCard.tsx` — displays date (formatted with Intl.DateTimeFormat, e.g. "April 9, 2026"), content preview (2 lines truncated with line-clamp), emotion tags as badges; clickable card navigates to /entry/:id
-2. [ ] TASK-007.4: Update `src/pages/HomePage.tsx` — add useEffect to load entries on mount via getEntries(); show: loading skeleton (3 animate-pulse cards), empty state ("Your story starts here" + Write CTA), or list of EntryCard components; preserve existing header, banner, and Write button
-3. [ ] TASK-007.5: Create `src/pages/EntryDetailPage.tsx` — loads entry via getEntryById(id) from URL params; shows: full content, formatted date, emotion tags, follow-up Q&A section (each answered question + answer); Back button returns to Home; add Route `/entry/:id` in App.tsx
-4. [ ] TASK-007.6: Write tests (/qa — after manual verification)
-5. [ ] TASK-007.7: Manual verification
+1. [ ] TASK-101.1: Add `CONNECTION_DETECTION_SYSTEM_PROMPT` to `src/utils/prompts.ts` — AI responds with JSON: `{ connected: boolean, entry_id: string | null, score: number, note: string }`; prompt based on Section 8 of architecture.md
+2. [ ] TASK-101.2: Implement `aiService.findConnection(newEntry: Entry, pastEntries: Entry[], apiKey: string): Promise<ConnectionResult>` in `src/services/aiService.ts` — calls OpenAI, parses JSON response, returns `{ connected: false }` on any error (never throws)
+3. [ ] TASK-101.3: Implement `entryService.saveConnection(sourceEntryId: string, targetEntryId: string, score: number, note: string): Promise<void>` in `src/services/entryService.ts`
+4. [ ] TASK-101.4: Implement `entryService.getConnectionsForEntry(entryId: string): Promise<Connection[]>` in `src/services/entryService.ts`
+5. [ ] TASK-101.5: Create `src/components/ConnectionBadge/ConnectionBadge.tsx` — displays "Connected to [formatted date]", clickable, navigates to `/entry/[targetId]` via useNavigate
+6. [ ] TASK-101.6: Update `src/components/EntryCard/EntryCard.tsx` — add optional `connection?: { targetId: string; targetDate: string }` prop; if present, render ConnectionBadge below emotion tags
+7. [ ] TASK-101.7: Update `src/pages/HomePage.tsx` — after loading entries, load connections for all entries (use Promise.all with getConnectionsForEntry per entry); pass connection data to each EntryCard
+8. [ ] TASK-101.8: Update `src/pages/NewEntryPage.tsx` — after entry is saved and before/after AI follow-up, fire background connection check: fetch 10 recent entries, call aiService.findConnection, if connected call entryService.saveConnection; entire block is fire-and-forget (no await at top level, errors silently ignored); only trigger if API key is set
+9. [ ] TASK-101.9: Write tests (/qa — after manual verification)
+10. [ ] TASK-101.10: Manual verification
 
 ## Constraints
-- Use `Intl.DateTimeFormat` for date formatting — do NOT install date-fns (not needed for this scope)
-- Design system: Ink `#1C1917`, Cream `#FAFAF9`, Stone `#E7E5E4`, Warm Stone `#78716C`, Amber `#D97706`
-- All Supabase calls go through `src/services/entryService.ts` — never call supabase from components
-- Use `useNavigate` / `useParams` from react-router-dom for navigation and URL param reading
-- Loading skeleton: use Tailwind `animate-pulse` — no new libraries
-- No `any` type — use Entry and EntryWithFollowUps from types/index.ts
+- Background connection check is fire-and-forget: wrap in async IIFE or `.then().catch()` — NEVER await at component level, NEVER show error to user if it fails
+- `aiService.findConnection` must NEVER throw — catch all errors internally and return `{ connected: false, entry_id: null, score: 0, note: '' }`
+- Only trigger connection check if API key is set (`apiKey` truthy)
+- Fetch at most 10 past entries for comparison (exclude the newly saved entry)
+- Connection badge click navigates to `/entry/[targetId]` — reuse existing route
+- Design system: badge uses Stone `#E7E5E4` bg, Warm Stone `#78716C` text — consistent with emotion tags
+- All Supabase calls go through `src/services/entryService.ts`
+- All OpenAI calls go through `src/services/aiService.ts`
+- No `any` type — define `ConnectionResult` type in types/index.ts if not present
 - Keep each file under 300 lines
-- EntryCard receives `entry: Entry` and `onClick: () => void` as props
 
 ## Acceptance Criteria
-- [ ] Home screen loads all entries from Supabase on mount
-- [ ] Entries displayed newest first
-- [ ] Each card shows: date (formatted), content preview (2 lines, truncated), emotion tags
-- [ ] Empty state shown when no entries: illustration + "Write your first entry" CTA
-- [ ] Loading skeleton shown while fetching
-- [ ] Clicking card navigates to Entry Detail view
-- [ ] Entry Detail shows: full content, date, all follow-up Q&A (questions + answers)
-- [ ] Back button from Detail returns to Home
+- [ ] Connection check runs in background after entry save (does not delay UI)
+- [ ] AI compares new entry to 10 most recent past entries
+- [ ] If similarity score ≥ 0.7, connection stored in `connections` table
+- [ ] Connection badge appears on entry card: "Connected to [date]"
+- [ ] Clicking badge navigates to connected entry
+- [ ] If no connection found: no badge, no error
 
 ## After Implementation
 - [ ] Run: `npm run lint`
 - [ ] Run: `npm test`
 - [ ] Manual verification steps (po polsku):
   1. Uruchom `npm run dev`, otwórz http://localhost:5173
-  2. Sprawdź stan pusty: jeśli nie ma wpisów — widać "Your story starts here" z przyciskiem Write
-  3. Kliknij "+ Write", napisz wpis, zapisz — wróć na Home
-  4. Sprawdź czy nowy wpis pojawia się na liście jako karta z datą i fragmentem tekstu
-  5. Napisz drugi wpis i sprawdź czy najnowszy jest na górze
-  6. Kliknij kartę wpisu — sprawdź czy otwiera się widok szczegółów z pełną treścią
-  7. Jeśli wpis miał odpowiedzi na pytania AI — sprawdź czy są widoczne w sekcji "Follow-up"
-  8. Kliknij "← Back" — sprawdź czy wracasz na listę
-  9. Odśwież stronę — sprawdź czy skeleton (szare karty) pojawia się przed załadowaniem listy
+  2. Upewnij się że masz ustawiony klucz API w Settings
+  3. Napisz nowy wpis podobny tematycznie do jednego z istniejących (np. oba o pracy lub relacjach)
+  4. Zapisz wpis i przejdź przez pytania AI, potwierdź "Save Entry"
+  5. Wróć na ekran główny — poczekaj chwilę (kilka sekund na odpowiedź AI w tle)
+  6. Odśwież stronę — sprawdź czy na karcie nowego wpisu pojawia się odznaka "Connected to [data]"
+  7. Kliknij odznakę — sprawdź czy przenosi do powiązanego wpisu
+  8. Napisz wpis o zupełnie innej tematyce — sprawdź że odznaka NIE pojawia się
+  9. Sprawdź w Supabase Dashboard (Table Editor → connections) czy rekord połączenia jest zapisany z poprawnym score i note
+  10. Sprawdź że brak klucza API nie powoduje błędu — usuń klucz w Settings, zapisz wpis, sprawdź brak errorów w konsoli
 - [ ] Potwierdź weryfikację wpisując 1
