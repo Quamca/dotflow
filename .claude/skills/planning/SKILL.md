@@ -55,10 +55,7 @@ Gdy US wymaga nowego narzędzia którego jeszcze nie używaliśmy — wyjaśnij 
 
 - MUSI być uruchomiony przed implementacją
 - MUSI wygenerować Task instruction w `.claude/current_task.md`
-- Jeśli `.claude/current_task.md` już istnieje → zapytaj:
-  "Plik current_task.md już istnieje. Nadpisać?
-  1. Tak
-  2. Nie"
+- Jeśli `.claude/current_task.md` już istnieje → nadpisz bez pytania
 
 ## Documentation Sync Rule
 
