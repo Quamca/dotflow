@@ -2,10 +2,11 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import HomePage from '../../pages/HomePage'
-import { getEntries } from '../../services/entryService'
+import { getEntries, getConnectionsForEntry } from '../../services/entryService'
 
 vi.mock('../../services/entryService', () => ({
   getEntries: vi.fn(),
+  getConnectionsForEntry: vi.fn(),
 }))
 
 const STORAGE_KEY = 'dotflow_openai_api_key'
@@ -32,6 +33,7 @@ describe('HomePage', () => {
     localStorage.clear()
     vi.clearAllMocks()
     vi.mocked(getEntries).mockResolvedValue([])
+    vi.mocked(getConnectionsForEntry).mockResolvedValue([])
   })
 
   afterEach(() => {
@@ -77,5 +79,29 @@ describe('HomePage', () => {
     renderHomePage()
 
     expect(await screen.findByText(/failed to load entries/i)).toBeInTheDocument()
+  })
+
+  it('should show connection badge when entry has a connection to another entry', async () => {
+    const sourceEntry = { ...mockEntry, id: 'uuid-1' }
+    const targetEntry = { ...mockEntry, id: 'uuid-2', created_at: '2026-04-01T20:00:00Z' }
+
+    vi.mocked(getEntries).mockResolvedValue([sourceEntry, targetEntry])
+    vi.mocked(getConnectionsForEntry).mockImplementation((id) => {
+      if (id === 'uuid-1') {
+        return Promise.resolve([{
+          id: 'conn-1',
+          source_entry_id: 'uuid-1',
+          target_entry_id: 'uuid-2',
+          similarity_score: 0.85,
+          connection_note: 'Similar themes',
+          created_at: '2026-04-09T21:00:00Z',
+        }])
+      }
+      return Promise.resolve([])
+    })
+
+    renderHomePage()
+
+    expect(await screen.findByText(/connected to/i)).toBeInTheDocument()
   })
 })

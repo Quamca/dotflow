@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createEntry, getEntries, getEntryById, saveFollowUps } from '../../services/entryService'
+import { createEntry, getEntries, getEntryById, saveFollowUps, saveConnection, getConnectionsForEntry } from '../../services/entryService'
 import { supabase } from '../../lib/supabase'
-import type { Entry, EntryWithFollowUps } from '../../types'
+import type { Entry, EntryWithFollowUps, Connection } from '../../types'
 
 vi.mock('../../lib/supabase', () => ({
   supabase: { from: vi.fn() },
@@ -14,6 +14,15 @@ const mockEntry: Entry = {
   tags: ['work'],
   created_at: '2026-04-09T20:00:00Z',
   updated_at: '2026-04-09T20:00:00Z',
+}
+
+const mockConnection: Connection = {
+  id: 'conn-1',
+  source_entry_id: 'uuid-1',
+  target_entry_id: 'uuid-2',
+  similarity_score: 0.85,
+  connection_note: 'Similar work frustration',
+  created_at: '2026-04-09T21:00:00Z',
 }
 
 const mockEntryWithFollowUps: EntryWithFollowUps = {
@@ -184,6 +193,64 @@ describe('entryService', () => {
           { question: 'Q?', answer: 'A', order_index: 0 },
         ])
       ).rejects.toThrow('Insert failed')
+    })
+  })
+
+  describe('saveConnection', () => {
+    it('should resolve when Supabase insert succeeds', async () => {
+      // Arrange
+      vi.mocked(supabase.from).mockReturnValue({
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      } as unknown as ReturnType<typeof supabase.from>)
+
+      // Act & Assert
+      await expect(
+        saveConnection('uuid-1', 'uuid-2', 0.85, 'Similar work frustration')
+      ).resolves.toBeUndefined()
+    })
+
+    it('should throw when Supabase returns an error', async () => {
+      // Arrange
+      vi.mocked(supabase.from).mockReturnValue({
+        insert: vi.fn().mockResolvedValue({ error: { message: 'Insert failed' } }),
+      } as unknown as ReturnType<typeof supabase.from>)
+
+      // Act & Assert
+      await expect(
+        saveConnection('uuid-1', 'uuid-2', 0.85, 'note')
+      ).rejects.toThrow('Insert failed')
+    })
+  })
+
+  describe('getConnectionsForEntry', () => {
+    it('should return connections array when found', async () => {
+      // Arrange
+      vi.mocked(supabase.from).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ data: [mockConnection], error: null }),
+        }),
+      } as unknown as ReturnType<typeof supabase.from>)
+
+      // Act
+      const result = await getConnectionsForEntry('uuid-1')
+
+      // Assert
+      expect(result).toEqual([mockConnection])
+    })
+
+    it('should return empty array when no connections found', async () => {
+      // Arrange
+      vi.mocked(supabase.from).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+      } as unknown as ReturnType<typeof supabase.from>)
+
+      // Act
+      const result = await getConnectionsForEntry('uuid-1')
+
+      // Assert
+      expect(result).toEqual([])
     })
   })
 })

@@ -1,7 +1,7 @@
 # Dotflow - Test Cases Documentation
 
-**Version:** 1.6
-**Date:** 2026-04-23
+**Version:** 1.7
+**Date:** 2026-04-24
 **Author:** QA Agent
 **Test Framework:** Vitest + React Testing Library
 
@@ -770,7 +770,233 @@ export const mockEntry = {
 
 ---
 
-## 3.4 FEATURE: Entry List View
+## 3.4 FEATURE: Entry List View — and Connection Detection (US-101)
+
+### TC-040: findConnection returns connection result when AI detects similarity
+
+**Related US:** US-101
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return valid connection result JSON (`connected: true, score: 0.85`)
+
+**Test Steps:**
+1. Call `findConnection(newEntry, [pastEntry], 'sk-test')`
+
+**Expected Result:**
+- Returns object with `connected: true`, `entry_id` set, `score: 0.85`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-041: findConnection returns fallback without throwing when API is not ok
+
+**Related US:** US-101
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return `{ ok: false, status: 401 }`
+
+**Test Steps:**
+1. Call `findConnection(newEntry, [pastEntry], 'sk-invalid')`
+
+**Expected Result:**
+- Returns `{ connected: false, entry_id: null }` — does NOT throw
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-042: findConnection returns fallback when response JSON is malformed
+
+**Related US:** US-101
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- `fetch` stubbed to return non-JSON content string
+
+**Test Steps:**
+1. Call `findConnection(newEntry, [pastEntry], 'sk-test')`
+
+**Expected Result:**
+- Returns `{ connected: false }` — does NOT throw
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-043: findConnection returns fallback and skips API call when pastEntries is empty
+
+**Related US:** US-101
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- `fetch` spy set up
+
+**Test Steps:**
+1. Call `findConnection(newEntry, [], 'sk-test')`
+
+**Expected Result:**
+- Returns `{ connected: false }`
+- `fetch` not called
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-044: saveConnection resolves when Supabase insert succeeds
+
+**Related US:** US-101
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- Supabase mock returns `{ error: null }`
+
+**Test Steps:**
+1. Call `saveConnection('uuid-1', 'uuid-2', 0.85, 'note')`
+
+**Expected Result:**
+- Resolves without error
+
+**File:** `src/__tests__/services/entryService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-045: saveConnection throws when Supabase returns error
+
+**Related US:** US-101
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- Supabase mock returns `{ error: { message: 'Insert failed' } }`
+
+**Test Steps:**
+1. Call `saveConnection('uuid-1', 'uuid-2', 0.85, 'note')`
+
+**Expected Result:**
+- Promise rejects with `'Insert failed'`
+
+**File:** `src/__tests__/services/entryService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-046: getConnectionsForEntry returns connections array when found
+
+**Related US:** US-101
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- Supabase mock returns `[mockConnection]`
+
+**Test Steps:**
+1. Call `getConnectionsForEntry('uuid-1')`
+
+**Expected Result:**
+- Returns array containing `mockConnection`
+
+**File:** `src/__tests__/services/entryService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-047: getConnectionsForEntry returns empty array when no connections found
+
+**Related US:** US-101
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- Supabase mock returns `{ data: null, error: null }`
+
+**Test Steps:**
+1. Call `getConnectionsForEntry('uuid-1')`
+
+**Expected Result:**
+- Returns `[]`
+
+**File:** `src/__tests__/services/entryService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-048: ConnectionBadge displays formatted connected date
+
+**Related US:** US-101
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- ConnectionBadge rendered with `targetDate: '2026-04-09T20:00:00Z'`
+
+**Test Steps:**
+1. Render ConnectionBadge
+
+**Expected Result:**
+- Text "Connected to April 9, 2026" visible
+
+**File:** `src/__tests__/components/ConnectionBadge/ConnectionBadge.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-049: ConnectionBadge navigates to connected entry when clicked
+
+**Related US:** US-101
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- ConnectionBadge rendered with `targetId: 'uuid-2'`
+- `useNavigate` mocked
+
+**Test Steps:**
+1. Click the ConnectionBadge button
+
+**Expected Result:**
+- `navigate('/entry/uuid-2')` called
+
+**File:** `src/__tests__/components/ConnectionBadge/ConnectionBadge.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-050: HomePage shows connection badge when entry has a connection
+
+**Related US:** US-101
+**Type:** Integration
+**Priority:** Critical
+
+**Preconditions:**
+- `getEntries` returns two entries
+- `getConnectionsForEntry` returns connection for first entry pointing to second
+
+**Test Steps:**
+1. Render HomePage
+2. Wait for entries and connections to load
+
+**Expected Result:**
+- "Connected to" badge visible in the DOM
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+
 
 ### TC-010: Empty state shown when no entries
 

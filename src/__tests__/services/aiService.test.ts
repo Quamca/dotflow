@@ -1,5 +1,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { generateFollowUpQuestions } from '../../services/aiService'
+import { generateFollowUpQuestions, findConnection } from '../../services/aiService'
+import type { Entry } from '../../types'
+
+const mockNewEntry: Entry = {
+  id: 'uuid-new',
+  content: 'Another tough day at work.',
+  emotions: [],
+  tags: [],
+  created_at: '2026-04-10T20:00:00Z',
+  updated_at: '2026-04-10T20:00:00Z',
+}
+
+const mockPastEntry: Entry = {
+  id: 'uuid-1',
+  content: 'Had a tough day at work.',
+  emotions: ['frustrated'],
+  tags: ['work'],
+  created_at: '2026-04-09T20:00:00Z',
+  updated_at: '2026-04-09T20:00:00Z',
+}
 
 const mockQuestions = [
   'How did you feel when that happened?',
@@ -81,5 +100,81 @@ describe('aiService', () => {
 
     // Assert
     expect(result).toHaveLength(3)
+  })
+
+  describe('findConnection', () => {
+    it('should return connection result when AI detects similarity', async () => {
+      // Arrange
+      const connectionResult = {
+        connected: true,
+        entry_id: 'uuid-1',
+        score: 0.85,
+        note: 'Similar work frustration',
+      }
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: JSON.stringify(connectionResult) } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await findConnection(mockNewEntry, [mockPastEntry], 'sk-test')
+
+      // Assert
+      expect(result.connected).toBe(true)
+      expect(result.entry_id).toBe('uuid-1')
+      expect(result.score).toBe(0.85)
+    })
+
+    it('should return fallback without throwing when API returns non-ok response', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({ ok: false, status: 401 })
+      )
+
+      // Act
+      const result = await findConnection(mockNewEntry, [mockPastEntry], 'sk-invalid')
+
+      // Assert
+      expect(result.connected).toBe(false)
+      expect(result.entry_id).toBeNull()
+    })
+
+    it('should return fallback when response JSON is malformed', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: 'not valid json' } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await findConnection(mockNewEntry, [mockPastEntry], 'sk-test')
+
+      // Assert
+      expect(result.connected).toBe(false)
+    })
+
+    it('should return fallback and not call API when pastEntries is empty', async () => {
+      // Arrange
+      const fetchSpy = vi.fn()
+      vi.stubGlobal('fetch', fetchSpy)
+
+      // Act
+      const result = await findConnection(mockNewEntry, [], 'sk-test')
+
+      // Assert
+      expect(result.connected).toBe(false)
+      expect(fetchSpy).not.toHaveBeenCalled()
+    })
   })
 })
