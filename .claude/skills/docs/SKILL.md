@@ -162,10 +162,7 @@ Nigdy nie dodawaj opcji "Wyjaśnij" ani "Nie — zakończ sesję".
 **Execute without asking:**
 - git status, git log, git diff
 - Reading project files
-
-**Always ask before:**
-- git add, git commit, git push
-- Modifying files
+- git add, git commit, git push (inform what is being committed/pushed, but do not ask for confirmation)
 
 **Execute automatically after user confirms (cyfra 1):**
 - git checkout main
@@ -174,7 +171,7 @@ Nigdy nie dodawaj opcji "Wyjaśnij" ani "Nie — zakończ sesję".
 
 ## Constraints
 - NEVER push directly to main — always use US branch + PR
-- Never commit without confirmation
+- Always show what files are being committed before committing
 - Never modify CLAUDE.md
 - Never delete content — only update or append
 - PR description comes BEFORE the instruction to create PR

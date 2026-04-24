@@ -128,8 +128,10 @@ Użytkownik odpowiada cyfrą. Nigdy nie dodawaj opcji "Wyjaśnij".
 - Czytanie plików projektu
 - Rozpoczęcie implementacji po wygenerowaniu task instruction
 
+**Wykonuję bez pytania (z informacją co robię):**
+- git add, git commit — informuję co jest commitowane, ale nie pytam o potwierdzenie
+
 **Zawsze pytam przed:**
-- git add, git commit
 - Tworzenie/modyfikacja plików (oprócz current_task.md po akceptacji scenariusza)
 
 ## Ograniczenia

@@ -74,12 +74,11 @@ Zawsze używaj formatu numerowanego:
 **Wykonuję bez pytania:**
 - git status, git log, git diff
 - Czytanie plików
+- git add, git commit — informuję co jest commitowane, ale nie pytam o potwierdzenie
 
 **Zawsze pytam przed:**
-- git add, git commit
 - Modyfikacja plików
 
 ## Ograniczenia
-- Nigdy nie commituj bez potwierdzenia
 - Nie twórz Task instructions — to rola /planning
 - Zmiany w plikach po angielsku, rozmowa po polsku
