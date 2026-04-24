@@ -14,6 +14,7 @@ Documentation specialist for Dotflow.
 git status
 git diff main..HEAD --stat
 git log main..HEAD --oneline
+git branch --show-current
 ```
 
 2. Ask: "Which US was completed? Provide US number."
@@ -57,6 +58,23 @@ For every US:
 - Technical debt? → flag in BACKLOG.md
 - Project Invariant changed? → alert user immediately
 
+## CRITICAL: Branch workflow
+
+**NEVER push directly to main.**
+
+Before starting docs work, check current branch:
+```powershell
+git branch --show-current
+```
+
+If on `main` → STOP and say:
+"Jesteś na main. Wszystkie zmiany powinny być na branchu US.
+Czy chcesz utworzyć branch teraz?
+1. Tak — utwórz branch [issue-number]-[us-name]
+2. Nie — kontynuuj na main (nie zalecane)"
+
+All commits must go to the US branch. Push to branch, not main.
+
 ## Commit message format
 
 `docs: update documentation for US-XXX (FileA, FileB, FileC)`
@@ -65,7 +83,7 @@ List only files actually modified.
 
 ## After Completion — Full Closing Sequence
 
-### Step 1 — Commit docs
+### Step 1 — Commit docs (on US branch)
 ```powershell
 git add BACKLOG.md
 git add README.md
@@ -73,14 +91,15 @@ git add docs/[changed files]
 git commit -m "docs: update documentation for US-XXX (BACKLOG, README, [others])"
 ```
 
-### Step 2 — Push
+### Step 2 — Push to branch
 ```powershell
 git push -u origin [branch-name]
 ```
 
 ### Step 3 — Pull Request
 
-Provide PR description template:
+**After push, provide the full PR description first, then the instruction:**
+
 ```
 Title: feat: US-XXX [short description]
 
@@ -103,17 +122,16 @@ Title: feat: US-XXX [short description]
 Closes #[issue_number]
 ```
 
-Say: "Skopiuj powyższy opis PR na GitHub i zatwierdź merge. Gdy PR zostanie zmergowany, wpisz 1."
+**Skopiuj powyższy opis, wklej na GitHub przy tworzeniu PR i zatwierdź merge. Gdy PR zostanie zmergowany, wpisz 1.**
 
 ### Step 4 — Cleanup (automatyczny po potwierdzeniu merge)
 
 Zapytaj:
 "Czy PR został już zmergowany?
 1. Tak — wykonaj cleanup
-2. Nie — poczekam
-3. Wyjaśnij co to jest merge"
+2. Nie — poczekam"
 
-Gdy użytkownik wybierze `1`, **automatycznie wykonaj**:
+Gdy użytkownik wybierze `1`, **automatycznie wykonaj bez pytania**:
 ```powershell
 git checkout main
 git pull
@@ -126,9 +144,9 @@ Potwierdź: "✅ Cleanup zakończony. Jesteś na main."
 
 Po cleanup automatycznie zasugeruj:
 "✅ US-XXX zamknięty. Następny wg backlogu: **US-YYY — [tytuł]** (P0).
-1. Tak — uruchom /planning
-2. Nie — zakończ sesję
-3. Wyjaśnij co będziemy robić w tym US"
+1. Tak — uruchom /planning"
+
+(Tylko opcja 1 — jeśli użytkownik nie chce kontynuować, po prostu zamknie terminal.)
 
 ## UX — format pytań
 
@@ -136,16 +154,8 @@ Zawsze używaj formatu numerowanego:
 ```
 1. Tak
 2. Nie
-3. Wyjaśnij
 ```
-Dla pytań które się powtarzają:
-```
-1. Tak
-2. Tak, nie pytaj więcej
-3. Nie
-4. Wyjaśnij
-```
-Gdy wybierze "Wyjaśnij" — tłumacz przez analogię z życia, bez żargonu technicznego.
+Nigdy nie dodawaj opcji "Wyjaśnij" ani "Nie — zakończ sesję".
 
 ## Agent Autonomy
 
@@ -163,8 +173,9 @@ Gdy wybierze "Wyjaśnij" — tłumacz przez analogię z życia, bez żargonu tec
 - git branch -d [branch]
 
 ## Constraints
+- NEVER push directly to main — always use US branch + PR
 - Never commit without confirmation
 - Never modify CLAUDE.md
 - Never delete content — only update or append
-- Always provide full closing sequence
-- Always suggest next US after cleanup
+- PR description comes BEFORE the instruction to create PR
+- Always suggest next US after cleanup (only "1. Tak" option)

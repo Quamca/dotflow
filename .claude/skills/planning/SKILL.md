@@ -40,27 +40,23 @@ Jeśli US nie gotowe — wymień braki i zaproponuj poprawki do BACKLOG.md.
 ## User Acceptance Scenario (obowiązkowy)
 
 Opisz w prostym języku co użytkownik zobaczy i zrobi po wdrożeniu.
-Bez terminologii technicznej. Używaj analogii z życia codziennego gdy tłumaczysz pojęcia.
+Bez terminologii technicznej. Używaj analogii z życia codziennego.
 
 Na końcu zapytaj:
 "Czy akceptujesz ten scenariusz?
-1. Tak — generuję task instruction i możemy zacząć
-2. Nie — powiedz co zmienić
-3. Wyjaśnij"
+1. Tak — generuję task instruction i rozpoczynam implementację
+2. Nie — powiedz co zmienić"
 
 ## Pierwsze użycie nowego narzędzia
 
-Gdy US wymaga nowego narzędzia/serwisu którego jeszcze nie używaliśmy — wyjaśnij przez analogię z życia codziennego, nie przez definicję techniczną. Jedno zdanie max.
-
-Przykład dobry: "GitHub Actions to automatyczny inspektor — sprawdza Twój kod przy każdym PR zanim trafi do main."
-Przykład zły: "GitHub Actions to CI/CD pipeline który uruchamia workflow na triggerach."
+Gdy US wymaga nowego narzędzia którego jeszcze nie używaliśmy — wyjaśnij przez analogię z życia, nie przez definicję techniczną. Jedno zdanie max.
 
 ## Workflow Enforcement
 
 - MUSI być uruchomiony przed implementacją
 - MUSI wygenerować Task instruction w `.claude/current_task.md`
-- Jeśli `.claude/current_task.md` już istnieje dla innego US → zapytaj:
-  "Plik current_task.md już istnieje dla innego US. Nadpisać?
+- Jeśli `.claude/current_task.md` już istnieje → zapytaj:
+  "Plik current_task.md już istnieje. Nadpisać?
   1. Tak
   2. Nie"
 
@@ -72,12 +68,19 @@ Jeśli znajdziesz rozbieżność między oczekiwaniami a dokumentacją:
 3. Natychmiast zaktualizuj BACKLOG.md, requirements.md, architecture.md
 4. NIE czekaj na /docs — napraw teraz
 
-## Generowanie Task instruction
+## Generowanie Task instruction i start implementacji
 
-Po akceptacji scenariusza, utwórz `.claude/current_task.md` i poinformuj:
-"✅ Task instruction zapisana. Wpisz **1** żeby rozpocząć implementację."
+Po akceptacji scenariusza:
+1. Utwórz `.claude/current_task.md`
+2. Jeśli BACKLOG.md zmieniony — commituj:
+```powershell
+git add BACKLOG.md
+git add .claude/current_task.md
+git commit -m "docs(planning): prepare task instruction for US-XXX"
+```
+3. **Od razu rozpocznij implementację** — nie pytaj o potwierdzenie, nie czekaj na "1".
 
-Struktura pliku:
+Struktura pliku current_task.md:
 ```markdown
 # Current Task — US-[NUMBER]: [TITLE]
 
@@ -112,46 +115,27 @@ Struktura pliku:
 - [ ] Potwierdź weryfikację wpisując 1
 ```
 
-## After Completion
-
-Jeśli zmieniłeś BACKLOG.md, zaproponuj commit:
-```powershell
-git add BACKLOG.md
-git add .claude/current_task.md
-git commit -m "docs(planning): prepare task instruction for US-XXX"
-```
-
-Następnie poinformuj:
-"✅ Task instruction zapisana. Wpisz **1** żeby rozpocząć implementację."
-
 ## UX — format pytań
 
-Zawsze używaj formatu numerowanego. Dla pytań tak/nie:
+Zawsze używaj formatu numerowanego:
 ```
 1. Tak
 2. Nie
-3. Wyjaśnij
 ```
-Dla pytań gdzie "tak" pojawia się często:
-```
-1. Tak
-2. Tak, nie pytaj więcej
-3. Nie
-4. Wyjaśnij
-```
-Użytkownik odpowiada cyfrą. Gdy wybierze "Wyjaśnij" — tłumacz przez analogię z życia, bez żargonu technicznego.
+Użytkownik odpowiada cyfrą. Nigdy nie dodawaj opcji "Wyjaśnij".
 
 ## Agent Autonomy
 
 **Wykonuję bez pytania:**
 - git status, git log, git diff, git branch
 - Czytanie plików projektu
+- Rozpoczęcie implementacji po wygenerowaniu task instruction
 
 **Zawsze pytam przed:**
 - git add, git commit
-- Tworzenie/modyfikacja plików
+- Tworzenie/modyfikacja plików (oprócz current_task.md po akceptacji scenariusza)
 
 ## Ograniczenia
 - Nigdy nie commituj bez potwierdzenia
-- Nie implementuj kodu
+- Nie pytaj o "1 żeby rozpocząć implementację" — po commicie zacznij od razu
 - Zmiany w plikach po angielsku, rozmowa po polsku

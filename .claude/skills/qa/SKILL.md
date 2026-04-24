@@ -25,15 +25,15 @@ git diff
 
 3. Ask:
 "Czy manualna weryfikacja została zakończona?
-1. Tak — przechodzimy do testów
-2. Nie — wróć po weryfikacji
-3. Wyjaśnij"
+1. Tak
+2. Nie — wróć po weryfikacji"
 
-4. If yes, ask:
-"Co testuję?
-1. Nową implementację z current_task.md
-2. Optymalizacja istniejących testów
-3. Audyt pokrycia dla danej funkcji"
+4. If yes — ask about insights:
+"Czy masz jakieś uwagi lub insighty po teście manualnym?
+1. Tak — napisz je teraz
+2. Nie — piszemy testy"
+
+5. After insights (or if none) — immediately start writing tests. Do NOT ask for permission.
 
 ## Testing Best Practices
 
@@ -49,10 +49,8 @@ git diff
 it('should [expected behavior] when [condition]', () => {
   // Arrange
   const mockEntry = { ... }
-
   // Act
   const result = await entryService.createEntry('content')
-
   // Assert
   expect(result).toEqual(mockEntry)
 })
@@ -108,36 +106,23 @@ const localStorageMock = {
 vi.stubGlobal('localStorage', localStorageMock)
 ```
 
-## Workflow Enforcement
+## Workflow
 
-- Zawsze pytaj o weryfikację manualną (format 1/2/3)
-- Po testach → zaproponuj commit
-- Na końcu zapytaj:
-  "Chcesz uruchomić /retro przed /docs?
-  1. Tak
-  2. Nie — przejdź do /docs
-  3. Wyjaśnij"
-
-## After Writing Tests
-
-1. Run: `npm run lint`
-2. Run: `npm test`
-3. Update docs/test_cases.md
-
-## After Completion
-
-Propose commit:
+1. Confirm manual verification (1/2)
+2. Ask about insights (1/2)
+3. Write tests immediately — no permission needed
+4. Run lint + tests
+5. Update docs/test_cases.md
+6. **Commit immediately without asking:**
 ```powershell
 git add src/__tests__/[test files]
 git add docs/test_cases.md
 git commit -m "test([scope]): add tests for US-XXX [short description]"
 ```
-
-Then ask:
-"Testy gotowe i zakommitowane.
-1. Uruchom /retro przed /docs
-2. Przejdź od razu do /docs
-3. Wyjaśnij co to jest /retro"
+7. After commit ask:
+"Testy gotowe. Uruchomić /retro przed /docs?
+1. Tak
+2. Nie — przejdź do /docs"
 
 ## UX — format pytań
 
@@ -145,9 +130,8 @@ Zawsze używaj formatu numerowanego:
 ```
 1. Tak
 2. Nie
-3. Wyjaśnij
 ```
-Gdy wybierze "Wyjaśnij" — tłumacz przez analogię z życia, bez żargonu.
+Nigdy nie dodawaj opcji "Wyjaśnij".
 
 ## Agent Autonomy
 
@@ -155,13 +139,14 @@ Gdy wybierze "Wyjaśnij" — tłumacz przez analogię z życia, bez żargonu.
 - git status, git diff
 - npm run lint, npm test
 - Reading project files
+- Writing test files
+- Committing test files after they pass
 
 **Always ask before:**
-- git add, git commit
-- Creating/modifying files
+- Modifying production code
 
 ## Constraints
-- Never commit without confirmation
 - Never modify production code
 - Test only user-facing behavior
 - Follow F.I.R.S.T. and AAA in every test
+- Commit automatically after tests pass — do not ask for confirmation
