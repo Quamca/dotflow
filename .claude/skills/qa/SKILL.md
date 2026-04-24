@@ -28,12 +28,7 @@ git diff
 1. Tak
 2. Nie — wróć po weryfikacji"
 
-4. If yes — ask about insights:
-"Czy masz jakieś uwagi lub insighty po teście manualnym?
-1. Tak — napisz je teraz
-2. Nie — piszemy testy"
-
-5. After insights (or if none) — immediately start writing tests. Do NOT ask for permission.
+4. If yes — immediately start writing tests. No other questions.
 
 ## Testing Best Practices
 
@@ -109,29 +104,24 @@ vi.stubGlobal('localStorage', localStorageMock)
 ## Workflow
 
 1. Confirm manual verification (1/2)
-2. Ask about insights (1/2)
-3. Write tests immediately — no permission needed
-4. Run lint + tests
-5. Update docs/test_cases.md
-6. **Commit immediately without asking:**
+2. Write tests immediately — no other questions
+3. Run lint + tests
+4. Update docs/test_cases.md
+5. Commit automatically without asking:
 ```powershell
 git add src/__tests__/[test files]
 git add docs/test_cases.md
 git commit -m "test([scope]): add tests for US-XXX [short description]"
 ```
-7. After commit ask:
-"Testy gotowe. Uruchomić /retro przed /docs?
-1. Tak
-2. Nie — przejdź do /docs"
+6. After commit say: "Testy gotowe. Uruchom /flow."
 
 ## UX — format pytań
 
-Zawsze używaj formatu numerowanego:
+Tylko:
 ```
 1. Tak
 2. Nie
 ```
-Nigdy nie dodawaj opcji "Wyjaśnij".
 
 ## Agent Autonomy
 
@@ -149,4 +139,5 @@ Nigdy nie dodawaj opcji "Wyjaśnij".
 - Never modify production code
 - Test only user-facing behavior
 - Follow F.I.R.S.T. and AAA in every test
-- Commit automatically after tests pass — do not ask for confirmation
+- Commit automatically after tests pass
+- After commit — always say "Uruchom /flow" not "/docs"
