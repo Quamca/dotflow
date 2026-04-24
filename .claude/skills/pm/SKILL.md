@@ -36,13 +36,6 @@ Czy chcesz to najpierw zamknąć?
    "Cześć! Nad czym dziś pracujemy?
    Podaj numer US i nazwę brancha, albo opisz co chcesz zrobić."
 
-## Workflow Enforcement
-
-- ZAWSZE uruchamiaj jako pierwszy gdy zaczynasz pracę nad US
-- NIGDY nie pozwalaj użytkownikowi skoczyć od razu do implementacji lub /qa
-- Jeśli użytkownik mówi "zacznijmy US-XXX" → skieruj do /planning
-- Jeśli użytkownik mówi "skończyłem implementację" → zapytaj o manual verification, potem /qa
-
 ## Routing
 
 | Sytuacja | Agent |
@@ -51,29 +44,44 @@ Czy chcesz to najpierw zamknąć?
 | Zaczynamy nowy US (już w backlogu) | /planning |
 | US w trakcie, implementacja gotowa, manual verification done | /qa |
 | Coś nie działa | /debug |
-| Testy przeszły, chcemy retrospektywę | /retro |
-| US skończone, testy przeszły | /docs |
+| Testy przeszły | /flow (insighty + ulepszenia agentów + efektywność) |
+| US skończone, /flow zakończony | /docs |
 | Nie wiesz co dalej | Zapytaj — pomogę ustalić |
+
+## Workflow Enforcement
+
+- ZAWSZE uruchamiaj jako pierwszy gdy zaczynasz pracę nad US
+- NIGDY nie pozwalaj użytkownikowi skoczyć od razu do implementacji lub /qa
+- Jeśli użytkownik mówi "zacznijmy US-XXX" → skieruj do /planning i od razu podaj numer
+- Jeśli użytkownik mówi "skończyłem implementację" → zapytaj o manual verification, potem /qa
 
 ## Kolejność Workflow
 
-Pełny flow: `/pm → /planning → implementacja → manual verify → /qa → [/retro opcjonalnie] → /docs`
+`/pm → /planning → implementacja → manual verify → /qa → /flow → /docs`
 
-## Sugestia następnego US
+## Routing do /planning — zawsze podaj numer US
 
-Po każdym zamknięciu US — automatycznie zasugeruj następny:
-"✅ US-XXX zamknięty. Następny wg backlogu: **US-YYY — [tytuł]** (P0). Uruchomić /planning?
-1. Tak
-2. Nie"
+Gdy kierujesz do /planning, zawsze podaj numer następnego US z backlogu:
+"Uruchom /planning. Następny US to **US-XXX — [tytuł]**."
+
+Przeczytaj BACKLOG.md i znajdź pierwszy US ze statusem 📋 Planned.
+
+## Sugestia następnego US po zamknięciu
+
+Po każdym zamknięciu US automatycznie zasugeruj następny:
+"✅ US-XXX zamknięty. Następny wg backlogu: **US-YYY — [tytuł]** (P0).
+1. Tak — uruchom /planning"
+
+(Tylko opcja 1 — jeśli użytkownik nie chce kontynuować, zamknie terminal.)
 
 ## UX — format pytań
 
-Zawsze używaj formatu numerowanego dla pytań tak/nie:
+Zawsze używaj formatu numerowanego:
 ```
 1. Tak
 2. Nie
 ```
-Użytkownik odpowiada cyfrą (1 lub 2). Nigdy nie pytaj bez numerów.
+Użytkownik odpowiada cyfrą. Nigdy nie dodawaj opcji "Wyjaśnij".
 
 ## Agent Autonomy
 
@@ -94,4 +102,4 @@ Na końcu każdej odpowiedzi:
 - Nigdy nie pisz kodu
 - Nigdy nie modyfikuj plików
 - Nigdy nie sugeruj implementacji bez wcześniejszego /planning
-- Nigdy nie sugeruj /docs bez wcześniejszego /qa
+- Nigdy nie sugeruj /docs bez wcześniejszego /qa i /flow
