@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import type { Entry, EntryWithFollowUps, FollowUpInput } from '../types'
+import type { Entry, EntryWithFollowUps, FollowUpInput, Connection } from '../types'
 
 export async function createEntry(content: string): Promise<Entry> {
   const { data, error } = await supabase
@@ -48,4 +48,29 @@ export async function saveFollowUps(
 
   const { error } = await supabase.from('followups').insert(rows)
   if (error) throw new Error(error.message)
+}
+
+export async function saveConnection(
+  sourceEntryId: string,
+  targetEntryId: string,
+  score: number,
+  note: string
+): Promise<void> {
+  const { error } = await supabase.from('connections').insert({
+    source_entry_id: sourceEntryId,
+    target_entry_id: targetEntryId,
+    similarity_score: score,
+    connection_note: note,
+  })
+  if (error) throw new Error(error.message)
+}
+
+export async function getConnectionsForEntry(entryId: string): Promise<Connection[]> {
+  const { data, error } = await supabase
+    .from('connections')
+    .select('*')
+    .eq('source_entry_id', entryId)
+
+  if (error) throw new Error(error.message)
+  return (data ?? []) as Connection[]
 }

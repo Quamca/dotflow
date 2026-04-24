@@ -1,4 +1,5 @@
-import { FOLLOW_UP_SYSTEM_PROMPT } from '../utils/prompts'
+import { FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_DETECTION_SYSTEM_PROMPT } from '../utils/prompts'
+import type { Entry, ConnectionResult } from '../types'
 
 export async function generateFollowUpQuestions(
   content: string,
@@ -37,5 +38,69 @@ export async function generateFollowUpQuestions(
     return []
   } catch {
     return []
+  }
+}
+
+export async function findConnection(
+  newEntry: Entry,
+  pastEntries: Entry[],
+  apiKey: string
+): Promise<ConnectionResult> {
+  const fallback: ConnectionResult = { connected: false, entry_id: null, score: 0, note: '' }
+  if (pastEntries.length === 0) return fallback
+
+  try {
+    const userMessage = JSON.stringify({
+      new_entry: {
+        id: newEntry.id,
+        content: newEntry.content,
+        created_at: newEntry.created_at,
+      },
+      past_entries: pastEntries.slice(0, 10).map((e) => ({
+        id: e.id,
+        content: e.content,
+        created_at: e.created_at,
+      })),
+    })
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: CONNECTION_DETECTION_SYSTEM_PROMPT },
+          { role: 'user', content: userMessage },
+        ],
+        temperature: 0.3,
+      }),
+    })
+
+    if (!response.ok) return fallback
+
+    const data = (await response.json()) as {
+      choices: Array<{ message: { content: string } }>
+    }
+    const raw = data.choices[0]?.message?.content ?? '{}'
+
+    try {
+      const parsed = JSON.parse(raw) as unknown
+      if (
+        parsed !== null &&
+        typeof parsed === 'object' &&
+        'connected' in parsed &&
+        typeof (parsed as { connected: unknown }).connected === 'boolean'
+      ) {
+        return parsed as ConnectionResult
+      }
+      return fallback
+    } catch {
+      return fallback
+    }
+  } catch {
+    return fallback
   }
 }

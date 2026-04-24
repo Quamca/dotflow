@@ -1,10 +1,24 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createEntry, saveFollowUps } from '../services/entryService'
-import { generateFollowUpQuestions } from '../services/aiService'
+import { createEntry, saveFollowUps, getEntries, saveConnection } from '../services/entryService'
+import { generateFollowUpQuestions, findConnection } from '../services/aiService'
 import { useSettings } from '../hooks/useSettings'
 import FollowUpDialog from '../components/FollowUpDialog/FollowUpDialog'
 import type { Entry, FollowUpInput } from '../types'
+
+async function detectAndSaveConnection(newEntry: Entry, apiKey: string): Promise<void> {
+  try {
+    const allEntries = await getEntries()
+    const pastEntries = allEntries.filter((e) => e.id !== newEntry.id).slice(0, 10)
+    if (pastEntries.length === 0) return
+    const result = await findConnection(newEntry, pastEntries, apiKey)
+    if (result.connected && result.entry_id && result.score >= 0.7) {
+      await saveConnection(newEntry.id, result.entry_id, result.score, result.note)
+    }
+  } catch {
+    // silently ignore — connection detection is best-effort
+  }
+}
 
 export default function NewEntryPage() {
   const navigate = useNavigate()
@@ -31,6 +45,10 @@ export default function NewEntryPage() {
       setError('Failed to save entry. Please try again.')
       setIsLoading(false)
       return
+    }
+
+    if (apiKey) {
+      void detectAndSaveConnection(entry, apiKey)
     }
 
     if (!apiKey) {

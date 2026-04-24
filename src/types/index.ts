@@ -34,3 +34,10 @@ export interface FollowUpInput {
   answer: string | null
   order_index: number
 }
+
+export interface ConnectionResult {
+  connected: boolean
+  entry_id: string | null
+  score: number
+  note: string
+}

@@ -1,22 +1,44 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSettings } from '../hooks/useSettings'
-import { getEntries } from '../services/entryService'
+import { getEntries, getConnectionsForEntry } from '../services/entryService'
 import EntryCard from '../components/EntryCard/EntryCard'
-import type { Entry } from '../types'
+import ConnectionBadge from '../components/ConnectionBadge/ConnectionBadge'
+import type { Entry, Connection } from '../types'
 
 export default function HomePage() {
   const navigate = useNavigate()
   const { apiKey } = useSettings()
   const [entries, setEntries] = useState<Entry[]>([])
+  const [connections, setConnections] = useState<Record<string, Connection>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    getEntries()
-      .then(setEntries)
-      .catch(() => setError('Failed to load entries. Please refresh.'))
-      .finally(() => setIsLoading(false))
+    async function load() {
+      try {
+        const loadedEntries = await getEntries()
+        setEntries(loadedEntries)
+
+        // Load connections in background — failures don't affect entry display
+        void Promise.allSettled(
+          loadedEntries.map((e) => Promise.resolve().then(() => getConnectionsForEntry(e.id)))
+        ).then((results) => {
+          const connectionMap: Record<string, Connection> = {}
+          results.forEach((result, index) => {
+            if (result.status === 'fulfilled' && result.value.length > 0) {
+              connectionMap[loadedEntries[index].id] = result.value[0]
+            }
+          })
+          setConnections(connectionMap)
+        })
+      } catch {
+        setError('Failed to load entries. Please refresh.')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    void load()
   }, [])
 
   return (
@@ -53,13 +75,26 @@ export default function HomePage() {
 
         {!isLoading && !error && entries.length > 0 && (
           <div className="flex flex-col gap-3">
-            {entries.map((entry) => (
-              <EntryCard
-                key={entry.id}
-                entry={entry}
-                onClick={() => navigate(`/entry/${entry.id}`)}
-              />
-            ))}
+            {entries.map((entry) => {
+              const conn = connections[entry.id]
+              const targetEntry = conn
+                ? entries.find((e) => e.id === conn.target_entry_id)
+                : undefined
+              return (
+                <div key={entry.id}>
+                  <EntryCard
+                    entry={entry}
+                    onClick={() => navigate(`/entry/${entry.id}`)}
+                  />
+                  {targetEntry && (
+                    <ConnectionBadge
+                      targetId={targetEntry.id}
+                      targetDate={targetEntry.created_at}
+                    />
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
       </main>
