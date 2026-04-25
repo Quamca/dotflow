@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { generateFollowUpQuestions, findConnection } from '../../services/aiService'
+import { generateFollowUpQuestions, findConnection, generatePatternSummary } from '../../services/aiService'
 import type { Entry } from '../../types'
 
 const mockNewEntry: Entry = {
@@ -175,6 +175,84 @@ describe('aiService', () => {
       // Assert
       expect(result.connected).toBe(false)
       expect(fetchSpy).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('generatePatternSummary', () => {
+    it('should return observations array when OpenAI responds successfully', async () => {
+      // Arrange
+      const mockObservations = [
+        'You often write about work stress.',
+        'Feelings of disconnection appear after social events.',
+        'Your mood improves when you mention outdoor activities.',
+      ]
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: JSON.stringify(mockObservations) } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await generatePatternSummary([mockPastEntry], 'sk-test')
+
+      // Assert
+      expect(result).toEqual(mockObservations)
+    })
+
+    it('should throw when OpenAI returns non-ok response', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({ ok: false, status: 401 })
+      )
+
+      // Act & Assert
+      await expect(
+        generatePatternSummary([mockPastEntry], 'sk-invalid')
+      ).rejects.toThrow('OpenAI API error: 401')
+    })
+
+    it('should return empty array when response JSON is malformed', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: 'not valid json' } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await generatePatternSummary([mockPastEntry], 'sk-test')
+
+      // Assert
+      expect(result).toEqual([])
+    })
+
+    it('should cap observations at 5 when AI returns more than 5', async () => {
+      // Arrange
+      const tooMany = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: JSON.stringify(tooMany) } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await generatePatternSummary([mockPastEntry], 'sk-test')
+
+      // Assert
+      expect(result).toHaveLength(5)
     })
   })
 })
