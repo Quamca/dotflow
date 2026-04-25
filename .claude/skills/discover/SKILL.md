@@ -73,7 +73,12 @@ git add docs/requirements.md
 git commit -m "docs(backlog): add [Epic/Feature/US name] from discovery session"
 ```
 
-"Dokumenty zaktualizowane. Uruchom /planning dla nowego US."
+Po commicie zapytaj:
+"Dokumenty zaktualizowane. Czy uruchomić /planning dla [nazwa US]?
+1. Tak — przejdź do planowania
+2. Nie"
+
+Jeśli użytkownik wybierze **1** → wywołaj skill `planning` z numerem US jako argumentem. Nie pytaj ponownie — działaj.
 
 ## Przypomnienie aktywnego zadania
 
