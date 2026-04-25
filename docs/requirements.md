@@ -238,6 +238,29 @@ Banner must communicate missing value, not just missing key: *"Without an API ke
 
 ---
 
+### FR-012: Adaptive Milestone Pattern Summaries
+
+**Priority:** SHOULD HAVE (M2.5)
+
+**Description:**
+Pattern insights are computed proactively when the user reaches meaningful entry milestones (10, 25, 50 entries). The black hole visual element signals that a new insight is available via a subtle glow/pulse animation. The user reveals the insight by hovering — on their own terms. Each milestone produces a unique observation. Insights are persisted in localStorage and never regenerated on every hover.
+
+**AI Behavior:**
+- Milestone-aware prompt: AI is instructed to focus on patterns observable since the previous milestone, not repeat prior observations
+- Pre-milestone state: hover shows "Keep writing — insights unlock at 10 entries"
+
+**Acceptance Criteria:**
+- Insight computed when entry count reaches 10, 25, 50
+- Black hole glow/pulse visible when milestone insight is unread
+- Glow clears after user hovers (marks as read)
+- Insight content is unique per milestone
+- Insights persisted in localStorage (not regenerated on hover)
+- Pre-milestone fallback text shown on hover before 10 entries
+
+**Related User Stories:** US-205
+
+---
+
 ## 4. Non-Functional Requirements
 
 ### NFR-001: Performance

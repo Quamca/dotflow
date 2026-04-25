@@ -2,7 +2,7 @@
 
 **Project:** Dotflow
 **Version:** 1.1
-**Last Updated:** 2026-04-25 (Discovery: Visualization + Insight Feedback)
+**Last Updated:** 2026-04-25 (Discovery: Adaptive Pattern Summaries — FEATURE-014, US-205)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -40,7 +40,7 @@ EPIC-002b: Dotflow M2.5 — Experience Depth (pre-M3)
 ├── FEATURE-011: 3D Entry Visualization ("Gwiezdne niebo")
 ├── FEATURE-012: Insight Feedback Loop
 ├── FEATURE-013: User Onboarding & Instructions         [to be discovered]
-├── FEATURE-014: Adaptive Pattern Summaries             [to be discovered]
+├── FEATURE-014: Adaptive Pattern Summaries
 └── FEATURE-015: Security & Privacy Messaging           [to be discovered]
 
 EPIC-003: Dotflow M3 — Multi-User + Mobile             [BLOCKED — M2.5 first]
@@ -850,8 +850,64 @@ Add a one-time contextual hint to three AI feature moments: first follow-up ques
 
 ## 🔧 FEATURE-014: Adaptive Pattern Summaries
 
-**Description:** To be defined in /discover session.
-**Status:** 📋 To be discovered
+**Description:**
+Pattern insights are computed proactively when the user reaches entry milestones (10, 25, 50 entries). The black hole signals visually (glow/pulse) that a new insight is ready. The user discovers it by hovering — on their own terms. Each milestone produces a unique insight, persisted in localStorage so it never regenerates on hover.
+
+This replaces the recall-gap problem of the on-demand "Generate insights" button: the system knows when there is something worth saying; the user decides when to hear it.
+
+**User Value:**
+Insights feel earned, not arbitrary. The glow signal creates intrinsic curiosity without pushing. The user is never ambushed — they initiate the moment of discovery.
+
+**UX Principles (from /consult):**
+- Milestone-triggered: insight computed proactively at entry count thresholds (10, 25, 50)
+- User-initiated delivery: only revealed on black hole hover — never pushed
+- Signal intensity must be calibrated (glow too subtle = recall gap returns; too aggressive = surveillance feeling)
+
+**Dependencies:**
+- US-202 (black hole must exist and handle hover display)
+
+**Scope Boundaries:**
+- **Includes:** Milestone detection, insight computation + persistence, glow/pulse signal, "unread" state per milestone
+- **Excludes:** Push notifications, email delivery, scheduled insights
+
+**Priority:** P1
+**Status:** 📋 Planned
+
+---
+
+### US-205: Milestone-Triggered Adaptive Insights
+
+**Description:**
+When the user reaches entry milestones (10, 25, 50 entries), the app proactively computes a pattern insight and persists it. The black hole shows a subtle glow/pulse to signal that something new is waiting. Hovering reveals the insight and clears the signal. Each milestone produces a distinct observation — not the same content repeated.
+
+**As a** user
+**I want** the app to quietly signal when a meaningful pattern insight is ready at key milestones
+**So that** I discover insights at the right moment — when there is something real to say — and on my own terms
+
+**Status:** 📋 Planned
+**Story Points:** 5
+**Priority:** P1
+
+**Acceptance Criteria:**
+- [ ] Insight computed automatically when entry count reaches 10, 25, 50
+- [ ] Computed insight persisted in localStorage: `insight_milestone_10`, `insight_milestone_25`, `insight_milestone_50`
+- [ ] Black hole shows glow/pulse animation when a new milestone insight is available and unread
+- [ ] Glow disappears after first hover (insight marked as read: `insight_read_10`, etc.)
+- [ ] Each milestone produces a unique insight (prompt instructs AI to focus on what's new since last milestone)
+- [ ] Before first milestone: black hole hover shows: *"Keep writing — insights unlock at 10 entries"*
+- [ ] Insight does not regenerate on every hover — persisted content is displayed
+- [ ] Requires US-202 (black hole mesh and hover interaction must exist)
+
+**Tasks:**
+- [ ] **TASK-205.1:** Add milestone detection logic in HomePage (check entry count on load) - 20min
+- [ ] **TASK-205.2:** Implement `aiService.generateMilestoneInsight(entries, milestone)` with milestone-aware prompt - 45min
+- [ ] **TASK-205.3:** Add localStorage persistence: save + retrieve insight per milestone - 20min
+- [ ] **TASK-205.4:** Add "unread" state per milestone (localStorage flag) - 15min
+- [ ] **TASK-205.5:** Pass `hasUnreadInsight` prop to StarField/black hole — trigger glow/pulse animation - 30min
+- [ ] **TASK-205.6:** Clear unread flag on hover, show persisted insight - 15min
+- [ ] **TASK-205.7:** Add pre-milestone fallback text on hover - 10min
+- [ ] **TASK-205.8:** Write tests for milestone detection, persistence, and unread state (/qa) - 45min
+- [ ] **TASK-205.9:** Manual verification - 15min
 
 ---
 

@@ -474,8 +474,8 @@ graph LR
 - [ ] **US-201:** 3D star field visualization (react-three-fiber) — M2.5
 - [ ] **US-202:** Black hole psychological center, semi-automatic values extraction — M2.5
 - [ ] **US-203:** Dialectical insight feedback loop — M2.5
-- [ ] User onboarding & instructions — M2.5 (to be discovered)
-- [ ] Adaptive pattern summaries — M2.5 (to be discovered)
+- [ ] User onboarding & instructions — M2.5 (FEATURE-013, US-204)
+- [ ] **US-205:** Milestone-triggered adaptive insights — milestone detection, `aiService.generateMilestoneInsight()`, localStorage persistence per milestone (`insight_milestone_10/25/50`), black hole glow/pulse signal, unread state — M2.5
 - [ ] Security & privacy messaging — M2.5 (to be discovered)
 - [ ] AI communication principles document (`docs/ai_communication_principles.md`) — M2.5 prereq
 - [ ] Add Supabase Auth + RLS for multi-user support — M3
