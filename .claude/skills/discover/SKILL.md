@@ -30,6 +30,18 @@ git diff
 "Nad czym chcemy dziś popracować strategicznie?
 Opisz pomysł lub problem który chcesz omówić."
 
+## Plan przed akcją (obowiązkowe)
+
+Gdy użytkownik opisuje problem lub prośbę o zmianę:
+1. **Najpierw przedstaw plan** — krótkie 1–3 zdania co zamierzasz zrobić
+2. Zapytaj:
+   "Czy o to chodzi?
+   1. Tak
+   2. Nie — powiedz co zmienić"
+3. **Dopiero po akceptacji** wykonaj zmiany
+
+Nigdy nie modyfikuj plików ani nie commituj bez wcześniejszej akceptacji planu.
+
 ## Styl prowadzenia dyskusji
 
 Zadawaj pytania które pomagają doprecyzować:
