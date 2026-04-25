@@ -2,7 +2,7 @@
 
 **Project:** Dotflow
 **Version:** 1.1
-**Last Updated:** 2026-04-25 (Discovery: Adaptive Pattern Summaries — FEATURE-014, US-205)
+**Last Updated:** 2026-04-25 (Discovery: Depth accumulator model, two insight types, FEATURE-015 deferred to M3)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -17,7 +17,7 @@
 | M2.5 | Experience Depth (pre-M3) | 🔄 In Progress |
 | M3 | Multi-User + Mobile | ⏸️ Blocked — M2.5 must complete first |
 
-> **M3 Blocker:** M3 will not start until all M2.5 items are complete: 3D Visualization, User Onboarding/Instructions, Adaptive Pattern Summaries, Security/Privacy Messaging.
+> **M3 Blocker:** M3 will not start until all M2.5 items are complete: 3D Visualization (US-201, US-202), User Onboarding (US-204), Adaptive Pattern Summaries (US-205), AI Communication Principles document. Security/Privacy Messaging (FEATURE-015) is a M3 item, not a blocker.
 
 ---
 
@@ -41,7 +41,7 @@ EPIC-002b: Dotflow M2.5 — Experience Depth (pre-M3)
 ├── FEATURE-012: Insight Feedback Loop
 ├── FEATURE-013: User Onboarding & Instructions         [to be discovered]
 ├── FEATURE-014: Adaptive Pattern Summaries
-└── FEATURE-015: Security & Privacy Messaging           [to be discovered]
+└── FEATURE-015: Security & Privacy Messaging           [deferred to M3]
 
 EPIC-003: Dotflow M3 — Multi-User + Mobile             [BLOCKED — M2.5 first]
 ├── FEATURE-009: Authentication
@@ -851,70 +851,96 @@ Add a one-time contextual hint to three AI feature moments: first follow-up ques
 ## 🔧 FEATURE-014: Adaptive Pattern Summaries
 
 **Description:**
-Pattern insights are computed proactively when the user reaches entry milestones (10, 25, 50 entries). The black hole signals visually (glow/pulse) that a new insight is ready. The user discovers it by hovering — on their own terms. Each milestone produces a unique insight, persisted in localStorage so it never regenerates on hover.
+Pattern insights are driven by a continuous **reflection depth accumulator** — not fixed entry count milestones. Every entry contributes to the accumulator based on its quality signals (follow-up answers answered, word depth, connection detected). When the accumulator crosses a threshold, a new holistic insight is computed. After delivery the accumulator resets and continues building — forever. No "nothing after 50 entries."
 
-This replaces the recall-gap problem of the on-demand "Generate insights" button: the system knows when there is something worth saying; the user decides when to hear it.
+Two distinct insight types operate independently:
+1. **Connection Insight** — triggered immediately when a connection between entries is detected. Appears inline, near ConnectionBadge. Specific, contextual.
+2. **Holistic Insight** — triggered by accumulator threshold. Delivered via black hole hover. Cumulative, identity-level.
 
-**User Value:**
-Insights feel earned, not arbitrary. The glow signal creates intrinsic curiosity without pushing. The user is never ambushed — they initiate the moment of discovery.
+The black hole pulses once (heartbeat) after every entry save — the size of the pulse is proportional to the entry's depth score. This creates a gardening feedback loop: write deeply → visible growth; write shallowly → barely moves.
 
 **UX Principles (from /consult):**
-- Milestone-triggered: insight computed proactively at entry count thresholds (10, 25, 50)
-- User-initiated delivery: only revealed on black hole hover — never pushed
-- Signal intensity must be calibrated (glow too subtle = recall gap returns; too aggressive = surveillance feeling)
+- Fixed ratio with visible quality (not variable/casino): every entry always adds something; quality determines how much
+- No numbers, bars, or points — user feels the difference visually, not analytically
+- Accumulator threshold: configurable value, not hardcoded
+- Follow-up answers weight more than word count as quality signal
 
 **Dependencies:**
-- US-202 (black hole must exist and handle hover display)
+- US-202 (black hole mesh and hover interaction)
+- US-101 (connection detection — needed for Connection Insight trigger)
 
 **Scope Boundaries:**
-- **Includes:** Milestone detection, insight computation + persistence, glow/pulse signal, "unread" state per milestone
-- **Excludes:** Push notifications, email delivery, scheduled insights
+- **Includes:** Depth accumulator, two insight types (connection + holistic), heartbeat visualization, glow/pulse for unread holistic insight
+- **Excludes:** Push notifications, email delivery, explicit score display to user
 
 **Priority:** P1
 **Status:** 📋 Planned
 
 ---
 
-### US-205: Milestone-Triggered Adaptive Insights
+### US-205: Depth-Driven Adaptive Insights
 
 **Description:**
-When the user reaches entry milestones (10, 25, 50 entries), the app proactively computes a pattern insight and persists it. The black hole shows a subtle glow/pulse to signal that something new is waiting. Hovering reveals the insight and clears the signal. Each milestone produces a distinct observation — not the same content repeated.
+Replace fixed-milestone insight triggers with a continuous reflection depth accumulator. Each entry contributes depth points based on quality signals. When the accumulator threshold is crossed, a holistic insight is generated and delivered via black hole hover. Connection insights appear inline when entries connect. The black hole pulses on every save with proportional growth feedback.
 
 **As a** user
-**I want** the app to quietly signal when a meaningful pattern insight is ready at key milestones
-**So that** I discover insights at the right moment — when there is something real to say — and on my own terms
+**I want** the black hole to grow visibly when I write deeply and signal when a new insight is ready
+**So that** I am motivated by reflection quality — not entry quantity — and discover insights at meaningful moments
 
 **Status:** 📋 Planned
-**Story Points:** 5
+**Story Points:** 8
 **Priority:** P1
 
+**Depth Accumulator Model:**
+- Each entry contributes a depth score (exact weighting TBD — see pre-implementation /consult session):
+  - Follow-up questions answered: highest weight
+  - Word count (capped to avoid gaming): medium weight
+  - Connection detected: bonus weight
+- When accumulated score ≥ threshold → generate + persist holistic insight, reset accumulator
+- Threshold is a configurable constant (not hardcoded)
+
+**Two Insight Types:**
+
+| | Connection Insight | Holistic Insight |
+|---|---|---|
+| Trigger | Connection detected on entry save | Depth accumulator threshold crossed |
+| Location | Inline, near ConnectionBadge | Black hole hover |
+| Character | Immediate, specific | Cumulative, identity-level |
+| Example | *"This echoes something you felt 3 weeks ago."* | *"You tend to doubt yourself before big decisions."* |
+
 **Acceptance Criteria:**
-- [ ] Insight computed automatically when entry count reaches 10, 25, 50
-- [ ] Computed insight persisted in localStorage: `insight_milestone_10`, `insight_milestone_25`, `insight_milestone_50`
-- [ ] Black hole shows glow/pulse animation when a new milestone insight is available and unread
-- [ ] Glow disappears after first hover (insight marked as read: `insight_read_10`, etc.)
-- [ ] Each milestone produces a unique insight (prompt instructs AI to focus on what's new since last milestone)
-- [ ] Before first milestone: black hole hover shows: *"Keep writing — insights unlock at 10 entries"*
-- [ ] Insight does not regenerate on every hover — persisted content is displayed
-- [ ] Requires US-202 (black hole mesh and hover interaction must exist)
+- [ ] Each entry contributes a depth score to the accumulator on save
+- [ ] Depth score weights: follow-up answers > word count (capped) > connection detected
+- [ ] Accumulator threshold is a configurable constant (not hardcoded)
+- [ ] When threshold crossed: `aiService.generateHolisticInsight()` called, result persisted in localStorage
+- [ ] Accumulator resets to zero after holistic insight generated (perpetual cycle)
+- [ ] Black hole pulses once (heartbeat) after every entry save — pulse intensity proportional to depth score
+- [ ] No numbers, bars, or explicit scores shown to user — feedback is purely visual
+- [ ] Black hole glow/pulse when new holistic insight is unread
+- [ ] Glow clears after first hover (insight marked as read)
+- [ ] Connection insight: appears inline near ConnectionBadge when connection detected — one sentence, specific
+- [ ] Before first holistic insight: black hole hover shows: *"Keep writing — your center is forming."*
+- [ ] All insight persistence in localStorage; holistic insight does not regenerate on every hover
 
 **Tasks:**
-- [ ] **TASK-205.1:** Add milestone detection logic in HomePage (check entry count on load) - 20min
-- [ ] **TASK-205.2:** Implement `aiService.generateMilestoneInsight(entries, milestone)` with milestone-aware prompt - 45min
-- [ ] **TASK-205.3:** Add localStorage persistence: save + retrieve insight per milestone - 20min
-- [ ] **TASK-205.4:** Add "unread" state per milestone (localStorage flag) - 15min
-- [ ] **TASK-205.5:** Pass `hasUnreadInsight` prop to StarField/black hole — trigger glow/pulse animation - 30min
-- [ ] **TASK-205.6:** Clear unread flag on hover, show persisted insight - 15min
-- [ ] **TASK-205.7:** Add pre-milestone fallback text on hover - 10min
-- [ ] **TASK-205.8:** Write tests for milestone detection, persistence, and unread state (/qa) - 45min
-- [ ] **TASK-205.9:** Manual verification - 15min
+- [ ] **TASK-205.1:** Design and implement `src/hooks/useDepthAccumulator.ts` — score computation + localStorage persistence - 45min
+- [ ] **TASK-205.2:** Define depth score weights as configurable constants in `src/utils/insightConfig.ts` - 15min
+- [ ] **TASK-205.3:** Implement `aiService.generateHolisticInsight(entries, apiKey)` with cumulative-pattern prompt - 45min
+- [ ] **TASK-205.4:** Trigger holistic insight generation when accumulator threshold crossed - 20min
+- [ ] **TASK-205.5:** Persist generated holistic insight in localStorage; retrieve on hover - 20min
+- [ ] **TASK-205.6:** Pass depth score of last entry to StarField — trigger proportional heartbeat animation - 30min
+- [ ] **TASK-205.7:** Add glow/pulse to black hole when unread holistic insight exists - 20min
+- [ ] **TASK-205.8:** Implement connection insight display inline near ConnectionBadge - 25min
+- [ ] **TASK-205.9:** Add pre-insight fallback text on black hole hover - 10min
+- [ ] **TASK-205.10:** Write tests for accumulator, threshold detection, both insight types (/qa) - 60min
+- [ ] **TASK-205.11:** Manual verification - 20min
 
 ---
 
 ## 🔧 FEATURE-015: Security & Privacy Messaging
 
-**Description:** To be defined in /discover session.
-**Status:** 📋 To be discovered
+**Description:** Moved to M3. Privacy messaging for end users (registration/login flow, no API key required). Details to be defined in /discover session before M3 planning.
+**Status:** ⏸️ Deferred to M3
 
 ---
 

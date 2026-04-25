@@ -475,8 +475,8 @@ graph LR
 - [ ] **US-202:** Black hole psychological center, semi-automatic values extraction — M2.5
 - [ ] **US-203:** Dialectical insight feedback loop — M2.5
 - [ ] User onboarding & instructions — M2.5 (FEATURE-013, US-204)
-- [ ] **US-205:** Milestone-triggered adaptive insights — milestone detection, `aiService.generateMilestoneInsight()`, localStorage persistence per milestone (`insight_milestone_10/25/50`), black hole glow/pulse signal, unread state — M2.5
-- [ ] Security & privacy messaging — M2.5 (to be discovered)
+- [ ] **US-205:** Depth accumulator adaptive insights — `useDepthAccumulator` hook, `insightConfig.ts` (configurable weights/threshold), `aiService.generateHolisticInsight()`, two insight types (connection inline + holistic on black hole hover), heartbeat pulse per entry save proportional to depth score — M2.5
+- [ ] **FEATURE-015:** Security & privacy messaging — deferred to M3 (end-user context: registration/login, Dotflow-owned AI)
 - [ ] AI communication principles document (`docs/ai_communication_principles.md`) — M2.5 prereq
 - [ ] Add Supabase Auth + RLS for multi-user support — M3
 - [ ] Add backend proxy for OpenAI (hide API key when multi-user) — M3

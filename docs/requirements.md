@@ -238,24 +238,32 @@ Banner must communicate missing value, not just missing key: *"Without an API ke
 
 ---
 
-### FR-012: Adaptive Milestone Pattern Summaries
+### FR-012: Depth-Driven Adaptive Pattern Summaries
 
 **Priority:** SHOULD HAVE (M2.5)
 
 **Description:**
-Pattern insights are computed proactively when the user reaches meaningful entry milestones (10, 25, 50 entries). The black hole visual element signals that a new insight is available via a subtle glow/pulse animation. The user reveals the insight by hovering — on their own terms. Each milestone produces a unique observation. Insights are persisted in localStorage and never regenerated on every hover.
+Pattern insights are driven by a continuous reflection depth accumulator — not fixed entry count. Every entry contributes a depth score based on quality signals: follow-up questions answered (highest weight), word count (capped), connection detected (bonus). When the accumulator crosses a threshold, a holistic insight is generated and delivered via black hole hover. The accumulator resets after delivery and continues forever — no upper limit.
+
+Two insight types operate independently:
+1. **Holistic Insight** — black hole hover, cumulative identity-level pattern
+2. **Connection Insight** — inline near ConnectionBadge, immediate and specific to the detected connection
+
+The black hole provides heartbeat feedback on every entry save — pulse intensity reflects the entry's depth score. No numbers or bars shown to user.
 
 **AI Behavior:**
-- Milestone-aware prompt: AI is instructed to focus on patterns observable since the previous milestone, not repeat prior observations
-- Pre-milestone state: hover shows "Keep writing — insights unlock at 10 entries"
+- Holistic insight prompt: focuses on cumulative patterns across all entries since last insight
+- Connection insight prompt: contextualizes the specific connection in one sentence
+- Pre-insight state: black hole hover shows *"Keep writing — your center is forming."*
 
 **Acceptance Criteria:**
-- Insight computed when entry count reaches 10, 25, 50
-- Black hole glow/pulse visible when milestone insight is unread
-- Glow clears after user hovers (marks as read)
-- Insight content is unique per milestone
-- Insights persisted in localStorage (not regenerated on hover)
-- Pre-milestone fallback text shown on hover before 10 entries
+- Depth accumulator computed per entry (follow-up answers > word count > connection)
+- Accumulator threshold is configurable (not hardcoded)
+- Holistic insight generated when threshold crossed, persisted, accumulator resets
+- Black hole pulses proportionally after every entry save (no explicit score shown)
+- Black hole glows when unread holistic insight is available
+- Connection insight appears inline near ConnectionBadge when connection detected
+- All insights persisted in localStorage (not regenerated on hover)
 
 **Related User Stories:** US-205
 
