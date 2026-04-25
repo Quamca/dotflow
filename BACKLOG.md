@@ -892,12 +892,21 @@ Replace fixed-milestone insight triggers with a continuous reflection depth accu
 **Priority:** P1
 
 **Depth Accumulator Model:**
-- Each entry contributes a depth score (exact weighting TBD — see pre-implementation /consult session):
-  - Follow-up questions answered: highest weight
-  - Word count (capped to avoid gaming): medium weight
-  - Connection detected: bonus weight
+
+Depth score per entry — range 0–20 pts (based on Pennebaker Expressive Writing Research):
+
+| Signal | Points |
+|---|---|
+| Each follow-up answer | 3 pts / answer (max 15) |
+| Word count 50–150 | +1 pt |
+| Word count 150–300 | +2 pts |
+| Word count 300+ | +3 pts (capped) |
+| Connection detected | +2 pts bonus |
+| Entry < 30 words | 0 pts flat |
+
 - When accumulated score ≥ threshold → generate + persist holistic insight, reset accumulator
-- Threshold is a configurable constant (not hardcoded)
+- Threshold is a configurable constant (not hardcoded), calibrated experimentally
+- **M2.5 known limitation:** Users without an API key score 0 on the highest-weight signal (no follow-up answers). Acceptable for single-user M2.5; resolved in M3 with Dotflow-owned AI.
 
 **Two Insight Types:**
 
@@ -910,7 +919,7 @@ Replace fixed-milestone insight triggers with a continuous reflection depth accu
 
 **Acceptance Criteria:**
 - [ ] Each entry contributes a depth score to the accumulator on save
-- [ ] Depth score weights: follow-up answers > word count (capped) > connection detected
+- [ ] Depth score follows Pennebaker model: 3 pts/follow-up answer (max 15), word count tier (+1/+2/+3), connection bonus (+2), <30 words = 0 flat; range 0–20
 - [ ] Accumulator threshold is a configurable constant (not hardcoded)
 - [ ] When threshold crossed: `aiService.generateHolisticInsight()` called, result persisted in localStorage
 - [ ] Accumulator resets to zero after holistic insight generated (perpetual cycle)

@@ -243,7 +243,7 @@ Banner must communicate missing value, not just missing key: *"Without an API ke
 **Priority:** SHOULD HAVE (M2.5)
 
 **Description:**
-Pattern insights are driven by a continuous reflection depth accumulator — not fixed entry count. Every entry contributes a depth score based on quality signals: follow-up questions answered (highest weight), word count (capped), connection detected (bonus). When the accumulator crosses a threshold, a holistic insight is generated and delivered via black hole hover. The accumulator resets after delivery and continues forever — no upper limit.
+Pattern insights are driven by a continuous reflection depth accumulator — not fixed entry count. Every entry contributes a depth score (0–20 pts) based on quality signals grounded in Pennebaker Expressive Writing Research: follow-up questions answered (3 pts each, max 15), word count in tiers (50–150: +1, 150–300: +2, 300+: +3, capped), connection detected (+2 bonus), entries under 30 words score 0 flat. When the accumulator crosses a configurable threshold, a holistic insight is generated and delivered via black hole hover. The accumulator resets after delivery and continues forever — no upper limit.
 
 Two insight types operate independently:
 1. **Holistic Insight** — black hole hover, cumulative identity-level pattern
@@ -257,7 +257,7 @@ The black hole provides heartbeat feedback on every entry save — pulse intensi
 - Pre-insight state: black hole hover shows *"Keep writing — your center is forming."*
 
 **Acceptance Criteria:**
-- Depth accumulator computed per entry (follow-up answers > word count > connection)
+- Depth accumulator computed per entry: 3 pts/follow-up answer (max 15), word count tiers (+1/+2/+3), connection bonus (+2), <30 words = 0 flat; range 0–20
 - Accumulator threshold is configurable (not hardcoded)
 - Holistic insight generated when threshold crossed, persisted, accumulator resets
 - Black hole pulses proportionally after every entry save (no explicit score shown)
