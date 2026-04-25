@@ -6,6 +6,7 @@ import { generatePatternSummary } from '../services/aiService'
 import EntryCard from '../components/EntryCard/EntryCard'
 import ConnectionBadge from '../components/ConnectionBadge/ConnectionBadge'
 import PatternSummary from '../components/PatternSummary/PatternSummary'
+import StarField from '../components/StarField/StarField'
 import type { Entry, Connection } from '../types'
 
 const INSIGHTS_MIN_ENTRIES = 10
@@ -20,6 +21,9 @@ export default function HomePage() {
   const [observations, setObservations] = useState<string[]>([])
   const [isInsightsLoading, setIsInsightsLoading] = useState(false)
   const [insightsError, setInsightsError] = useState<string | null>(null)
+  const [isStarFieldActive, setIsStarFieldActive] = useState(false)
+
+  const hasEntries = !isLoading && !error && entries.length > 0
 
   async function handleGenerateInsights() {
     if (!apiKey) {
@@ -66,92 +70,138 @@ export default function HomePage() {
     void load()
   }, [])
 
-  return (
-    <div className="min-h-screen bg-[#FAFAF9]">
-      <header className="flex items-center justify-between px-6 py-4 border-b border-[#E7E5E4]">
-        <h1 className="text-[#1C1917] text-xl font-semibold">Dotflow</h1>
-        <Link
-          to="/settings"
-          className="text-[#78716C] hover:text-[#1C1917] transition-colors"
-          aria-label="Settings"
-        >
-          ⚙
-        </Link>
-      </header>
+  function handleLogoClick() {
+    if (hasEntries) setIsStarFieldActive((v) => !v)
+  }
 
-      {!apiKey && (
-        <div className="mx-6 mt-4 px-4 py-3 rounded-lg bg-[#FEF3C7] border border-[#D97706] text-sm text-[#1C1917]">
-          Add your API key in{' '}
-          <Link to="/settings" className="font-medium underline text-[#D97706]">
-            Settings
-          </Link>{' '}
-          to enable AI follow-up questions.
+  return (
+    <div className="min-h-screen" style={{ background: isStarFieldActive ? '#0C0A09' : '#FAFAF9' }}>
+      {/* Star field — blurred background in list mode, full interactive in 3D mode */}
+      {hasEntries && (
+        <div
+          className={`fixed inset-0 transition-[opacity] duration-700 ${
+            isStarFieldActive ? 'z-20' : 'z-0 pointer-events-none'
+          }`}
+          style={{
+            opacity: isStarFieldActive ? 1 : 0.35,
+            filter: isStarFieldActive ? 'none' : 'blur(5px)',
+          }}
+        >
+          <StarField entries={entries} connections={connections} isInteractive={isStarFieldActive} />
         </div>
       )}
 
-      <main className="px-6 py-6 max-w-2xl mx-auto pb-28">
-        {isLoading && <LoadingSkeleton />}
+      {/* Floating logo button in 3D mode */}
+      {isStarFieldActive && (
+        <button
+          onClick={handleLogoClick}
+          className="fixed top-4 left-6 z-30 text-white/70 text-xl font-semibold hover:text-white transition-colors bg-transparent border-0"
+          aria-label="Exit 3D view"
+        >
+          Dotflow
+        </button>
+      )}
 
-        {!isLoading && error && (
-          <p className="text-sm text-red-600 mt-4">{error}</p>
-        )}
-
-        {!isLoading && !error && entries.length === 0 && <EmptyState />}
-
-        {!isLoading && !error && entries.length >= INSIGHTS_MIN_ENTRIES && (
-          <div className="mb-4">
+      {/* Main content — only in list mode */}
+      {!isStarFieldActive && (
+        <div
+          className="relative z-10 min-h-screen"
+          style={hasEntries ? { background: 'rgba(250, 250, 249, 0.93)' } : undefined}
+        >
+          <header className="flex items-center justify-between px-6 py-4 border-b border-[#E7E5E4]">
             <button
-              onClick={() => void handleGenerateInsights()}
-              disabled={isInsightsLoading}
-              className="text-sm text-[#78716C] hover:text-[#1C1917] transition-colors underline underline-offset-2 disabled:opacity-50"
+              onClick={handleLogoClick}
+              className={`text-[#1C1917] text-xl font-semibold bg-transparent border-0 p-0 ${
+                hasEntries ? 'cursor-pointer' : 'cursor-default'
+              }`}
+              aria-label={hasEntries ? 'Explore in 3D' : undefined}
             >
-              {isInsightsLoading ? 'Generating insights…' : 'Generate insights'}
+              Dotflow
             </button>
-            {insightsError && (
-              <p className="mt-2 text-sm text-red-600">{insightsError}</p>
+            <Link
+              to="/settings"
+              className="text-[#78716C] hover:text-[#1C1917] transition-colors"
+              aria-label="Settings"
+            >
+              ⚙
+            </Link>
+          </header>
+
+          {!apiKey && (
+            <div className="mx-6 mt-4 px-4 py-3 rounded-lg bg-[#FEF3C7] border border-[#D97706] text-sm text-[#1C1917]">
+              Add your API key in{' '}
+              <Link to="/settings" className="font-medium underline text-[#D97706]">
+                Settings
+              </Link>{' '}
+              to enable AI follow-up questions.
+            </div>
+          )}
+
+          <main className="px-6 py-6 max-w-2xl mx-auto pb-28">
+            {isLoading && <LoadingSkeleton />}
+
+            {!isLoading && error && (
+              <p className="text-sm text-red-600 mt-4">{error}</p>
             )}
-            {observations.length > 0 && (
-              <div className="mt-3">
-                <PatternSummary observations={observations} />
+
+            {!isLoading && !error && entries.length === 0 && <EmptyState />}
+
+            {!isLoading && !error && entries.length >= INSIGHTS_MIN_ENTRIES && (
+              <div className="mb-4">
+                <button
+                  onClick={() => void handleGenerateInsights()}
+                  disabled={isInsightsLoading}
+                  className="text-sm text-[#78716C] hover:text-[#1C1917] transition-colors underline underline-offset-2 disabled:opacity-50"
+                >
+                  {isInsightsLoading ? 'Generating insights…' : 'Generate insights'}
+                </button>
+                {insightsError && (
+                  <p className="mt-2 text-sm text-red-600">{insightsError}</p>
+                )}
+                {observations.length > 0 && (
+                  <div className="mt-3">
+                    <PatternSummary observations={observations} />
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
 
-        {!isLoading && !error && entries.length > 0 && (
-          <div className="flex flex-col gap-3">
-            {entries.map((entry) => {
-              const conn = connections[entry.id]
-              const targetEntry = conn
-                ? entries.find((e) => e.id === conn.target_entry_id)
-                : undefined
-              return (
-                <div key={entry.id}>
-                  <EntryCard
-                    entry={entry}
-                    onClick={() => navigate(`/entry/${entry.id}`)}
-                  />
-                  {targetEntry && (
-                    <ConnectionBadge
-                      targetId={targetEntry.id}
-                      targetDate={targetEntry.created_at}
-                    />
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </main>
+            {!isLoading && !error && entries.length > 0 && (
+              <div className="flex flex-col gap-3">
+                {entries.map((entry) => {
+                  const conn = connections[entry.id]
+                  const targetEntry = conn
+                    ? entries.find((e) => e.id === conn.target_entry_id)
+                    : undefined
+                  return (
+                    <div key={entry.id}>
+                      <EntryCard
+                        entry={entry}
+                        onClick={() => navigate(`/entry/${entry.id}`)}
+                      />
+                      {targetEntry && (
+                        <ConnectionBadge
+                          targetId={targetEntry.id}
+                          targetDate={targetEntry.created_at}
+                        />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </main>
 
-      <div className="fixed bottom-8 left-0 right-0 flex justify-center">
-        <Link
-          to="/new"
-          className="px-6 py-3 rounded-full bg-[#1C1917] text-[#FAFAF9] text-sm font-medium hover:opacity-90 transition-opacity shadow-lg"
-        >
-          + Write
-        </Link>
-      </div>
+          <div className="fixed bottom-8 left-0 right-0 flex justify-center">
+            <Link
+              to="/new"
+              className="px-6 py-3 rounded-full bg-[#1C1917] text-[#FAFAF9] text-sm font-medium hover:opacity-90 transition-opacity shadow-lg"
+            >
+              + Write
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
