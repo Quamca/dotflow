@@ -23,7 +23,11 @@ git branch --show-current
 - @docs/architecture.md
 - @CLAUDE.md
 
-3. Zapytaj: "Który US planujemy? Podaj numer."
+3. Na podstawie BACKLOG.md znajdź pierwszy US o statusie 📋 Planned (według kolejności w backlogu) i zaproponuj go:
+   "Planujemy **US-XXX: [tytuł]**?
+   1. Tak
+   2. Nie — podaj numer US"
+   Jeśli użytkownik odpowie "2" — zapytaj: "Podaj numer US."
 
 ## Weryfikacja US
 
