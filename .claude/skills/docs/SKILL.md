@@ -98,7 +98,13 @@ git push -u origin [branch-name]
 
 ### Step 3 — Pull Request
 
-**After push, automatically create the PR using GitHub CLI:**
+**After push, check if `gh` CLI is available:**
+
+```bash
+gh --version
+```
+
+**If `gh` is available** — automatically create the PR:
 
 ```bash
 gh pr create --title "feat: US-XXX [short description]" --body "$(cat <<'EOF'
@@ -123,7 +129,34 @@ EOF
 )"
 ```
 
-After running, print the PR URL returned by `gh pr create`. Then say: "PR utworzony. Gdy zostanie zmergowany, wpisz 1."
+Print the PR URL returned by `gh pr create`. Then say: "PR utworzony. Gdy zostanie zmergowany, wpisz 1."
+
+**If `gh` is NOT available** — show the template and say:
+"⚠️ GitHub CLI (`gh`) nie jest zainstalowane. Zainstaluj je: `winget install GitHub.cli`
+Skopiuj opis poniżej i utwórz PR ręcznie na https://github.com/Quamca/dotflow/compare/[branch-name]
+Gdy PR zostanie zmergowany, wpisz 1."
+
+```
+Title: feat: US-XXX [short description]
+
+## Summary
+[What changed and why]
+
+## Changes
+- [Change 1]
+- [Change 2]
+
+## Testing
+- [x] npm run lint passes
+- [x] npm test passes
+- [x] Manual verification completed
+
+## Documentation
+- [x] BACKLOG.md updated
+- [x] README.md updated
+
+Closes #[issue_number]
+```
 
 ### Step 4 — Cleanup (automatyczny po potwierdzeniu merge)
 
