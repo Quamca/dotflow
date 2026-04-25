@@ -2,7 +2,7 @@
 
 **Project:** Dotflow
 **Version:** 1.0
-**Last Updated:** 2026-04-23 (US-101)
+**Last Updated:** 2026-04-25 (US-102)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -522,7 +522,30 @@ Gives the user a bird's-eye view of their patterns without requiring them to rea
 - **Excludes:** Persistent insight storage, scheduled insights, email delivery
 
 **Priority:** P1 (High for M2)
+**Status:** 🔄 In Progress
+
+---
+
+### US-103: Fix AI insights language — respond in entry language
+
+**Description:**
+AI-generated pattern summary observations are returned in English regardless of the language the user writes in. The prompt must instruct the AI to respond in the same language as the journal entries.
+
+**As a** user
+**I want to** receive AI insights in my own language
+**So that** the summaries feel natural and readable without switching context
+
 **Status:** 📋 Planned
+**Story Points:** 1
+**Priority:** P1
+
+**Acceptance Criteria:**
+- [ ] Pattern summary observations are returned in the language of the journal entries
+- [ ] No hardcoded language in prompt — AI auto-detects from entry content
+
+**Tasks:**
+- [ ] **TASK-103.1:** Update `PATTERN_SUMMARY_SYSTEM_PROMPT` in `src/utils/prompts.ts` to add language instruction - 15min
+- [ ] **TASK-103.2:** Manual verification (write entries in Polish, verify insights in Polish) - 10min
 
 ---
 
@@ -535,25 +558,25 @@ Add a "Generate insights" button on the Home screen, visible when 10+ entries ex
 **I want to** get an AI-generated summary of my recurring patterns
 **So that** I can see behavioral trends I might not notice day to day
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 **Story Points:** 5
 **Priority:** P1
 
 **Acceptance Criteria:**
-- [ ] "Generate insights" button visible when entry count ≥ 10
-- [ ] Clicking sends 10 most recent entries to AI
-- [ ] AI returns 3–5 bullet-point observations
-- [ ] Observations displayed in a readable summary card
-- [ ] Clear label: "AI-generated observations — not clinical advice"
-- [ ] Loading state during generation
+- [x] "Generate insights" button visible when entry count ≥ 10
+- [x] Clicking sends 10 most recent entries to AI
+- [x] AI returns 3–5 bullet-point observations
+- [x] Observations displayed in a readable summary card
+- [x] Clear label: "AI-generated observations — not clinical advice"
+- [x] Loading state during generation
 
 **Tasks:**
-- [ ] **TASK-102.1:** Create pattern summary prompt in `src/utils/prompts.ts` - 30min
-- [ ] **TASK-102.2:** Implement `aiService.generatePatternSummary()` - 45min
-- [ ] **TASK-102.3:** Create `src/components/PatternSummary/PatternSummary.tsx` - 30min
-- [ ] **TASK-102.4:** Gate button on entry count ≥ 10 - 15min
-- [ ] **TASK-102.5:** Write tests for summary generation and display (/qa) - 45min
-- [ ] **TASK-102.6:** Manual verification - 15min
+- [x] **TASK-102.1:** Create pattern summary prompt in `src/utils/prompts.ts` - 30min
+- [x] **TASK-102.2:** Implement `aiService.generatePatternSummary()` - 45min
+- [x] **TASK-102.3:** Create `src/components/PatternSummary/PatternSummary.tsx` - 30min
+- [x] **TASK-102.4:** Gate button on entry count ≥ 10 - 15min
+- [x] **TASK-102.5:** Write tests for summary generation and display (/qa) - 45min
+- [x] **TASK-102.6:** Manual verification - 15min
 
 ---
 
