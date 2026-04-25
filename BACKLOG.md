@@ -649,9 +649,9 @@ Render a 3D star field on the Home screen background. Each journal entry is a st
 **Acceptance Criteria:**
 - [ ] Home background shows blurred 3D star field (one star per entry)
 - [ ] Constellation lines connect entries that have a saved `connection` record
-- [ ] Easter egg toggle button visible under Dotflow logo (top-right)
-- [ ] Clicking toggle: entry list fades out, 3D scene becomes unblurred and interactive
-- [ ] Clicking toggle again: returns to normal list view
+- [ ] Dotflow logo (top-left header) is the easter egg toggle — clicking it switches between list view and 3D mode
+- [ ] Clicking logo: entry list fades out, 3D scene becomes unblurred and interactive
+- [ ] Clicking logo again: returns to normal list view
 - [ ] Hover on a star shows entry preview (date + content snippet)
 - [ ] Orbit controls work: rotate, pan, zoom (like 3D modeling software)
 - [ ] Star size reflects recency or connection count (larger = more prominent)
