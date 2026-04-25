@@ -785,10 +785,66 @@ After viewing an insight (on black hole hover), the user can tap "I disagree" an
 
 ---
 
-## 🔧 FEATURE-013: User Onboarding & Instructions
+## 🔧 FEATURE-013: Contextual First-Use Onboarding
 
-**Description:** To be defined in /discover session.
-**Status:** 📋 To be discovered
+**Description:**
+Onboarding is contextual — no welcome screen, no tutorial. Each AI feature explains itself exactly once, at the moment of first use, with a single sentence. The explanation disappears permanently after being seen. Users are never interrupted; they learn by doing.
+
+**User Value:**
+Users come to Dotflow in an emotional moment — they want to process something, not read documentation. Contextual hints teach users what they're experiencing right now, not what they might experience in the future.
+
+**Three Onboarding Moments:**
+1. **First follow-up questions** → one-liner above FollowUpDialog: *"Dotflow asks 2–3 questions to help you go deeper."*
+2. **First connection detected** → tooltip on ConnectionBadge: *"I found a similarity to something you wrote earlier."*
+3. **First black hole / insight hover** → hint near black hole: *"This is your center. It grows with each entry."*
+
+**API Key Edge Case:**
+Warning banner must communicate value, not just absence.
+- Current: *"Add your API key in Settings."*
+- New: *"Without an API key you won't see follow-up questions, connections, or insights."*
+
+**Persistence:**
+Each hint's "seen" state stored in localStorage. Never shown again after first view.
+
+**Dependencies:**
+- FEATURE-005, FEATURE-007 (hints 1 and 2)
+- US-201 (hint 3 — black hole must exist)
+
+**Priority:** P1
+**Status:** 📋 Planned
+
+---
+
+### US-204: Contextual First-Use Hints
+
+**Description:**
+Add a one-time contextual hint to three AI feature moments: first follow-up questions dialog, first connection badge, first black hole hover. Each hint appears exactly once and is never shown again. Update the API key warning banner to communicate the value users are missing, not just the technical absence of a key.
+
+**As a** first-time user
+**I want to** understand what's happening when AI features appear for the first time
+**So that** I can use Dotflow intuitively without needing a tutorial
+
+**Status:** 📋 Planned
+**Story Points:** 3
+**Priority:** P1
+
+**Acceptance Criteria:**
+- [ ] First FollowUpDialog render: one-liner hint above dialog: *"Dotflow asks 2–3 questions to help you go deeper."*
+- [ ] Hint gone after dialog closed — never shown again
+- [ ] First ConnectionBadge render: tooltip: *"I found a similarity to something you wrote earlier."*
+- [ ] First black hole hover: hint: *"This is your center. It grows with each entry."* (requires US-201)
+- [ ] All hint states in localStorage: `onboarding_seen_followup`, `onboarding_seen_connection`, `onboarding_seen_blackhole`
+- [ ] API key warning banner updated to name the missing features
+- [ ] No hint shown more than once per installation
+
+**Tasks:**
+- [ ] **TASK-204.1:** Create `src/hooks/useOnboarding.ts` — manages seen-state per hint - 20min
+- [ ] **TASK-204.2:** Add first-use hint to FollowUpDialog - 20min
+- [ ] **TASK-204.3:** Add first-use tooltip to ConnectionBadge - 15min
+- [ ] **TASK-204.4:** Add first-use hint to black hole hover (after US-201) - 15min
+- [ ] **TASK-204.5:** Update API key warning banner copy in HomePage - 10min
+- [ ] **TASK-204.6:** Write tests for useOnboarding hook and hint render (/qa) - 30min
+- [ ] **TASK-204.7:** Manual verification - 15min
 
 ---
 

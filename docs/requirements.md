@@ -214,6 +214,30 @@ Users can push back on AI insights. The AI responds dialectically: it either upd
 
 ---
 
+### FR-011: Contextual First-Use Onboarding
+
+**Priority:** SHOULD HAVE (M2.5)
+
+**Description:**
+Each AI feature in Dotflow explains itself exactly once, at the moment of first use, with a single sentence. No welcome screen, no tutorial. Hints are contextual — they teach users what they are currently experiencing. All hint states are persisted in localStorage so hints never repeat.
+
+**Onboarding Moments:**
+1. First follow-up questions: one-liner above FollowUpDialog
+2. First connection badge: tooltip on ConnectionBadge
+3. First black hole hover: hint near center of 3D scene (M2.5, requires US-201)
+
+**API Key Warning Update:**
+Banner must communicate missing value, not just missing key: *"Without an API key you won't see follow-up questions, connections, or insights."*
+
+**Acceptance Criteria:**
+- Hints appear only on first use of each feature
+- After first use, hints are permanently hidden (localStorage state)
+- API key warning banner names the specific features users are missing
+
+**Related User Stories:** US-204
+
+---
+
 ## 4. Non-Functional Requirements
 
 ### NFR-001: Performance
