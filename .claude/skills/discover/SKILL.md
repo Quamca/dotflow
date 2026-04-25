@@ -17,14 +17,16 @@ git status
 git diff
 ```
 
-2. Przeczytaj kontekst:
+2. **Bez pytania o zgodę** przeczytaj `.claude/current_task.md` — zapamiętaj tytuł aktywnego zadania (jeśli plik istnieje). Użyjesz tego na końcu sesji.
+
+3. Przeczytaj kontekst:
 - @BACKLOG.md
 - @docs/architecture.md
 - @docs/requirements.md
 - @README.md
 - @CLAUDE.md
 
-3. Zapytaj:
+4. Zapytaj:
 "Nad czym chcemy dziś popracować strategicznie?
 Opisz pomysł lub problem który chcesz omówić."
 
@@ -60,6 +62,12 @@ git commit -m "docs(backlog): add [Epic/Feature/US name] from discovery session"
 ```
 
 "Dokumenty zaktualizowane. Uruchom /planning dla nowego US."
+
+## Przypomnienie aktywnego zadania
+
+Po każdym zakończeniu sesji (po commicie LUB gdy użytkownik mówi "gotowe" i nie zapisuje) — jeśli `current_task.md` istniał przy starcie, wyświetl:
+
+"↩ Przed /discover pracowałeś nad: **[tytuł z current_task.md]**. Wróć do implementacji."
 
 ## UX — format pytań
 
