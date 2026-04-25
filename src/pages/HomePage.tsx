@@ -2,9 +2,13 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSettings } from '../hooks/useSettings'
 import { getEntries, getConnectionsForEntry } from '../services/entryService'
+import { generatePatternSummary } from '../services/aiService'
 import EntryCard from '../components/EntryCard/EntryCard'
 import ConnectionBadge from '../components/ConnectionBadge/ConnectionBadge'
+import PatternSummary from '../components/PatternSummary/PatternSummary'
 import type { Entry, Connection } from '../types'
+
+const INSIGHTS_MIN_ENTRIES = 10
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -13,6 +17,27 @@ export default function HomePage() {
   const [connections, setConnections] = useState<Record<string, Connection>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [observations, setObservations] = useState<string[]>([])
+  const [isInsightsLoading, setIsInsightsLoading] = useState(false)
+  const [insightsError, setInsightsError] = useState<string | null>(null)
+
+  async function handleGenerateInsights() {
+    if (!apiKey) {
+      setInsightsError('Set your API key in Settings to use this feature.')
+      return
+    }
+    setIsInsightsLoading(true)
+    setInsightsError(null)
+    setObservations([])
+    try {
+      const result = await generatePatternSummary(entries, apiKey)
+      setObservations(result)
+    } catch {
+      setInsightsError('Failed to generate insights. Please try again.')
+    } finally {
+      setIsInsightsLoading(false)
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -72,6 +97,26 @@ export default function HomePage() {
         )}
 
         {!isLoading && !error && entries.length === 0 && <EmptyState />}
+
+        {!isLoading && !error && entries.length >= INSIGHTS_MIN_ENTRIES && (
+          <div className="mb-4">
+            <button
+              onClick={() => void handleGenerateInsights()}
+              disabled={isInsightsLoading}
+              className="text-sm text-[#78716C] hover:text-[#1C1917] transition-colors underline underline-offset-2 disabled:opacity-50"
+            >
+              {isInsightsLoading ? 'Generating insights…' : 'Generate insights'}
+            </button>
+            {insightsError && (
+              <p className="mt-2 text-sm text-red-600">{insightsError}</p>
+            )}
+            {observations.length > 0 && (
+              <div className="mt-3">
+                <PatternSummary observations={observations} />
+              </div>
+            )}
+          </div>
+        )}
 
         {!isLoading && !error && entries.length > 0 && (
           <div className="flex flex-col gap-3">
