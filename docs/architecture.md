@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 1.9
+**Version:** 2.0
 **Date:** 2026-04-25
 **Author:** Solution Architect
-**Status:** Updated after US-102
+**Status:** Updated after US-103
 
 ---
 
@@ -167,7 +167,8 @@ dotflow/
 │   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043, TC-051–054 (US-006, US-101, US-102)
 │   │   │   └── entryService.test.ts  # TC-012–018, TC-044–047 (US-002, US-006, US-101)
 │   │   └── utils/
-│   │       └── testHelpers.tsx       # renderWithRouter helper
+│   │       ├── testHelpers.tsx       # renderWithRouter helper
+│   │       └── prompts.test.ts       # TC-063–064: prompt contract tests (US-103)
 │   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004, US-005, US-007)
 │   ├── index.css            # Tailwind directives
 │   ├── main.tsx
@@ -379,15 +380,18 @@ User: New entry: [content]
 Past entries: [array of {id, content, created_at}]
 ```
 
-### Pattern Summary Prompt (US-102)
+### Pattern Summary Prompt (US-102, US-103)
 ```
 System: You are a thoughtful journal analyst. Analyze the following journal 
 entries and identify 3–5 recurring patterns — emotional trends, repeated 
 situations, or behavioral triggers the user may not have noticed. 
+Respond in the same language as the journal entries.
 Respond only with a JSON array of short, empathetic observation strings.
 
 User: [array of entry content strings]
 ```
+
+**Language handling (US-103):** The prompt explicitly instructs the AI to match the language of the entries. No hardcoded language — AI auto-detects from entry content.
 
 ---
 
