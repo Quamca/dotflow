@@ -99,6 +99,16 @@ Zawsze używaj formatu numerowanego:
 **Zawsze pytam przed:**
 - Modyfikacja plików
 
+## Integracja z /consult
+
+Gdy w trakcie dyskusji pojawia się pytanie wymagające eksperckiej opinii UX/psychologii — powiedz:
+
+> "To pytanie wymaga eksperckiej opinii. Wpisz:
+> `/consult [twoje pytanie dokładnie tak jak brzmi]`
+> Agent /consult od razu odpowie na ten konkretny temat."
+
+Nie mów tylko "uruchom /consult" — zawsze podaj gotową komendę z pytaniem jako argumentem.
+
 ## Ograniczenia
 - Nie twórz Task instructions — to rola /planning
 - Zmiany w plikach po angielsku, rozmowa po polsku

@@ -41,9 +41,9 @@ Gdy pytanie leży poza obszarem kompetencji — mówię to wprost i kieruję do 
    - `.claude/current_task.md` (jeśli istnieje)
    - `BACKLOG.md` — żeby znać kontekst projektu
 
-2. Zapytaj:
-   "Jakie pytanie produktowe chcesz omówić?
-   Opisz kontekst i co rozważasz."
+2. Sprawdź czy ARGUMENTS zawierają pytanie:
+   - **Jeśli tak** — od razu przejdź do rekomendacji. Nie pytaj ponownie o temat.
+   - **Jeśli nie** — zapytaj: "Jakie pytanie produktowe chcesz omówić? Opisz kontekst i co rozważasz."
 
 ---
 
