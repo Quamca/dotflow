@@ -1,7 +1,7 @@
 # Dotflow - Test Cases Documentation
 
-**Version:** 1.7
-**Date:** 2026-04-24
+**Version:** 1.8
+**Date:** 2026-04-25
 **Author:** QA Agent
 **Test Framework:** Vitest + React Testing Library
 
@@ -996,7 +996,250 @@ export const mockEntry = {
 
 ---
 
+## 3.5 FEATURE: Pattern Summary (US-102)
 
+### TC-051: generatePatternSummary returns observations when API succeeds
+
+**Related US:** US-102
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return valid OpenAI response with JSON array of observations
+
+**Test Steps:**
+1. Call `generatePatternSummary([entry], 'sk-test')`
+
+**Expected Result:**
+- Returns array of observation strings
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-052: generatePatternSummary throws when OpenAI returns non-ok response
+
+**Related US:** US-102
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return `{ ok: false, status: 401 }`
+
+**Test Steps:**
+1. Call `generatePatternSummary([entry], 'sk-invalid')`
+
+**Expected Result:**
+- Promise rejects with `'OpenAI API error: 401'`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-053: generatePatternSummary returns empty array when JSON is malformed
+
+**Related US:** US-102
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- `fetch` stubbed to return non-JSON content string
+
+**Test Steps:**
+1. Call `generatePatternSummary([entry], 'sk-test')`
+
+**Expected Result:**
+- Returns `[]`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-054: generatePatternSummary caps observations at 5
+
+**Related US:** US-102
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- `fetch` stubbed to return 7 observations
+
+**Test Steps:**
+1. Call `generatePatternSummary([entry], 'sk-test')`
+
+**Expected Result:**
+- Returns array of length 5
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-055: PatternSummary renders observations as bullet list
+
+**Related US:** US-102
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `observations` prop contains 2 strings
+
+**Test Steps:**
+1. Render `PatternSummary` with 2 observations
+
+**Expected Result:**
+- "Your patterns" heading visible
+- Both observation strings visible in DOM
+
+**File:** `src/__tests__/components/PatternSummary/PatternSummary.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-056: PatternSummary renders nothing when observations array is empty
+
+**Related US:** US-102
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- `observations` prop is `[]`
+
+**Test Steps:**
+1. Render `PatternSummary` with empty array
+
+**Expected Result:**
+- Component renders null (no DOM output)
+
+**File:** `src/__tests__/components/PatternSummary/PatternSummary.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-057: HomePage shows Generate insights button when 10 or more entries exist
+
+**Related US:** US-102
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `getEntries` returns 10 entries
+
+**Test Steps:**
+1. Render HomePage
+
+**Expected Result:**
+- "Generate insights" button visible in DOM
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-058: HomePage does not show Generate insights button when fewer than 10 entries
+
+**Related US:** US-102
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `getEntries` returns 9 entries
+
+**Test Steps:**
+1. Render HomePage
+2. Wait for entries to load
+
+**Expected Result:**
+- "Generate insights" button NOT in DOM
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-059: HomePage shows loading state when generating insights
+
+**Related US:** US-102
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- 10 entries loaded, API key set, `generatePatternSummary` never resolves
+
+**Test Steps:**
+1. Render HomePage, wait for button
+2. Click "Generate insights"
+
+**Expected Result:**
+- Button text changes to "Generating insights…"
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-060: HomePage shows error message when generatePatternSummary fails
+
+**Related US:** US-102
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- 10 entries loaded, API key set, `generatePatternSummary` rejects
+
+**Test Steps:**
+1. Render HomePage, click button
+
+**Expected Result:**
+- "Failed to generate insights. Please try again." visible
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-061: HomePage shows observations when generatePatternSummary succeeds
+
+**Related US:** US-102
+**Type:** Integration
+**Priority:** Critical
+
+**Preconditions:**
+- 10 entries loaded, API key set, `generatePatternSummary` resolves with 1 observation
+
+**Test Steps:**
+1. Render HomePage, click "Generate insights"
+
+**Expected Result:**
+- Observation text visible in DOM
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-062: HomePage shows info message when Generate insights clicked without API key
+
+**Related US:** US-102
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- 10 entries loaded, no API key in localStorage
+
+**Test Steps:**
+1. Render HomePage, click "Generate insights"
+
+**Expected Result:**
+- "Set your API key in Settings to use this feature." visible
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
 
 ### TC-010: Empty state shown when no entries
 

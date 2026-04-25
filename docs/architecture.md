@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 1.8
-**Date:** 2026-04-23
+**Version:** 1.9
+**Date:** 2026-04-25
 **Author:** Solution Architect
-**Status:** Updated after US-101
+**Status:** Updated after US-102
 
 ---
 
@@ -122,10 +122,12 @@ dotflow/
 │   │   ├── EntryCard/       # Entry list card — date, content preview, emotion tags (US-007)
 │   │   │   └── EntryCard.tsx
 │   │   ├── EntryForm/       # (planned)
-│   │   └── ConnectionBadge/ # "Connected to [date]" badge with navigation (US-101)
-│   │       └── ConnectionBadge.tsx
+│   │   ├── ConnectionBadge/ # "Connected to [date]" badge with navigation (US-101)
+│   │   │   └── ConnectionBadge.tsx
+│   │   └── PatternSummary/  # Bullet-list display of AI pattern observations (US-102)
+│   │       └── PatternSummary.tsx
 │   ├── pages/               # Route-level components
-│   │   ├── HomePage.tsx     # Home screen: entry list, loading skeleton, empty state, warning banner, connection badges (US-004, US-005, US-007, US-101)
+│   │   ├── HomePage.tsx     # Home screen: entry list, loading skeleton, empty state, warning banner, connection badges, pattern summary (US-004, US-005, US-007, US-101, US-102)
 │   │   ├── NewEntryPage.tsx # Entry writing, AI follow-up dialog orchestration, fire-and-forget connection detection (US-005, US-006, US-101)
 │   │   ├── EntryDetailPage.tsx # Full entry view with follow-up Q&A (US-007)
 │   │   └── SettingsPage.tsx # API key management screen (US-004)
@@ -136,12 +138,12 @@ dotflow/
 │   ├── lib/                 # Third-party client initializations
 │   │   └── supabase.ts      # Supabase client (US-002)
 │   ├── services/            # External API integrations
-│   │   ├── aiService.ts     # OpenAI GPT-4o-mini via native fetch: generateFollowUpQuestions, findConnection (US-006, US-101)
+│   │   ├── aiService.ts     # OpenAI GPT-4o-mini via native fetch: generateFollowUpQuestions, findConnection, generatePatternSummary (US-006, US-101, US-102)
 │   │   └── entryService.ts  # Supabase CRUD: createEntry, getEntries, getEntryById, saveFollowUps, saveConnection, getConnectionsForEntry (US-002, US-006, US-101)
 │   ├── types/               # TypeScript type definitions
 │   │   └── index.ts         # Entry, FollowUp, Connection, EntryWithFollowUps (US-002)
 │   ├── utils/               # Pure utility functions
-│   │   └── prompts.ts       # AI prompt templates (US-006)
+│   │   └── prompts.ts       # AI prompt templates: FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT (US-006, US-101, US-102)
 │   ├── __tests__/           # Tests mirror source structure
 │   │   ├── setup.ts         # Vitest + jest-dom + RTL cleanup setup
 │   │   ├── setup.test.ts    # TC-000: framework smoke test
@@ -150,17 +152,19 @@ dotflow/
 │   │   │   │   └── ConnectionBadge.test.tsx # TC-048–049 (US-101)
 │   │   │   ├── EntryCard/
 │   │   │   │   └── EntryCard.test.tsx       # TC-035–039 (US-007)
-│   │   │   └── FollowUpDialog/
-│   │   │       └── FollowUpDialog.test.tsx  # TC-029–034 (US-006)
+│   │   │   ├── FollowUpDialog/
+│   │   │   │   └── FollowUpDialog.test.tsx  # TC-029–034 (US-006)
+│   │   │   └── PatternSummary/
+│   │   │       └── PatternSummary.test.tsx  # TC-055–056 (US-102)
 │   │   ├── hooks/
 │   │   │   └── useSettings.test.ts   # TC-019–022 (US-004)
 │   │   ├── pages/
-│   │   │   ├── HomePage.test.tsx     # TC-002, TC-005, TC-010–011, TC-024, TC-028, TC-050 (US-004, US-005, US-007, US-101)
+│   │   │   ├── HomePage.test.tsx     # TC-002, TC-005, TC-010–011, TC-024, TC-028, TC-050, TC-057–062 (US-004, US-005, US-007, US-101, US-102)
 │   │   │   ├── EntryDetailPage.test.tsx # TC-036–039 (US-007)
 │   │   │   ├── NewEntryPage.test.tsx # TC-003–009, TC-025–026, TC-034 (US-005, US-006)
 │   │   │   └── SettingsPage.test.tsx # TC-001, TC-023 (US-004)
 │   │   ├── services/
-│   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043 (US-006, US-101)
+│   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043, TC-051–054 (US-006, US-101, US-102)
 │   │   │   └── entryService.test.ts  # TC-012–018, TC-044–047 (US-002, US-006, US-101)
 │   │   └── utils/
 │   │       └── testHelpers.tsx       # renderWithRouter helper
@@ -245,6 +249,18 @@ dotflow/
 **Props:** `targetId: string`, `targetDate: string` (ISO timestamp)
 
 **Rendering note:** ConnectionBadge is rendered as a sibling element below EntryCard in HomePage — NOT inside EntryCard. This avoids the invalid HTML pattern of nesting `<button>` inside `<button>` (EntryCard's outer element is also a button).
+
+### 5.6 PatternSummary
+
+**Responsibility:** Render a bullet-point list of AI-generated pattern observations.
+
+**Props:** `observations: string[]`
+
+**Key behaviors:**
+- Returns `null` when `observations` array is empty — renders nothing
+- Renders an `<h2>Your patterns</h2>` heading followed by a `<ul>` of observation items
+
+**Note:** PatternSummary is stateless — all async logic (API call, loading, error) lives in HomePage.
 
 **Data flow:**
 - HomePage loads connections in background via `Promise.allSettled` after entries display
@@ -361,6 +377,16 @@ entry shares a meaningful emotional or situational pattern. Respond with JSON:
 
 User: New entry: [content]
 Past entries: [array of {id, content, created_at}]
+```
+
+### Pattern Summary Prompt (US-102)
+```
+System: You are a thoughtful journal analyst. Analyze the following journal 
+entries and identify 3–5 recurring patterns — emotional trends, repeated 
+situations, or behavioral triggers the user may not have noticed. 
+Respond only with a JSON array of short, empathetic observation strings.
+
+User: [array of entry content strings]
 ```
 
 ---

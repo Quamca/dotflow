@@ -1,7 +1,7 @@
 # Dotflow - Code Snippets & Patterns
 
-**Version:** 1.5
-**Date:** 2026-04-23
+**Version:** 1.6
+**Date:** 2026-04-25
 **Purpose:** Reusable code patterns discovered during development
 
 ---
@@ -126,6 +126,42 @@ void Promise.allSettled(
 **Why `Promise.resolve().then(() => fn())`:** If `fn()` throws synchronously (e.g., mock not set up in tests), `Promise.allSettled` cannot catch it — only rejected promises are handled. Wrapping in `.then()` converts any synchronous throw into a rejected promise that `allSettled` can safely handle.
 
 **When to use:** Any background task that should not block the UI, should not show errors to the user, and may fail without consequence.
+
+### 1.3 User-Triggered AI Call with Loading/Error/Result State (US-102)
+
+Pattern for an explicit button action that calls AI, shows loading, handles error, and displays results inline. Unlike fire-and-forget (1.2), the user waits for the result and sees it on screen.
+
+```typescript
+// src/pages/HomePage.tsx (simplified)
+const [observations, setObservations] = useState<string[]>([])
+const [isInsightsLoading, setIsInsightsLoading] = useState(false)
+const [insightsError, setInsightsError] = useState<string | null>(null)
+
+async function handleGenerateInsights() {
+  if (!apiKey) {
+    setInsightsError('Set your API key in Settings to use this feature.')
+    return
+  }
+  setIsInsightsLoading(true)
+  setInsightsError(null)
+  try {
+    const result = await generatePatternSummary(entries, apiKey)
+    setObservations(result)
+  } catch {
+    setInsightsError('Failed to generate insights. Please try again.')
+  } finally {
+    setIsInsightsLoading(false)
+  }
+}
+```
+
+**Key decisions:**
+- No API key → set info message immediately, do not call AI
+- `generatePatternSummary` throws on non-ok HTTP → caught here, shown as error message
+- `finally` always clears loading state
+- Result (`observations`) is stored in component state and passed directly to `PatternSummary`
+
+**When to use:** Any explicit user action that calls an AI service and shows the result inline (not background, not navigating away).
 
 ---
 
@@ -445,6 +481,7 @@ vi.mocked(supabase.from).mockReturnValue({
 |----------|---------|---------|
 | AI Service | OpenAI REST API via native fetch | 1.1 |
 | AI Service | Fire-and-forget background AI call | 1.2 |
+| AI Service | User-triggered AI call with loading/error/result state | 1.3 |
 | Testing | Vitest + jest-dom setup (explicit extend) | 4.1 |
 | Testing | RTL cleanup in Vitest (explicit afterEach) | 4.2 |
 | Testing | Mocking global fetch with vi.stubGlobal | 4.3 |

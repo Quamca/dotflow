@@ -17,16 +17,30 @@ git status
 git diff
 ```
 
-2. Przeczytaj kontekst:
+2. **Bez pytania o zgodę** przeczytaj `.claude/current_task.md` — zapamiętaj tytuł aktywnego zadania (jeśli plik istnieje). Użyjesz tego na końcu sesji.
+
+3. Przeczytaj kontekst:
 - @BACKLOG.md
 - @docs/architecture.md
 - @docs/requirements.md
 - @README.md
 - @CLAUDE.md
 
-3. Zapytaj:
+4. Zapytaj:
 "Nad czym chcemy dziś popracować strategicznie?
 Opisz pomysł lub problem który chcesz omówić."
+
+## Plan przed akcją (obowiązkowe)
+
+Gdy użytkownik opisuje problem lub prośbę o zmianę:
+1. **Najpierw przedstaw plan** — krótkie 1–3 zdania co zamierzasz zrobić
+2. Zapytaj:
+   "Czy o to chodzi?
+   1. Tak
+   2. Nie — powiedz co zmienić"
+3. **Dopiero po akceptacji** wykonaj zmiany
+
+Nigdy nie modyfikuj plików ani nie commituj bez wcześniejszej akceptacji planu.
 
 ## Styl prowadzenia dyskusji
 
@@ -60,6 +74,12 @@ git commit -m "docs(backlog): add [Epic/Feature/US name] from discovery session"
 ```
 
 "Dokumenty zaktualizowane. Uruchom /planning dla nowego US."
+
+## Przypomnienie aktywnego zadania
+
+Po każdym zakończeniu sesji (po commicie LUB gdy użytkownik mówi "gotowe" i nie zapisuje) — jeśli `current_task.md` istniał przy starcie, wyświetl:
+
+"↩ Przed /discover pracowałeś nad: **[tytuł z current_task.md]**. Wróć do implementacji."
 
 ## UX — format pytań
 

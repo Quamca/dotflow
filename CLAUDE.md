@@ -179,6 +179,31 @@ If `git status` shows any of these, check `.gitignore` first.
 3. Propose commit for changes
 4. Say: "Implementation complete. Run /qa after manual verification."
 
+**After every `git push` to a non-main branch:**
+Immediately provide the PR title and description template:
+```
+Title: feat: US-XXX [short description]
+
+## Summary
+[What changed and why]
+
+## Changes
+- [Change 1]
+- [Change 2]
+
+## Testing
+- [x] npm run lint passes
+- [x] npm test passes
+- [x] Manual verification completed
+
+## Documentation
+- [ ] BACKLOG.md updated
+- [ ] README.md updated
+
+Closes #[issue_number]
+```
+Say: "Skopiuj powyższy opis i wklej na GitHub przy tworzeniu PR."
+
 ---
 
 ## Documentation Sync Rule
