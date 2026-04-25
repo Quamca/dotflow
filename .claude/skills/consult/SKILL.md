@@ -91,8 +91,15 @@ Nie improwizuję poza ekspertyzą.
 
 ## After Completion
 
-Po udzieleniu rekomendacji powiedz:
-"↩ Wróć do /discover z tą rekomendacją i zapisz decyzję do backlogu."
+Po udzieleniu rekomendacji zapytaj:
+
+"Czy wrzucić rekomendację do /discover?
+1. Tak — przekażę automatycznie
+2. Nie — odpisz co jest nie tak"
+
+Jeśli użytkownik wybierze **1** → wywołaj skill `discover` z pełną treścią rekomendacji jako argumentem (ARGUMENTS). Nie pytaj ponownie — działaj.
+
+Jeśli użytkownik wybierze **2** → wysłuchaj uwag i popraw rekomendację, potem zapytaj ponownie.
 
 ---
 
