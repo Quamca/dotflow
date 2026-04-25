@@ -1,8 +1,8 @@
 # Dotflow - Product Backlog
 
 **Project:** Dotflow
-**Version:** 1.0
-**Last Updated:** 2026-04-25 (US-103)
+**Version:** 1.1
+**Last Updated:** 2026-04-25 (Discovery: Visualization + Insight Feedback)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -13,8 +13,11 @@
 | Milestone | Name | Status |
 |-----------|------|--------|
 | M1 | Core Journal + AI Follow-Up | ✅ Completed |
-| M2 | Connections + Patterns | 📋 Planned |
-| M3 | Multi-User + Mobile | 📋 Planned |
+| M2 | Connections + Patterns | ✅ Completed |
+| M2.5 | Experience Depth (pre-M3) | 🔄 In Progress |
+| M3 | Multi-User + Mobile | ⏸️ Blocked — M2.5 must complete first |
+
+> **M3 Blocker:** M3 will not start until all M2.5 items are complete: 3D Visualization, User Onboarding/Instructions, Adaptive Pattern Summaries, Security/Privacy Messaging.
 
 ---
 
@@ -33,7 +36,14 @@ EPIC-002: Dotflow M2 — Connections + Patterns
 ├── FEATURE-007: Entry Connection Detection
 └── FEATURE-008: Pattern Summary
 
-EPIC-003: Dotflow M3 — Multi-User + Mobile
+EPIC-002b: Dotflow M2.5 — Experience Depth (pre-M3)
+├── FEATURE-011: 3D Entry Visualization ("Gwiezdne niebo")
+├── FEATURE-012: Insight Feedback Loop
+├── FEATURE-013: User Onboarding & Instructions         [to be discovered]
+├── FEATURE-014: Adaptive Pattern Summaries             [to be discovered]
+└── FEATURE-015: Security & Privacy Messaging           [to be discovered]
+
+EPIC-003: Dotflow M3 — Multi-User + Mobile             [BLOCKED — M2.5 first]
 ├── FEATURE-009: Authentication
 └── FEATURE-010: Mobile Application
 ```
@@ -522,7 +532,7 @@ Gives the user a bird's-eye view of their patterns without requiring them to rea
 - **Excludes:** Persistent insight storage, scheduled insights, email delivery
 
 **Priority:** P1 (High for M2)
-**Status:** 🔄 In Progress
+**Status:** ✅ Completed
 
 ---
 
@@ -577,6 +587,222 @@ Add a "Generate insights" button on the Home screen, visible when 10+ entries ex
 - [x] **TASK-102.4:** Gate button on entry count ≥ 10 - 15min
 - [x] **TASK-102.5:** Write tests for summary generation and display (/qa) - 45min
 - [x] **TASK-102.6:** Manual verification - 15min
+
+---
+
+# 📦 EPIC-002b: Experience Depth (M2.5 — pre-M3)
+
+**Description:**
+Before opening Dotflow to other users, the product needs to feel complete, trustworthy, and intuitive for the current user. This epic covers depth of experience: a visual representation of the journal universe, smarter AI interactions, user guidance, and clear privacy communication.
+
+**Business Value:**
+Makes Dotflow genuinely compelling before it becomes multi-user. A user who understands and trusts the product is the foundation for word-of-mouth growth in M3.
+
+**Stakeholders:**
+- Quamca (sole user, product owner)
+
+**M3 Gate:** M3 cannot begin until all features in this epic are complete.
+
+**Status:** 🔄 In Progress
+
+---
+
+## 🔧 FEATURE-011: 3D Entry Visualization — "Gwiezdne niebo"
+
+**Description:**
+A 3D star-field visualization where each entry is a star in space. Connections between entries appear as constellation lines. The visualization lives as a blurred background on Home and can be toggled into full focus mode. At the center sits a "black hole" representing the user's psychological core — it grows as entries accumulate and eventually anchors a values-based positioning system.
+
+**User Value:**
+Gives the user a spatial, emotional sense of their journal universe. Progress feels visible beyond a growing list. The psychological center makes the app feel alive and personal.
+
+**Dependencies:**
+- FEATURE-007 (connections data needed for constellation lines)
+- FEATURE-008 (insights data used by black hole)
+
+**Technology:**
+- `react-three-fiber` — React renderer for Three.js
+- `@react-three/drei` — helpers: OrbitControls, Stars, etc.
+
+**Scope Boundaries:**
+- **Phase 1 (US-201):** Star field, toggle, orbit controls, hover preview
+- **Phase 2 (US-202):** Black hole, values extraction, psychological positioning
+- **Excludes:** Animated flythrough, VR mode, sharing visualization
+
+**Priority:** P1
+**Status:** 📋 Planned
+
+---
+
+### US-201: 3D Star Field — Basic Visualization
+
+**Description:**
+Render a 3D star field on the Home screen background. Each journal entry is a star. Existing connections appear as subtle lines between stars. A toggle button (easter egg under the Dotflow logo, top-right) switches between the normal entry list view and full 3D exploration mode.
+
+**As a** user
+**I want to** see my journal entries as stars in a 3D space
+**So that** I have a visual, spatial sense of my writing history beyond a flat list
+
+**Status:** 📋 Planned
+**Story Points:** 8
+**Priority:** P1
+
+**Acceptance Criteria:**
+- [ ] Home background shows blurred 3D star field (one star per entry)
+- [ ] Constellation lines connect entries that have a saved `connection` record
+- [ ] Easter egg toggle button visible under Dotflow logo (top-right)
+- [ ] Clicking toggle: entry list fades out, 3D scene becomes unblurred and interactive
+- [ ] Clicking toggle again: returns to normal list view
+- [ ] Hover on a star shows entry preview (date + content snippet)
+- [ ] Orbit controls work: rotate, pan, zoom (like 3D modeling software)
+- [ ] Star size reflects recency or connection count (larger = more prominent)
+- [ ] Performance: no visible lag on 50+ entries
+
+**Tasks:**
+- [ ] **TASK-201.1:** Install react-three-fiber, @react-three/drei - 15min
+- [ ] **TASK-201.2:** Create `src/components/StarField/StarField.tsx` — basic 3D scene - 90min
+- [ ] **TASK-201.3:** Map entries to star positions (stable, derived from entry id) - 30min
+- [ ] **TASK-201.4:** Render constellation lines from connections data - 45min
+- [ ] **TASK-201.5:** Add blur/unblur toggle with transition - 30min
+- [ ] **TASK-201.6:** Hover interaction — entry preview tooltip - 30min
+- [ ] **TASK-201.7:** Add OrbitControls - 15min
+- [ ] **TASK-201.8:** Write tests for StarField component (/qa) - 45min
+- [ ] **TASK-201.9:** Manual verification - 20min
+
+---
+
+### US-202: Black Hole & Psychological Profile
+
+**Description:**
+Add a "black hole" at the center of the star field — a visual representation of the user's psychological core. It grows subtly as entry count increases (capped at a maximum size). Hovering on it shows the current insight. The user's values are extracted semi-automatically (AI proposes 5 values after sufficient entries; user confirms or edits). Entry positions in 3D space reflect alignment with those values: closer to center = closer to the user's values.
+
+**As a** user
+**I want to** see a living center in my star field that reflects my values and grows with my entries
+**So that** I feel a sense of psychological depth and personal progress in the visualization
+
+**Status:** 📋 Planned
+**Story Points:** 13
+**Priority:** P1
+
+**Acceptance Criteria:**
+- [ ] Black hole visible at center of 3D scene
+- [ ] Size scales with entry count (min size at 1 entry, max size capped at ~15% of scene)
+- [ ] Hover on black hole shows current pattern insight
+- [ ] This replaces the "Generate insights" button on Home
+- [ ] After N entries (TBD during implementation), AI proposes 5 user values
+- [ ] User can confirm, edit, or dismiss proposed values in a modal
+- [ ] Confirmed values stored (localStorage or Supabase — TBD)
+- [ ] Star positions update to reflect value alignment once values are confirmed
+- [ ] Entries aligned with values appear closer to black hole; divergent entries appear further
+
+**Tasks:**
+- [ ] **TASK-202.1:** Create black hole mesh in StarField scene - 45min
+- [ ] **TASK-202.2:** Scale black hole size based on entry count (with cap) - 20min
+- [ ] **TASK-202.3:** Hover on black hole → show insight (reuse PatternSummary data) - 30min
+- [ ] **TASK-202.4:** Remove "Generate insights" button from HomePage - 15min
+- [ ] **TASK-202.5:** Implement `aiService.extractUserValues()` — proposes 5 values from entries - 60min
+- [ ] **TASK-202.6:** Create values confirmation modal - 45min
+- [ ] **TASK-202.7:** Implement value alignment scoring per entry - 45min
+- [ ] **TASK-202.8:** Update star positions based on value alignment scores - 30min
+- [ ] **TASK-202.9:** Write tests (/qa) - 60min
+- [ ] **TASK-202.10:** Manual verification - 20min
+
+---
+
+## 🔧 FEATURE-012: Insight Feedback Loop
+
+**Description:**
+When the user reads an insight (from black hole hover), they can push back: "I disagree, because...". The AI responds dialectically — not as a yes-man. It either updates the insight (when given genuinely new information) or holds its position with care (when the pushback is emotional). The AI never confronts contradictions in entries even if they exist.
+
+**User Value:**
+Transforms passive insights into a conversation. The user feels heard but also gently challenged — like a good journal companion.
+
+**Dependencies:**
+- US-202 (black hole + insight display)
+- AI Communication Principles document (must be defined before implementation)
+
+**AI Behavior Rules:**
+- Mode A (new information): *"That's important — it changes the picture for you."* → insight updates
+- Mode B (emotional pushback): *"I hear you — but when I look at your entries, I still see..."* → holds position with a deepening question
+- Never: confront contradictions between entries, even if detected
+- Never: simply agree to make the user feel good
+
+**Scope Boundaries:**
+- **Includes:** Disagree input, AI dialectical response (2 modes), deepening follow-up question
+- **Excludes:** Persistence of feedback conversation (deferred decision), clinical-level interpretation
+
+**Priority:** P1
+**Status:** 📋 Planned
+
+---
+
+### US-203: Dialectical Insight Response
+
+**Description:**
+After viewing an insight (on black hole hover), the user can tap "I disagree" and type their reason. The AI reads the disagreement and responds in one of two modes: acknowledging genuine new information and updating the insight, or gently holding its position while asking a deeper question.
+
+**As a** user
+**I want to** be able to push back on AI insights
+**So that** the insights feel like a real dialogue, not just a one-way summary I must accept
+
+**Status:** 📋 Planned
+**Story Points:** 8
+**Priority:** P1
+
+**Acceptance Criteria:**
+- [ ] "I disagree" button visible below insight text
+- [ ] Clicking opens text input: "I disagree because..."
+- [ ] On submit: AI responds with one of two modes (Mode A or Mode B — see FEATURE-012)
+- [ ] Mode A response updates the displayed insight
+- [ ] Mode B response shows AI's position + one deepening question
+- [ ] AI response never confronts contradictions in user's entries
+- [ ] Persistence of feedback: **deferred** — to be decided before implementation
+- [ ] Loading state during AI response
+
+**Tasks:**
+- [ ] **TASK-203.1:** Add "I disagree" button to insight display - 20min
+- [ ] **TASK-203.2:** Create disagree input field + submit flow - 30min
+- [ ] **TASK-203.3:** Implement `aiService.respondToInsightFeedback()` with Mode A/B logic - 90min
+- [ ] **TASK-203.4:** Create dialectical response prompt in `src/utils/prompts.ts` - 45min
+- [ ] **TASK-203.5:** Update insight display on Mode A response - 20min
+- [ ] **TASK-203.6:** Render deepening question on Mode B response - 20min
+- [ ] **TASK-203.7:** Write tests (/qa) - 60min
+- [ ] **TASK-203.8:** Manual verification - 20min
+
+---
+
+## 📋 Pre-requisite: AI Communication Principles
+
+**Before implementing US-202 and US-203**, a dedicated /discover session must produce:
+`docs/ai_communication_principles.md` — a reference document defining:
+- When AI validates vs. when AI holds position
+- Language patterns to use and avoid
+- How AI distinguishes new information from emotional pushback
+- Tone guidelines: reflective, warm, non-directive
+- Based on: Motivational Interviewing, Socratic dialogue, non-directive coaching
+- Before M3: lightweight review by a psychologist
+
+**Status:** 📋 To be discovered
+
+---
+
+## 🔧 FEATURE-013: User Onboarding & Instructions
+
+**Description:** To be defined in /discover session.
+**Status:** 📋 To be discovered
+
+---
+
+## 🔧 FEATURE-014: Adaptive Pattern Summaries
+
+**Description:** To be defined in /discover session.
+**Status:** 📋 To be discovered
+
+---
+
+## 🔧 FEATURE-015: Security & Privacy Messaging
+
+**Description:** To be defined in /discover session.
+**Status:** 📋 To be discovered
 
 ---
 

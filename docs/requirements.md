@@ -154,6 +154,66 @@ After a user has 10+ entries, the app can generate a brief AI summary of recurri
 
 ---
 
+## 3b. Functional Requirements — M2.5: Experience Depth
+
+### FR-008: 3D Entry Visualization
+
+**Priority:** SHOULD HAVE (M2.5)
+
+**Description:**
+Journal entries are visualized as stars in a 3D space. Connections between entries appear as constellation lines. The visualization lives as a blurred background on Home and can be toggled into full interactive mode via an easter egg button under the Dotflow logo.
+
+**Acceptance Criteria:**
+- 3D star field visible as blurred background on Home
+- One star per entry; constellation lines for connected entries
+- Toggle button switches between list view and full 3D mode
+- Hover on star shows entry preview
+- Orbit controls: rotate, pan, zoom (like 3D modeling software)
+
+**Related User Stories:** US-201, US-202
+
+---
+
+### FR-009: Psychological Profile — Black Hole
+
+**Priority:** SHOULD HAVE (M2.5)
+
+**Description:**
+A "black hole" at the center of the 3D visualization represents the user's psychological core. It grows subtly as entries accumulate. Hovering reveals the current AI insight. Entry positioning reflects alignment with the user's confirmed values (semi-automatically extracted by AI).
+
+**Acceptance Criteria:**
+- Black hole visible at center, size grows with entry count (capped)
+- Hover shows current pattern insight (replaces "Generate insights" button)
+- AI proposes 5 values after sufficient entries; user confirms or edits
+- Stars positioned closer to center when entries align with user's values
+
+**Related User Stories:** US-202
+
+---
+
+### FR-010: Dialectical Insight Feedback
+
+**Priority:** SHOULD HAVE (M2.5)
+
+**Description:**
+Users can push back on AI insights. The AI responds dialectically: it either updates the insight when given genuine new information, or gently holds its position when the pushback is emotional. The AI never confronts contradictions in entries.
+
+**AI Behavior Contract:**
+- Mode A — new information received: acknowledge and update insight
+- Mode B — emotional pushback: hold position warmly, add a deepening question
+- Never confront entry contradictions even if detected
+- Never simply agree to validate the user
+
+**Acceptance Criteria:**
+- "I disagree" option visible below insight
+- User can type reason for disagreement
+- AI responds in Mode A or Mode B based on content
+- Mode A: insight updates; Mode B: deepening question displayed
+
+**Related User Stories:** US-203
+
+---
+
 ## 4. Non-Functional Requirements
 
 ### NFR-001: Performance

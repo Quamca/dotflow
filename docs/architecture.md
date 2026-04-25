@@ -108,6 +108,9 @@ erDiagram
 | date-fns | Date formatting | ❌ Not used — Intl.DateTimeFormat used instead | https://date-fns.org |
 | vitest | Unit testing | ✅ Installed (^2.1.3) | https://vitest.dev |
 | @testing-library/react | Component testing | ✅ Installed (^16.0.0) | https://testing-library.com/react |
+| @react-three/fiber | React renderer for Three.js — 3D visualization | 📋 Planned (US-201) | https://docs.pmnd.rs/react-three-fiber |
+| @react-three/drei | Three.js helpers: OrbitControls, Stars, etc. | 📋 Planned (US-201) | https://docs.pmnd.rs/drei |
+| three | Three.js core (peer dep of react-three-fiber) | 📋 Planned (US-201) | https://threejs.org |
 
 ---
 
@@ -468,12 +471,18 @@ graph LR
 
 ## 11. Future Considerations
 
-- [ ] Add Supabase Auth + RLS for multi-user support
-- [ ] Add backend proxy for OpenAI (hide API key when multi-user)
-- [ ] Add graph visualization view (D3.js or similar)
-- [ ] Add mobile app (React Native, shared logic)
-- [ ] Add semantic search using pgvector (Supabase supports this)
-- [ ] Add weekly reflection summary (cron job via Supabase Edge Functions)
+- [ ] **US-201:** 3D star field visualization (react-three-fiber) — M2.5
+- [ ] **US-202:** Black hole psychological center, semi-automatic values extraction — M2.5
+- [ ] **US-203:** Dialectical insight feedback loop — M2.5
+- [ ] User onboarding & instructions — M2.5 (to be discovered)
+- [ ] Adaptive pattern summaries — M2.5 (to be discovered)
+- [ ] Security & privacy messaging — M2.5 (to be discovered)
+- [ ] AI communication principles document (`docs/ai_communication_principles.md`) — M2.5 prereq
+- [ ] Add Supabase Auth + RLS for multi-user support — M3
+- [ ] Add backend proxy for OpenAI (hide API key when multi-user) — M3
+- [ ] Add mobile app (React Native, shared logic) — M3
+- [ ] Add semantic search using pgvector (Supabase supports this) — future
+- [ ] Add weekly reflection summary (cron job via Supabase Edge Functions) — future
 
 ---
 
