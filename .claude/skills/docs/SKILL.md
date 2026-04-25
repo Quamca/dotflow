@@ -98,11 +98,10 @@ git push -u origin [branch-name]
 
 ### Step 3 — Pull Request
 
-**After push, provide the full PR description first, then the instruction:**
+**After push, automatically create the PR using GitHub CLI:**
 
-```
-Title: feat: US-XXX [short description]
-
+```bash
+gh pr create --title "feat: US-XXX [short description]" --body "$(cat <<'EOF'
 ## Summary
 [What changed and why]
 
@@ -120,9 +119,11 @@ Title: feat: US-XXX [short description]
 - [x] README.md updated
 
 Closes #[issue_number]
+EOF
+)"
 ```
 
-**Skopiuj powyższy opis, wklej na GitHub przy tworzeniu PR i zatwierdź merge. Gdy PR zostanie zmergowany, wpisz 1.**
+After running, print the PR URL returned by `gh pr create`. Then say: "PR utworzony. Gdy zostanie zmergowany, wpisz 1."
 
 ### Step 4 — Cleanup (automatyczny po potwierdzeniu merge)
 
