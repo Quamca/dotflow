@@ -1,6 +1,6 @@
 # Dotflow - Test Cases Documentation
 
-**Version:** 1.8
+**Version:** 1.9
 **Date:** 2026-04-25
 **Author:** QA Agent
 **Test Framework:** Vitest + React Testing Library
@@ -1237,6 +1237,51 @@ export const mockEntry = {
 - "Set your API key in Settings to use this feature." visible
 
 **File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+## 3.6 FEATURE: Pattern Summary — Language Fix (US-103)
+
+### TC-063: PATTERN_SUMMARY_SYSTEM_PROMPT includes language instruction
+
+**Related US:** US-103
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `src/utils/prompts.ts` imported
+
+**Test Steps:**
+1. Import `PATTERN_SUMMARY_SYSTEM_PROMPT`
+2. Check for language instruction string
+
+**Expected Result:**
+- Prompt contains `"Respond in the same language as the journal entries"`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-064: All prompts instruct AI to return structured JSON
+
+**Related US:** US-103
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- All three prompts imported from `src/utils/prompts.ts`
+
+**Test Steps:**
+1. Check each prompt for JSON format instruction
+
+**Expected Result:**
+- `FOLLOW_UP_SYSTEM_PROMPT` contains `"JSON array"`
+- `PATTERN_SUMMARY_SYSTEM_PROMPT` contains `"JSON array"`
+- `CONNECTION_DETECTION_SYSTEM_PROMPT` contains `"JSON object"`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
 **Status:** ✅ Done
 
 ---

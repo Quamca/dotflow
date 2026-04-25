@@ -2,7 +2,7 @@
 
 **Project:** Dotflow
 **Version:** 1.0
-**Last Updated:** 2026-04-25 (US-102)
+**Last Updated:** 2026-04-25 (US-103)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -535,17 +535,17 @@ AI-generated pattern summary observations are returned in English regardless of 
 **I want to** receive AI insights in my own language
 **So that** the summaries feel natural and readable without switching context
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 **Story Points:** 1
 **Priority:** P1
 
 **Acceptance Criteria:**
-- [ ] Pattern summary observations are returned in the language of the journal entries
-- [ ] No hardcoded language in prompt — AI auto-detects from entry content
+- [x] Pattern summary observations are returned in the language of the journal entries
+- [x] No hardcoded language in prompt — AI auto-detects from entry content
 
 **Tasks:**
-- [ ] **TASK-103.1:** Update `PATTERN_SUMMARY_SYSTEM_PROMPT` in `src/utils/prompts.ts` to add language instruction - 15min
-- [ ] **TASK-103.2:** Manual verification (write entries in Polish, verify insights in Polish) - 10min
+- [x] **TASK-103.1:** Update `PATTERN_SUMMARY_SYSTEM_PROMPT` in `src/utils/prompts.ts` to add language instruction - 15min
+- [x] **TASK-103.2:** Manual verification (write entries in Polish, verify insights in Polish) - 10min
 
 ---
 
