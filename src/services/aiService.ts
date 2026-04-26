@@ -1,4 +1,4 @@
-import { FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_DETECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT } from '../utils/prompts'
+import { FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_DETECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT } from '../utils/prompts'
 import type { Entry, ConnectionResult } from '../types'
 
 export async function generateFollowUpQuestions(
@@ -82,6 +82,55 @@ export async function generatePatternSummary(
     if (Array.isArray(parsed)) {
       return (parsed as string[])
         .filter((obs) => typeof obs === 'string' && obs.length > 0)
+        .slice(0, 5)
+    }
+    return []
+  } catch {
+    return []
+  }
+}
+
+export async function extractUserValues(
+  entries: Entry[],
+  apiKey: string
+): Promise<string[]> {
+  const userMessage = JSON.stringify(
+    entries.slice(0, 20).map((e) => ({
+      content: e.content,
+      created_at: e.created_at,
+    }))
+  )
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: USER_VALUES_SYSTEM_PROMPT },
+        { role: 'user', content: userMessage },
+      ],
+      temperature: 0.4,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`OpenAI API error: ${response.status}`)
+  }
+
+  const data = (await response.json()) as {
+    choices: Array<{ message: { content: string } }>
+  }
+  const text = data.choices[0]?.message?.content ?? '[]'
+
+  try {
+    const parsed = JSON.parse(text) as unknown
+    if (Array.isArray(parsed)) {
+      return (parsed as string[])
+        .filter((t) => typeof t === 'string' && t.length > 0)
         .slice(0, 5)
     }
     return []
