@@ -177,7 +177,8 @@ If `git status` shows any of these, check `.gitignore` first.
 1. Run linter: `npm run lint`
 2. Run tests: `npm test`
 3. Propose commit for changes
-4. Say: "Implementation complete. Run /qa after manual verification."
+4. Present manual verification steps and say: "Przeprowadź weryfikację manualną i wpisz 1 gdy gotowe."
+5. When user types "1" confirming manual verification → automatically invoke `/qa` skill. Do NOT ask — just do it.
 
 **After every `git push` to a non-main branch:**
 Immediately provide the PR title and description template:

@@ -154,6 +154,121 @@ After a user has 10+ entries, the app can generate a brief AI summary of recurri
 
 ---
 
+## 3b. Functional Requirements — M2.5: Experience Depth
+
+### FR-008: 3D Entry Visualization
+
+**Priority:** SHOULD HAVE (M2.5)
+
+**Description:**
+Journal entries are visualized as stars in a 3D space. Connections between entries appear as constellation lines. The visualization lives as a blurred background on Home and can be toggled into full interactive mode via an easter egg button under the Dotflow logo.
+
+**Acceptance Criteria:**
+- 3D star field visible as blurred background on Home
+- One star per entry; constellation lines for connected entries
+- Toggle button switches between list view and full 3D mode
+- Hover on star shows entry preview
+- Orbit controls: rotate, pan, zoom (like 3D modeling software)
+
+**Related User Stories:** US-201, US-202
+
+---
+
+### FR-009: Psychological Profile — Black Hole
+
+**Priority:** SHOULD HAVE (M2.5)
+
+**Description:**
+A "black hole" at the center of the 3D visualization represents the user's psychological core. It grows subtly as entries accumulate. Hovering reveals the current AI insight. Entry positioning reflects alignment with the user's confirmed values (semi-automatically extracted by AI).
+
+**Acceptance Criteria:**
+- Black hole visible at center, size grows with entry count (capped)
+- Hover shows current pattern insight (replaces "Generate insights" button)
+- AI proposes 5 values after sufficient entries; user confirms or edits
+- Stars positioned closer to center when entries align with user's values
+
+**Related User Stories:** US-202
+
+---
+
+### FR-010: Dialectical Insight Feedback
+
+**Priority:** SHOULD HAVE (M2.5)
+
+**Description:**
+Users can push back on AI insights. The AI responds dialectically: it either updates the insight when given genuine new information, or gently holds its position when the pushback is emotional. The AI never confronts contradictions in entries.
+
+**AI Behavior Contract:**
+- Mode A — new information received: acknowledge and update insight
+- Mode B — emotional pushback: hold position warmly, add a deepening question
+- Never confront entry contradictions even if detected
+- Never simply agree to validate the user
+
+**Acceptance Criteria:**
+- "I disagree" option visible below insight
+- User can type reason for disagreement
+- AI responds in Mode A or Mode B based on content
+- Mode A: insight updates; Mode B: deepening question displayed
+
+**Related User Stories:** US-203
+
+---
+
+### FR-011: Contextual First-Use Onboarding
+
+**Priority:** SHOULD HAVE (M2.5)
+
+**Description:**
+Each AI feature in Dotflow explains itself exactly once, at the moment of first use, with a single sentence. No welcome screen, no tutorial. Hints are contextual — they teach users what they are currently experiencing. All hint states are persisted in localStorage so hints never repeat.
+
+**Onboarding Moments:**
+1. First follow-up questions: one-liner above FollowUpDialog
+2. First connection badge: tooltip on ConnectionBadge
+3. First black hole hover: hint near center of 3D scene (M2.5, requires US-201)
+
+**API Key Warning Update:**
+Banner must communicate missing value, not just missing key: *"Without an API key you won't see follow-up questions, connections, or insights."*
+
+**Acceptance Criteria:**
+- Hints appear only on first use of each feature
+- After first use, hints are permanently hidden (localStorage state)
+- API key warning banner names the specific features users are missing
+
+**Related User Stories:** US-204
+
+---
+
+### FR-012: Depth-Driven Adaptive Pattern Summaries
+
+**Priority:** SHOULD HAVE (M2.5)
+
+**Description:**
+Pattern insights are driven by a continuous reflection depth accumulator — not fixed entry count. Every entry contributes a depth score (0–20 pts) based on quality signals grounded in Pennebaker Expressive Writing Research: follow-up questions answered (3 pts each, max 15), word count in tiers (50–150: +1, 150–300: +2, 300+: +3, capped), connection detected (+2 bonus), entries under 30 words score 0 flat. When the accumulator crosses a configurable threshold, a holistic insight is generated and delivered via black hole hover. The accumulator resets after delivery and continues forever — no upper limit.
+
+Two insight types operate independently:
+1. **Holistic Insight** — black hole hover, cumulative identity-level pattern
+2. **Connection Insight** — inline near ConnectionBadge, immediate and specific to the detected connection
+
+The black hole provides heartbeat feedback on every entry save — pulse intensity reflects the entry's depth score. No numbers or bars shown to user.
+
+**AI Behavior:**
+- Holistic insight prompt: focuses on cumulative patterns across all entries since last insight
+- Connection insight prompt: contextualizes the specific connection in one sentence
+- Pre-insight state: black hole hover shows *"Keep writing — your center is forming."*
+
+**Acceptance Criteria:**
+- Depth accumulator computed per entry: 3 pts/follow-up answer (max 15), word count tiers (+1/+2/+3), connection bonus (+2), <30 words = 0 flat; range 0–20
+- Accumulator threshold is configurable (not hardcoded)
+- Holistic insight generated when threshold crossed, persisted, accumulator resets
+- Black hole pulses proportionally after every entry save (no explicit score shown)
+- Black hole glows when unread holistic insight is available
+- Connection insight appears inline near ConnectionBadge when connection detected
+- All insights persisted in localStorage (not regenerated on hover)
+
+**Related User Stories:** US-205
+
+---
+
 ## 4. Non-Functional Requirements
 
 ### NFR-001: Performance

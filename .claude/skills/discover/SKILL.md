@@ -73,7 +73,12 @@ git add docs/requirements.md
 git commit -m "docs(backlog): add [Epic/Feature/US name] from discovery session"
 ```
 
-"Dokumenty zaktualizowane. Uruchom /planning dla nowego US."
+Po commicie zapytaj:
+"Dokumenty zaktualizowane. Czy uruchomić /planning dla [nazwa US]?
+1. Tak — przejdź do planowania
+2. Nie"
+
+Jeśli użytkownik wybierze **1** → wywołaj skill `planning` z numerem US jako argumentem. Nie pytaj ponownie — działaj.
 
 ## Przypomnienie aktywnego zadania
 
@@ -98,6 +103,16 @@ Zawsze używaj formatu numerowanego:
 
 **Zawsze pytam przed:**
 - Modyfikacja plików
+
+## Integracja z /consult
+
+Gdy w trakcie dyskusji pojawia się pytanie wymagające eksperckiej opinii UX/psychologii — powiedz:
+
+> "To pytanie wymaga eksperckiej opinii. Wpisz:
+> `/consult [twoje pytanie dokładnie tak jak brzmi]`
+> Agent /consult od razu odpowie na ten konkretny temat."
+
+Nie mów tylko "uruchom /consult" — zawsze podaj gotową komendę z pytaniem jako argumentem.
 
 ## Ograniczenia
 - Nie twórz Task instructions — to rola /planning

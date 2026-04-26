@@ -1,7 +1,7 @@
 # Dotflow - Test Cases Documentation
 
-**Version:** 1.9
-**Date:** 2026-04-25
+**Version:** 2.0
+**Date:** 2026-04-26
 **Author:** QA Agent
 **Test Framework:** Vitest + React Testing Library
 
@@ -1282,6 +1282,155 @@ export const mockEntry = {
 - `CONNECTION_DETECTION_SYSTEM_PROMPT` contains `"JSON object"`
 
 **File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+## 3.7 FEATURE: 3D Star Field (US-201)
+
+### TC-065: getStarPosition returns tuple of 3 numbers for a given entry id
+
+**Related US:** US-201
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `src/utils/starPositions.ts` imported
+
+**Test Steps:**
+1. Call `getStarPosition('uuid-1')`
+
+**Expected Result:**
+- Returns array of length 3
+- All elements are numbers
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-066: getStarPosition returns same position for same entry id
+
+**Related US:** US-201
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `getStarPosition` imported
+
+**Test Steps:**
+1. Call `getStarPosition('uuid-abc-123')` twice
+
+**Expected Result:**
+- Both calls return identical `[x, y, z]` tuples
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-067: getStarPosition returns different positions for different entry ids
+
+**Related US:** US-201
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- `getStarPosition` imported
+
+**Test Steps:**
+1. Call `getStarPosition('uuid-1')` and `getStarPosition('uuid-2')`
+
+**Expected Result:**
+- Positions are not equal
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-068: getStarPosition returns position within expected radius range
+
+**Related US:** US-201
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- `getStarPosition` imported
+
+**Test Steps:**
+1. Call `getStarPosition('uuid-range-test')`
+2. Compute `radius = sqrt(x² + y² + z²)`
+
+**Expected Result:**
+- `radius >= 3` and `radius <= 8`
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-069: HomePage shows Dotflow logo as Explore in 3D when entries are loaded
+
+**Related US:** US-201
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `getEntries` returns one entry
+
+**Test Steps:**
+1. Render HomePage
+2. Wait for entries to load
+
+**Expected Result:**
+- Button with `aria-label="Explore in 3D"` present in DOM
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-070: Clicking Dotflow logo switches to 3D mode and hides entry list
+
+**Related US:** US-201
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `getEntries` returns one entry
+
+**Test Steps:**
+1. Render HomePage, wait for entries
+2. Click "Explore in 3D" logo button
+
+**Expected Result:**
+- `+ Write` link not in DOM
+- Button with `aria-label="Exit 3D view"` present
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-071: Clicking exit button in 3D mode returns to list view
+
+**Related US:** US-201
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `getEntries` returns one entry
+- App in 3D mode (logo was clicked)
+
+**Test Steps:**
+1. Click "Explore in 3D" to enter 3D mode
+2. Click "Exit 3D view" button
+
+**Expected Result:**
+- `+ Write` link visible again in DOM
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
 **Status:** ✅ Done
 
 ---

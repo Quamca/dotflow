@@ -80,7 +80,7 @@ git add .claude/skills/[changed]/SKILL.md
 git commit -m "docs(flow): agent improvements after US-XXX"
 ```
 
-Następnie powiedz: "Flow zakończony. Uruchom /docs."
+Następnie → automatically invoke `docs` skill. Do NOT ask.
 
 ---
 

@@ -1,7 +1,7 @@
 # Dotflow - Code Snippets & Patterns
 
-**Version:** 1.6
-**Date:** 2026-04-25
+**Version:** 1.7
+**Date:** 2026-04-26
 **Purpose:** Reusable code patterns discovered during development
 
 ---
@@ -389,6 +389,32 @@ it('should throw on non-ok response', async () => {
 
 **When to use:** Any service test that calls native `fetch` directly.
 
+### 4.4 Mocking Three.js / react-three-fiber in jsdom Tests (US-201)
+
+`@react-three/fiber` uses `ResizeObserver` and WebGL Canvas APIs that jsdom does not implement. Two mocks are required — one global polyfill in setup, one component-level null mock wherever StarField is rendered:
+
+```typescript
+// src/__tests__/setup.ts — ResizeObserver polyfill
+global.ResizeObserver = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+```
+
+```typescript
+// At the top of any test file that renders HomePage or any page importing StarField
+vi.mock('../components/StarField/StarField', () => ({
+  default: () => null,
+}))
+```
+
+**Why component mock:** Even with ResizeObserver polyfilled, jsdom has no WebGL context — `@react-three/fiber` Canvas will throw. Returning `null` from the mock completely bypasses the Three.js render tree while still testing all surrounding page logic.
+
+**Why NOT mock react-three-fiber itself:** Mocking the entire renderer would break type checking and leak into unrelated tests. A targeted `vi.mock` for the single StarField component is more surgical.
+
+**When to use:** Any test file whose render tree includes a component that creates a Three.js Canvas.
+
 ### 4.2 RTL Cleanup in Vitest (US-004)
 
 Vitest does not enable globals by default, so RTL's auto-cleanup `afterEach` never registers. Without this, component tests bleed DOM state into each other. Always add explicit cleanup to the setup file:
@@ -485,6 +511,7 @@ vi.mocked(supabase.from).mockReturnValue({
 | Testing | Vitest + jest-dom setup (explicit extend) | 4.1 |
 | Testing | RTL cleanup in Vitest (explicit afterEach) | 4.2 |
 | Testing | Mocking global fetch with vi.stubGlobal | 4.3 |
+| Testing | Mocking Three.js / StarField in jsdom tests | 4.4 |
 | Supabase | Client initialization pattern | 2.1 |
 | Supabase | Mocking chained calls in tests | 2.2 |
 | React Hooks | localStorage hook with lazy initializer | 5.1 |

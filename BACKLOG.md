@@ -1,8 +1,8 @@
 # Dotflow - Product Backlog
 
 **Project:** Dotflow
-**Version:** 1.0
-**Last Updated:** 2026-04-25 (US-103)
+**Version:** 1.1
+**Last Updated:** 2026-04-26 (US-201: 3D Star Field completed)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -13,8 +13,11 @@
 | Milestone | Name | Status |
 |-----------|------|--------|
 | M1 | Core Journal + AI Follow-Up | ✅ Completed |
-| M2 | Connections + Patterns | 📋 Planned |
-| M3 | Multi-User + Mobile | 📋 Planned |
+| M2 | Connections + Patterns | ✅ Completed |
+| M2.5 | Experience Depth (pre-M3) | 🔄 In Progress |
+| M3 | Multi-User + Mobile | ⏸️ Blocked — M2.5 must complete first |
+
+> **M3 Blocker:** M3 will not start until all M2.5 items are complete: 3D Visualization (US-201, US-202), User Onboarding (US-204), Adaptive Pattern Summaries (US-205), AI Communication Principles document. Security/Privacy Messaging (FEATURE-015) is a M3 item, not a blocker.
 
 ---
 
@@ -33,7 +36,14 @@ EPIC-002: Dotflow M2 — Connections + Patterns
 ├── FEATURE-007: Entry Connection Detection
 └── FEATURE-008: Pattern Summary
 
-EPIC-003: Dotflow M3 — Multi-User + Mobile
+EPIC-002b: Dotflow M2.5 — Experience Depth (pre-M3)
+├── FEATURE-011: 3D Entry Visualization ("Gwiezdne niebo")
+├── FEATURE-012: Insight Feedback Loop
+├── FEATURE-013: User Onboarding & Instructions         [to be discovered]
+├── FEATURE-014: Adaptive Pattern Summaries
+└── FEATURE-015: Security & Privacy Messaging           [deferred to M3]
+
+EPIC-003: Dotflow M3 — Multi-User + Mobile             [BLOCKED — M2.5 first]
 ├── FEATURE-009: Authentication
 └── FEATURE-010: Mobile Application
 ```
@@ -522,7 +532,7 @@ Gives the user a bird's-eye view of their patterns without requiring them to rea
 - **Excludes:** Persistent insight storage, scheduled insights, email delivery
 
 **Priority:** P1 (High for M2)
-**Status:** 🔄 In Progress
+**Status:** ✅ Completed
 
 ---
 
@@ -577,6 +587,369 @@ Add a "Generate insights" button on the Home screen, visible when 10+ entries ex
 - [x] **TASK-102.4:** Gate button on entry count ≥ 10 - 15min
 - [x] **TASK-102.5:** Write tests for summary generation and display (/qa) - 45min
 - [x] **TASK-102.6:** Manual verification - 15min
+
+---
+
+# 📦 EPIC-002b: Experience Depth (M2.5 — pre-M3)
+
+**Description:**
+Before opening Dotflow to other users, the product needs to feel complete, trustworthy, and intuitive for the current user. This epic covers depth of experience: a visual representation of the journal universe, smarter AI interactions, user guidance, and clear privacy communication.
+
+**Business Value:**
+Makes Dotflow genuinely compelling before it becomes multi-user. A user who understands and trusts the product is the foundation for word-of-mouth growth in M3.
+
+**Stakeholders:**
+- Quamca (sole user, product owner)
+
+**M3 Gate:** M3 cannot begin until all features in this epic are complete.
+
+**Status:** 🔄 In Progress
+
+---
+
+## 🔧 FEATURE-011: 3D Entry Visualization — "Gwiezdne niebo"
+
+**Description:**
+A 3D star-field visualization where each entry is a star in space. Connections between entries appear as constellation lines. The visualization lives as a blurred background on Home and can be toggled into full focus mode. At the center sits a "black hole" representing the user's psychological core — it grows as entries accumulate and eventually anchors a values-based positioning system.
+
+**User Value:**
+Gives the user a spatial, emotional sense of their journal universe. Progress feels visible beyond a growing list. The psychological center makes the app feel alive and personal.
+
+**Dependencies:**
+- FEATURE-007 (connections data needed for constellation lines)
+- FEATURE-008 (insights data used by black hole)
+
+**Technology:**
+- `react-three-fiber` — React renderer for Three.js
+- `@react-three/drei` — helpers: OrbitControls, Stars, etc.
+
+**Scope Boundaries:**
+- **Phase 1 (US-201):** Star field, toggle, orbit controls, hover preview
+- **Phase 2 (US-202):** Black hole, values extraction, psychological positioning
+- **Excludes:** Animated flythrough, VR mode, sharing visualization
+
+**Priority:** P1
+**Status:** 🔄 In Progress
+
+---
+
+### US-201: 3D Star Field — Basic Visualization
+
+**Description:**
+Render a 3D star field on the Home screen background. Each journal entry is a star. Existing connections appear as subtle lines between stars. A toggle button (easter egg under the Dotflow logo, top-right) switches between the normal entry list view and full 3D exploration mode.
+
+**As a** user
+**I want to** see my journal entries as stars in a 3D space
+**So that** I have a visual, spatial sense of my writing history beyond a flat list
+
+**Status:** ✅ Completed
+**Story Points:** 8
+**Priority:** P1
+
+**Acceptance Criteria:**
+- [x] Home background shows blurred 3D star field (one star per entry)
+- [x] Constellation lines connect entries that have a saved `connection` record
+- [x] Dotflow logo (top-left header) is the easter egg toggle — clicking it switches between list view and 3D mode
+- [x] Clicking logo: entry list fades out, 3D scene becomes unblurred and interactive
+- [x] Clicking logo again: returns to normal list view
+- [x] Hover on a star shows entry preview (date + content snippet)
+- [x] Orbit controls work: rotate, pan, zoom (like 3D modeling software)
+- [x] Star size reflects recency or connection count (larger = more prominent)
+- [x] Performance: no visible lag on 50+ entries
+
+**Tasks:**
+- [x] **TASK-201.1:** Install react-three-fiber, @react-three/drei - 15min
+- [x] **TASK-201.2:** Create `src/components/StarField/StarField.tsx` — basic 3D scene - 90min
+- [x] **TASK-201.3:** Map entries to star positions (stable, derived from entry id) - 30min
+- [x] **TASK-201.4:** Render constellation lines from connections data - 45min
+- [x] **TASK-201.5:** Add blur/unblur toggle with transition - 30min
+- [x] **TASK-201.6:** Hover interaction — entry preview tooltip - 30min
+- [x] **TASK-201.7:** Add OrbitControls - 15min
+- [x] **TASK-201.8:** Write tests for StarField component (/qa) - 45min
+- [x] **TASK-201.9:** Manual verification - 20min
+
+---
+
+### US-202: Black Hole & Psychological Profile
+
+**Description:**
+Add a "black hole" at the center of the star field — a visual representation of the user's psychological core. It grows subtly as entry count increases (capped at a maximum size). Hovering on it shows the current insight. The user's values are extracted semi-automatically (AI proposes 5 values after sufficient entries; user confirms or edits). Entry positions in 3D space reflect alignment with those values: closer to center = closer to the user's values.
+
+**As a** user
+**I want to** see a living center in my star field that reflects my values and grows with my entries
+**So that** I feel a sense of psychological depth and personal progress in the visualization
+
+**Status:** 📋 Planned
+**Story Points:** 13
+**Priority:** P1
+
+**Acceptance Criteria:**
+- [ ] Black hole visible at center of 3D scene
+- [ ] Size scales with entry count (min size at 1 entry, max size capped at ~15% of scene)
+- [ ] Hover on black hole shows current pattern insight
+- [ ] This replaces the "Generate insights" button on Home
+- [ ] After N entries (TBD during implementation), AI proposes 5 user values
+- [ ] User can confirm, edit, or dismiss proposed values in a modal
+- [ ] Confirmed values stored (localStorage or Supabase — TBD)
+- [ ] Star positions update to reflect value alignment once values are confirmed
+- [ ] Entries aligned with values appear closer to black hole; divergent entries appear further
+
+**Tasks:**
+- [ ] **TASK-202.1:** Create black hole mesh in StarField scene - 45min
+- [ ] **TASK-202.2:** Scale black hole size based on entry count (with cap) - 20min
+- [ ] **TASK-202.3:** Hover on black hole → show insight (reuse PatternSummary data) - 30min
+- [ ] **TASK-202.4:** Remove "Generate insights" button from HomePage - 15min
+- [ ] **TASK-202.5:** Implement `aiService.extractUserValues()` — proposes 5 values from entries - 60min
+- [ ] **TASK-202.6:** Create values confirmation modal - 45min
+- [ ] **TASK-202.7:** Implement value alignment scoring per entry - 45min
+- [ ] **TASK-202.8:** Update star positions based on value alignment scores - 30min
+- [ ] **TASK-202.9:** Write tests (/qa) - 60min
+- [ ] **TASK-202.10:** Manual verification - 20min
+
+---
+
+## 🔧 FEATURE-012: Insight Feedback Loop
+
+**Description:**
+When the user reads an insight (from black hole hover), they can push back: "I disagree, because...". The AI responds dialectically — not as a yes-man. It either updates the insight (when given genuinely new information) or holds its position with care (when the pushback is emotional). The AI never confronts contradictions in entries even if they exist.
+
+**User Value:**
+Transforms passive insights into a conversation. The user feels heard but also gently challenged — like a good journal companion.
+
+**Dependencies:**
+- US-202 (black hole + insight display)
+- AI Communication Principles document (must be defined before implementation)
+
+**AI Behavior Rules:**
+- Mode A (new information): *"That's important — it changes the picture for you."* → insight updates
+- Mode B (emotional pushback): *"I hear you — but when I look at your entries, I still see..."* → holds position with a deepening question
+- Never: confront contradictions between entries, even if detected
+- Never: simply agree to make the user feel good
+
+**Scope Boundaries:**
+- **Includes:** Disagree input, AI dialectical response (2 modes), deepening follow-up question
+- **Excludes:** Persistence of feedback conversation (deferred decision), clinical-level interpretation
+
+**Priority:** P1
+**Status:** 📋 Planned
+
+---
+
+### US-203: Dialectical Insight Response
+
+**Description:**
+After viewing an insight (on black hole hover), the user can tap "I disagree" and type their reason. The AI reads the disagreement and responds in one of two modes: acknowledging genuine new information and updating the insight, or gently holding its position while asking a deeper question.
+
+**As a** user
+**I want to** be able to push back on AI insights
+**So that** the insights feel like a real dialogue, not just a one-way summary I must accept
+
+**Status:** 📋 Planned
+**Story Points:** 8
+**Priority:** P1
+
+**Acceptance Criteria:**
+- [ ] "I disagree" button visible below insight text
+- [ ] Clicking opens text input: "I disagree because..."
+- [ ] On submit: AI responds with one of two modes (Mode A or Mode B — see FEATURE-012)
+- [ ] Mode A response updates the displayed insight
+- [ ] Mode B response shows AI's position + one deepening question
+- [ ] AI response never confronts contradictions in user's entries
+- [ ] Persistence of feedback: **deferred** — to be decided before implementation
+- [ ] Loading state during AI response
+
+**Tasks:**
+- [ ] **TASK-203.1:** Add "I disagree" button to insight display - 20min
+- [ ] **TASK-203.2:** Create disagree input field + submit flow - 30min
+- [ ] **TASK-203.3:** Implement `aiService.respondToInsightFeedback()` with Mode A/B logic - 90min
+- [ ] **TASK-203.4:** Create dialectical response prompt in `src/utils/prompts.ts` - 45min
+- [ ] **TASK-203.5:** Update insight display on Mode A response - 20min
+- [ ] **TASK-203.6:** Render deepening question on Mode B response - 20min
+- [ ] **TASK-203.7:** Write tests (/qa) - 60min
+- [ ] **TASK-203.8:** Manual verification - 20min
+
+---
+
+## 📋 Pre-requisite: AI Communication Principles
+
+**Before implementing US-202 and US-203**, a dedicated /discover session must produce:
+`docs/ai_communication_principles.md` — a reference document defining:
+- When AI validates vs. when AI holds position
+- Language patterns to use and avoid
+- How AI distinguishes new information from emotional pushback
+- Tone guidelines: reflective, warm, non-directive
+- Based on: Motivational Interviewing, Socratic dialogue, non-directive coaching
+- Before M3: lightweight review by a psychologist
+
+**Status:** 📋 To be discovered
+
+---
+
+## 🔧 FEATURE-013: Contextual First-Use Onboarding
+
+**Description:**
+Onboarding is contextual — no welcome screen, no tutorial. Each AI feature explains itself exactly once, at the moment of first use, with a single sentence. The explanation disappears permanently after being seen. Users are never interrupted; they learn by doing.
+
+**User Value:**
+Users come to Dotflow in an emotional moment — they want to process something, not read documentation. Contextual hints teach users what they're experiencing right now, not what they might experience in the future.
+
+**Three Onboarding Moments:**
+1. **First follow-up questions** → one-liner above FollowUpDialog: *"Dotflow asks 2–3 questions to help you go deeper."*
+2. **First connection detected** → tooltip on ConnectionBadge: *"I found a similarity to something you wrote earlier."*
+3. **First black hole / insight hover** → hint near black hole: *"This is your center. It grows with each entry."*
+
+**API Key Edge Case:**
+Warning banner must communicate value, not just absence.
+- Current: *"Add your API key in Settings."*
+- New: *"Without an API key you won't see follow-up questions, connections, or insights."*
+
+**Persistence:**
+Each hint's "seen" state stored in localStorage. Never shown again after first view.
+
+**Dependencies:**
+- FEATURE-005, FEATURE-007 (hints 1 and 2)
+- US-201 (hint 3 — black hole must exist)
+
+**Priority:** P1
+**Status:** 📋 Planned
+
+---
+
+### US-204: Contextual First-Use Hints
+
+**Description:**
+Add a one-time contextual hint to three AI feature moments: first follow-up questions dialog, first connection badge, first black hole hover. Each hint appears exactly once and is never shown again. Update the API key warning banner to communicate the value users are missing, not just the technical absence of a key.
+
+**As a** first-time user
+**I want to** understand what's happening when AI features appear for the first time
+**So that** I can use Dotflow intuitively without needing a tutorial
+
+**Status:** 📋 Planned
+**Story Points:** 3
+**Priority:** P1
+
+**Acceptance Criteria:**
+- [ ] First FollowUpDialog render: one-liner hint above dialog: *"Dotflow asks 2–3 questions to help you go deeper."*
+- [ ] Hint gone after dialog closed — never shown again
+- [ ] First ConnectionBadge render: tooltip: *"I found a similarity to something you wrote earlier."*
+- [ ] First black hole hover: hint: *"This is your center. It grows with each entry."* (requires US-201)
+- [ ] All hint states in localStorage: `onboarding_seen_followup`, `onboarding_seen_connection`, `onboarding_seen_blackhole`
+- [ ] API key warning banner updated to name the missing features
+- [ ] No hint shown more than once per installation
+
+**Tasks:**
+- [ ] **TASK-204.1:** Create `src/hooks/useOnboarding.ts` — manages seen-state per hint - 20min
+- [ ] **TASK-204.2:** Add first-use hint to FollowUpDialog - 20min
+- [ ] **TASK-204.3:** Add first-use tooltip to ConnectionBadge - 15min
+- [ ] **TASK-204.4:** Add first-use hint to black hole hover (after US-201) - 15min
+- [ ] **TASK-204.5:** Update API key warning banner copy in HomePage - 10min
+- [ ] **TASK-204.6:** Write tests for useOnboarding hook and hint render (/qa) - 30min
+- [ ] **TASK-204.7:** Manual verification - 15min
+
+---
+
+## 🔧 FEATURE-014: Adaptive Pattern Summaries
+
+**Description:**
+Pattern insights are driven by a continuous **reflection depth accumulator** — not fixed entry count milestones. Every entry contributes to the accumulator based on its quality signals (follow-up answers answered, word depth, connection detected). When the accumulator crosses a threshold, a new holistic insight is computed. After delivery the accumulator resets and continues building — forever. No "nothing after 50 entries."
+
+Two distinct insight types operate independently:
+1. **Connection Insight** — triggered immediately when a connection between entries is detected. Appears inline, near ConnectionBadge. Specific, contextual.
+2. **Holistic Insight** — triggered by accumulator threshold. Delivered via black hole hover. Cumulative, identity-level.
+
+The black hole pulses once (heartbeat) after every entry save — the size of the pulse is proportional to the entry's depth score. This creates a gardening feedback loop: write deeply → visible growth; write shallowly → barely moves.
+
+**UX Principles (from /consult):**
+- Fixed ratio with visible quality (not variable/casino): every entry always adds something; quality determines how much
+- No numbers, bars, or points — user feels the difference visually, not analytically
+- Accumulator threshold: configurable value, not hardcoded
+- Follow-up answers weight more than word count as quality signal
+
+**Dependencies:**
+- US-202 (black hole mesh and hover interaction)
+- US-101 (connection detection — needed for Connection Insight trigger)
+
+**Scope Boundaries:**
+- **Includes:** Depth accumulator, two insight types (connection + holistic), heartbeat visualization, glow/pulse for unread holistic insight
+- **Excludes:** Push notifications, email delivery, explicit score display to user
+
+**Priority:** P1
+**Status:** 📋 Planned
+
+---
+
+### US-205: Depth-Driven Adaptive Insights
+
+**Description:**
+Replace fixed-milestone insight triggers with a continuous reflection depth accumulator. Each entry contributes depth points based on quality signals. When the accumulator threshold is crossed, a holistic insight is generated and delivered via black hole hover. Connection insights appear inline when entries connect. The black hole pulses on every save with proportional growth feedback.
+
+**As a** user
+**I want** the black hole to grow visibly when I write deeply and signal when a new insight is ready
+**So that** I am motivated by reflection quality — not entry quantity — and discover insights at meaningful moments
+
+**Status:** 📋 Planned
+**Story Points:** 8
+**Priority:** P1
+
+**Depth Accumulator Model:**
+
+Depth score per entry — range 0–20 pts (based on Pennebaker Expressive Writing Research):
+
+| Signal | Points |
+|---|---|
+| Each follow-up answer | 3 pts / answer (max 15) |
+| Word count 50–150 | +1 pt |
+| Word count 150–300 | +2 pts |
+| Word count 300+ | +3 pts (capped) |
+| Connection detected | +2 pts bonus |
+| Entry < 30 words | 0 pts flat |
+
+- When accumulated score ≥ threshold → generate + persist holistic insight, reset accumulator
+- Threshold is a configurable constant (not hardcoded), calibrated experimentally
+- **M2.5 known limitation:** Users without an API key score 0 on the highest-weight signal (no follow-up answers). Acceptable for single-user M2.5; resolved in M3 with Dotflow-owned AI.
+
+**Two Insight Types:**
+
+| | Connection Insight | Holistic Insight |
+|---|---|---|
+| Trigger | Connection detected on entry save | Depth accumulator threshold crossed |
+| Location | Inline, near ConnectionBadge | Black hole hover |
+| Character | Immediate, specific | Cumulative, identity-level |
+| Example | *"This echoes something you felt 3 weeks ago."* | *"You tend to doubt yourself before big decisions."* |
+
+**Acceptance Criteria:**
+- [ ] Each entry contributes a depth score to the accumulator on save
+- [ ] Depth score follows Pennebaker model: 3 pts/follow-up answer (max 15), word count tier (+1/+2/+3), connection bonus (+2), <30 words = 0 flat; range 0–20
+- [ ] Accumulator threshold is a configurable constant (not hardcoded)
+- [ ] When threshold crossed: `aiService.generateHolisticInsight()` called, result persisted in localStorage
+- [ ] Accumulator resets to zero after holistic insight generated (perpetual cycle)
+- [ ] Black hole pulses once (heartbeat) after every entry save — pulse intensity proportional to depth score
+- [ ] No numbers, bars, or explicit scores shown to user — feedback is purely visual
+- [ ] Black hole glow/pulse when new holistic insight is unread
+- [ ] Glow clears after first hover (insight marked as read)
+- [ ] Connection insight: appears inline near ConnectionBadge when connection detected — one sentence, specific
+- [ ] Before first holistic insight: black hole hover shows: *"Keep writing — your center is forming."*
+- [ ] All insight persistence in localStorage; holistic insight does not regenerate on every hover
+
+**Tasks:**
+- [ ] **TASK-205.1:** Design and implement `src/hooks/useDepthAccumulator.ts` — score computation + localStorage persistence - 45min
+- [ ] **TASK-205.2:** Define depth score weights as configurable constants in `src/utils/insightConfig.ts` - 15min
+- [ ] **TASK-205.3:** Implement `aiService.generateHolisticInsight(entries, apiKey)` with cumulative-pattern prompt - 45min
+- [ ] **TASK-205.4:** Trigger holistic insight generation when accumulator threshold crossed - 20min
+- [ ] **TASK-205.5:** Persist generated holistic insight in localStorage; retrieve on hover - 20min
+- [ ] **TASK-205.6:** Pass depth score of last entry to StarField — trigger proportional heartbeat animation - 30min
+- [ ] **TASK-205.7:** Add glow/pulse to black hole when unread holistic insight exists - 20min
+- [ ] **TASK-205.8:** Implement connection insight display inline near ConnectionBadge - 25min
+- [ ] **TASK-205.9:** Add pre-insight fallback text on black hole hover - 10min
+- [ ] **TASK-205.10:** Write tests for accumulator, threshold detection, both insight types (/qa) - 60min
+- [ ] **TASK-205.11:** Manual verification - 20min
+
+---
+
+## 🔧 FEATURE-015: Security & Privacy Messaging
+
+**Description:** Moved to M3. Privacy messaging for end users (registration/login flow, no API key required). Details to be defined in /discover session before M3 planning.
+**Status:** ⏸️ Deferred to M3
 
 ---
 
