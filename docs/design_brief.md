@@ -207,4 +207,24 @@ SVG style, no gradients.
 
 ---
 
+---
+
+## 11. 3D Visualization Design Decisions (US-201)
+
+### Light Theme for Star Field
+
+**Decision:** Canvas background `#FAFAF9` (Cream), star dots `#78716C` (Warm Stone). Stars visible but subtle — content (entry list) sits in front with `rgba(250,250,249,0.88)` background.
+
+**Why:** Dark canvas (`#0C0A09`) with white stars created a "space simulator" feel that competed with the journaling content. The light theme keeps star nodes as a whispered presence in the background — enough to create atmospheric depth, not enough to distract. Aligns with the Dotflow "warm room in the evening" personality.
+
+**Source:** /consult decision — "subtelne jak oddech, nie jak widowisko."
+
+### Star Field Toggle UX
+
+**Decision:** Dotflow logo (top-right header) is the easter egg toggle between list view and 3D exploration mode. No dedicated toggle button — the logo IS the interactive element.
+
+**Why:** Keeps the Home screen completely uncluttered. Users who discover the 3D mode feel rewarded; casual users are never confused by a button they don't understand.
+
+---
+
 *This brief is a living document — update when design decisions evolve.*

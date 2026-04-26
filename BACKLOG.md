@@ -2,7 +2,7 @@
 
 **Project:** Dotflow
 **Version:** 1.1
-**Last Updated:** 2026-04-25 (Discovery: Depth accumulator model, two insight types, FEATURE-015 deferred to M3)
+**Last Updated:** 2026-04-26 (US-201: 3D Star Field completed)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -629,7 +629,7 @@ Gives the user a spatial, emotional sense of their journal universe. Progress fe
 - **Excludes:** Animated flythrough, VR mode, sharing visualization
 
 **Priority:** P1
-**Status:** 📋 Planned
+**Status:** 🔄 In Progress
 
 ---
 
@@ -642,31 +642,31 @@ Render a 3D star field on the Home screen background. Each journal entry is a st
 **I want to** see my journal entries as stars in a 3D space
 **So that** I have a visual, spatial sense of my writing history beyond a flat list
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 **Story Points:** 8
 **Priority:** P1
 
 **Acceptance Criteria:**
-- [ ] Home background shows blurred 3D star field (one star per entry)
-- [ ] Constellation lines connect entries that have a saved `connection` record
-- [ ] Dotflow logo (top-left header) is the easter egg toggle — clicking it switches between list view and 3D mode
-- [ ] Clicking logo: entry list fades out, 3D scene becomes unblurred and interactive
-- [ ] Clicking logo again: returns to normal list view
-- [ ] Hover on a star shows entry preview (date + content snippet)
-- [ ] Orbit controls work: rotate, pan, zoom (like 3D modeling software)
-- [ ] Star size reflects recency or connection count (larger = more prominent)
-- [ ] Performance: no visible lag on 50+ entries
+- [x] Home background shows blurred 3D star field (one star per entry)
+- [x] Constellation lines connect entries that have a saved `connection` record
+- [x] Dotflow logo (top-left header) is the easter egg toggle — clicking it switches between list view and 3D mode
+- [x] Clicking logo: entry list fades out, 3D scene becomes unblurred and interactive
+- [x] Clicking logo again: returns to normal list view
+- [x] Hover on a star shows entry preview (date + content snippet)
+- [x] Orbit controls work: rotate, pan, zoom (like 3D modeling software)
+- [x] Star size reflects recency or connection count (larger = more prominent)
+- [x] Performance: no visible lag on 50+ entries
 
 **Tasks:**
-- [ ] **TASK-201.1:** Install react-three-fiber, @react-three/drei - 15min
-- [ ] **TASK-201.2:** Create `src/components/StarField/StarField.tsx` — basic 3D scene - 90min
-- [ ] **TASK-201.3:** Map entries to star positions (stable, derived from entry id) - 30min
-- [ ] **TASK-201.4:** Render constellation lines from connections data - 45min
-- [ ] **TASK-201.5:** Add blur/unblur toggle with transition - 30min
-- [ ] **TASK-201.6:** Hover interaction — entry preview tooltip - 30min
-- [ ] **TASK-201.7:** Add OrbitControls - 15min
-- [ ] **TASK-201.8:** Write tests for StarField component (/qa) - 45min
-- [ ] **TASK-201.9:** Manual verification - 20min
+- [x] **TASK-201.1:** Install react-three-fiber, @react-three/drei - 15min
+- [x] **TASK-201.2:** Create `src/components/StarField/StarField.tsx` — basic 3D scene - 90min
+- [x] **TASK-201.3:** Map entries to star positions (stable, derived from entry id) - 30min
+- [x] **TASK-201.4:** Render constellation lines from connections data - 45min
+- [x] **TASK-201.5:** Add blur/unblur toggle with transition - 30min
+- [x] **TASK-201.6:** Hover interaction — entry preview tooltip - 30min
+- [x] **TASK-201.7:** Add OrbitControls - 15min
+- [x] **TASK-201.8:** Write tests for StarField component (/qa) - 45min
+- [x] **TASK-201.9:** Manual verification - 20min
 
 ---
 

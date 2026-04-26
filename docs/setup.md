@@ -314,6 +314,10 @@ git branch -d 1-setup-project
 | prettier | ^3.3.3 | US-001 |
 | @supabase/supabase-js | ^2.104.0 | US-002 |
 | react-router-dom | ^7.14.2 | US-004 |
+| @react-three/fiber | ^8.18.0 | US-201 |
+| @react-three/drei | ^9.122.0 | US-201 |
+| three | ^0.184.0 | US-201 |
+| @types/three | ^0.170.0 | US-201 |
 
 ---
 

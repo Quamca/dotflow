@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 2.0
-**Date:** 2026-04-25
+**Version:** 2.1
+**Date:** 2026-04-26
 **Author:** Solution Architect
-**Status:** Updated after US-103
+**Status:** Updated after US-201
 
 ---
 
@@ -108,9 +108,9 @@ erDiagram
 | date-fns | Date formatting | ❌ Not used — Intl.DateTimeFormat used instead | https://date-fns.org |
 | vitest | Unit testing | ✅ Installed (^2.1.3) | https://vitest.dev |
 | @testing-library/react | Component testing | ✅ Installed (^16.0.0) | https://testing-library.com/react |
-| @react-three/fiber | React renderer for Three.js — 3D visualization | 📋 Planned (US-201) | https://docs.pmnd.rs/react-three-fiber |
-| @react-three/drei | Three.js helpers: OrbitControls, Stars, etc. | 📋 Planned (US-201) | https://docs.pmnd.rs/drei |
-| three | Three.js core (peer dep of react-three-fiber) | 📋 Planned (US-201) | https://threejs.org |
+| @react-three/fiber | React renderer for Three.js — 3D visualization | ✅ Installed (^8.18.0, US-201) | https://docs.pmnd.rs/react-three-fiber |
+| @react-three/drei | Three.js helpers: OrbitControls, Html, Line | ✅ Installed (^9.122.0, US-201) | https://docs.pmnd.rs/drei |
+| three | Three.js core (peer dep of react-three-fiber) | ✅ Installed (^0.184.0, US-201) | https://threejs.org |
 
 ---
 
@@ -127,8 +127,12 @@ dotflow/
 │   │   ├── EntryForm/       # (planned)
 │   │   ├── ConnectionBadge/ # "Connected to [date]" badge with navigation (US-101)
 │   │   │   └── ConnectionBadge.tsx
-│   │   └── PatternSummary/  # Bullet-list display of AI pattern observations (US-102)
-│   │       └── PatternSummary.tsx
+│   │   ├── PatternSummary/  # Bullet-list display of AI pattern observations (US-102)
+│   │   │   └── PatternSummary.tsx
+│   │   └── StarField/       # 3D star-field visualization (US-201)
+│   │       ├── StarField.tsx        # Canvas scene: Camera, OrbitControls, lights, star nodes, constellation lines
+│   │       ├── StarNode.tsx         # Individual star mesh + Html tooltip on hover
+│   │       └── ConstellationLines.tsx # Line segments between connected entry pairs
 │   ├── pages/               # Route-level components
 │   │   ├── HomePage.tsx     # Home screen: entry list, loading skeleton, empty state, warning banner, connection badges, pattern summary (US-004, US-005, US-007, US-101, US-102)
 │   │   ├── NewEntryPage.tsx # Entry writing, AI follow-up dialog orchestration, fire-and-forget connection detection (US-005, US-006, US-101)
@@ -146,7 +150,8 @@ dotflow/
 │   ├── types/               # TypeScript type definitions
 │   │   └── index.ts         # Entry, FollowUp, Connection, EntryWithFollowUps (US-002)
 │   ├── utils/               # Pure utility functions
-│   │   └── prompts.ts       # AI prompt templates: FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT (US-006, US-101, US-102)
+│   │   ├── prompts.ts       # AI prompt templates: FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT (US-006, US-101, US-102)
+│   │   └── starPositions.ts # Seeded deterministic 3D position from entry UUID — sin-based hash, uniform sphere distribution, radius 3–8 (US-201)
 │   ├── __tests__/           # Tests mirror source structure
 │   │   ├── setup.ts         # Vitest + jest-dom + RTL cleanup setup
 │   │   ├── setup.test.ts    # TC-000: framework smoke test
@@ -162,7 +167,7 @@ dotflow/
 │   │   ├── hooks/
 │   │   │   └── useSettings.test.ts   # TC-019–022 (US-004)
 │   │   ├── pages/
-│   │   │   ├── HomePage.test.tsx     # TC-002, TC-005, TC-010–011, TC-024, TC-028, TC-050, TC-057–062 (US-004, US-005, US-007, US-101, US-102)
+│   │   │   ├── HomePage.test.tsx     # TC-002, TC-005, TC-010–011, TC-024, TC-028, TC-050, TC-057–062, TC-069–071 (US-004, US-005, US-007, US-101, US-102, US-201)
 │   │   │   ├── EntryDetailPage.test.tsx # TC-036–039 (US-007)
 │   │   │   ├── NewEntryPage.test.tsx # TC-003–009, TC-025–026, TC-034 (US-005, US-006)
 │   │   │   └── SettingsPage.test.tsx # TC-001, TC-023 (US-004)
@@ -171,7 +176,8 @@ dotflow/
 │   │   │   └── entryService.test.ts  # TC-012–018, TC-044–047 (US-002, US-006, US-101)
 │   │   └── utils/
 │   │       ├── testHelpers.tsx       # renderWithRouter helper
-│   │       └── prompts.test.ts       # TC-063–064: prompt contract tests (US-103)
+│   │       ├── prompts.test.ts       # TC-063–064: prompt contract tests (US-103)
+│   │       └── starPositions.test.ts # TC-065–068: deterministic position, radius range (US-201)
 │   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004, US-005, US-007)
 │   ├── index.css            # Tailwind directives
 │   ├── main.tsx
@@ -270,6 +276,21 @@ dotflow/
 - HomePage loads connections in background via `Promise.allSettled` after entries display
 - Each entry's `connections[entry.id]` lookup resolves to a `Connection` record
 - If found, `targetEntry` is located in the loaded entries array and `ConnectionBadge` is rendered
+
+### 5.7 StarField (US-201)
+
+**Responsibility:** Render a 3D visualization of journal entries as stars in space, with constellation lines between connected entries. Lives as a fixed CSS layer on the Home screen; toggled between blurred background mode and interactive 3D mode by clicking the Dotflow logo.
+
+**Components:**
+- `StarField.tsx` — Canvas root (`@react-three/fiber`). Sets up Camera (PerspectiveCamera, FOV 60), OrbitControls (drag to rotate, scroll to zoom), ambient light, and renders `<StarNode>` per entry and `<ConstellationLines>` for all connected pairs.
+- `StarNode.tsx` — `<mesh>` with `sphereGeometry` + `meshBasicMaterial` (no lights needed). On hover: renders `<Html>` overlay from `@react-three/drei` showing entry date + 80-char content snippet.
+- `ConstellationLines.tsx` — `<Line>` from `@react-three/drei` for each connection pair. Color `#D6D3D1`, opacity 0.5.
+
+**Key design decisions:**
+- **Light theme:** Canvas background `#FAFAF9` (Cream), star dots `#78716C` (Warm Stone). Decided by /consult — subtle visibility, warm tone, non-distracting.
+- **Deterministic positions:** `getStarPosition(entry.id)` in `starPositions.ts` generates a stable 3-tuple `[x, y, z]` from a sin-based hash of the UUID. Same entry always maps to the same point — no random layout changes on re-render.
+- **Z-layering:** `StarField` is `position: fixed, z-0` (background). Entry list content is `relative, z-10`. Exit 3D button is `z-30`. Logo toggle is `z-20`.
+- **jsdom compatibility:** `ResizeObserver` global mock in `src/__tests__/setup.ts`; `StarField` component is fully mocked with `vi.mock` in all page-level tests to avoid WebGL Canvas dependency.
 
 ---
 
@@ -471,7 +492,7 @@ graph LR
 
 ## 11. Future Considerations
 
-- [ ] **US-201:** 3D star field visualization (react-three-fiber) — M2.5
+- [x] **US-201:** 3D star field visualization (react-three-fiber) — M2.5 ✅ Completed
 - [ ] **US-202:** Black hole psychological center, semi-automatic values extraction — M2.5
 - [ ] **US-203:** Dialectical insight feedback loop — M2.5
 - [ ] User onboarding & instructions — M2.5 (FEATURE-013, US-204)
