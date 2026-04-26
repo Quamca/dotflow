@@ -189,4 +189,33 @@ describe('HomePage', () => {
 
     expect(screen.getByText(/set your api key in settings/i)).toBeInTheDocument()
   })
+
+  it('should show Dotflow logo as Explore in 3D when entries are loaded', async () => {
+    vi.mocked(getEntries).mockResolvedValue([mockEntry])
+    renderHomePage()
+
+    expect(await screen.findByRole('button', { name: /explore in 3d/i })).toBeInTheDocument()
+  })
+
+  it('should switch to 3D mode and hide entry list when logo clicked with entries present', async () => {
+    vi.mocked(getEntries).mockResolvedValue([mockEntry])
+    const user = userEvent.setup()
+    renderHomePage()
+
+    await user.click(await screen.findByRole('button', { name: /explore in 3d/i }))
+
+    expect(screen.queryByRole('link', { name: /write/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /exit 3d view/i })).toBeInTheDocument()
+  })
+
+  it('should return to list view when exit button clicked in 3D mode', async () => {
+    vi.mocked(getEntries).mockResolvedValue([mockEntry])
+    const user = userEvent.setup()
+    renderHomePage()
+
+    await user.click(await screen.findByRole('button', { name: /explore in 3d/i }))
+    await user.click(screen.getByRole('button', { name: /exit 3d view/i }))
+
+    expect(screen.getByRole('link', { name: /write/i })).toBeInTheDocument()
+  })
 })
