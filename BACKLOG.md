@@ -686,11 +686,10 @@ Add a "black hole" at the center of the star field — a visual representation o
 **Acceptance Criteria:**
 - [ ] Black hole visible at center of 3D scene
 - [ ] Size scales with entry count (min size at 1 entry, max size capped at ~15% of scene)
-- [ ] Hover on black hole shows current pattern insight
-- [ ] This replaces the "Generate insights" button on Home
-- [ ] After N entries (TBD during implementation), AI proposes 5 user values
-- [ ] User can confirm, edit, or dismiss proposed values in a modal
-- [ ] Confirmed values stored (localStorage or Supabase — TBD)
+- [ ] Hover on black hole shows current pattern insight (black hole is an additional channel — does NOT replace "Generate insights" button; button stays until US-205 glow/pulse signal is implemented)
+- [ ] After N entries (TBD during implementation, min 5), AI proposes 5 recurring themes using observational framing: "W Twoich wpisach te tematy wracają najczęściej: X, Y, Z..."
+- [ ] Values modal includes: AI-proposed list, "Co z tej listy brzmi jak Twoje? Możesz zmienić, usunąć, dodać." instructions, "Żadna z tych" escape hatch + free text field
+- [ ] Confirmed values stored in localStorage (no DB schema change)
 - [ ] Star positions update to reflect value alignment once values are confirmed
 - [ ] Entries aligned with values appear closer to black hole; divergent entries appear further
 
@@ -698,13 +697,12 @@ Add a "black hole" at the center of the star field — a visual representation o
 - [ ] **TASK-202.1:** Create black hole mesh in StarField scene - 45min
 - [ ] **TASK-202.2:** Scale black hole size based on entry count (with cap) - 20min
 - [ ] **TASK-202.3:** Hover on black hole → show insight (reuse PatternSummary data) - 30min
-- [ ] **TASK-202.4:** Remove "Generate insights" button from HomePage - 15min
-- [ ] **TASK-202.5:** Implement `aiService.extractUserValues()` — proposes 5 values from entries - 60min
-- [ ] **TASK-202.6:** Create values confirmation modal - 45min
-- [ ] **TASK-202.7:** Implement value alignment scoring per entry - 45min
-- [ ] **TASK-202.8:** Update star positions based on value alignment scores - 30min
-- [ ] **TASK-202.9:** Write tests (/qa) - 60min
-- [ ] **TASK-202.10:** Manual verification - 20min
+- [ ] **TASK-202.4:** Implement `aiService.extractUserValues()` — proposes 5 themes using observational-data language - 60min
+- [ ] **TASK-202.5:** Create values confirmation modal with observational framing + escape hatch - 45min
+- [ ] **TASK-202.6:** Implement value alignment scoring per entry - 45min
+- [ ] **TASK-202.7:** Update star positions based on value alignment scores - 30min
+- [ ] **TASK-202.8:** Write tests (/qa) - 60min
+- [ ] **TASK-202.9:** Manual verification - 20min
 
 ---
 
