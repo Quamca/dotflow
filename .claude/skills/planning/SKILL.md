@@ -113,7 +113,7 @@ Struktura pliku current_task.md:
 - [ ] Manual verification steps (po polsku):
   1. [Krok 1]
   2. [Krok 2]
-- [ ] Potwierdź weryfikację wpisując 1
+- [ ] Potwierdź weryfikację wpisując 1 → agent automatycznie uruchomi /qa
 ```
 
 ## UX — format pytań
