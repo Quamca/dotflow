@@ -17,10 +17,10 @@ export default function ConstellationLines({ connections, positionMap }: Constel
           <Line
             key={conn.id}
             points={[start, end]}
-            color="#78716C"
+            color="#D6D3D1"
             lineWidth={1}
             transparent
-            opacity={0.3}
+            opacity={0.5}
           />
         )
       })}

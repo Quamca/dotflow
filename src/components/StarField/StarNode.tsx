@@ -17,7 +17,7 @@ export default function StarNode({ entry, position, connectionCount, isInteracti
   const [isHovered, setIsHovered] = useState(false)
 
   const starSize = MIN_STAR_SIZE + Math.min(connectionCount * STAR_SIZE_PER_CONNECTION, MAX_STAR_SIZE_BONUS)
-  const starColor = isHovered ? '#FFFFFF' : '#D6D3D1'
+  const starColor = isHovered ? '#1C1917' : '#78716C'
 
   const formattedDate = new Intl.DateTimeFormat('en-GB', {
     day: 'numeric',
@@ -34,14 +34,10 @@ export default function StarNode({ entry, position, connectionCount, isInteracti
         onPointerLeave={isInteractive ? () => setIsHovered(false) : undefined}
       >
         <sphereGeometry args={[starSize, 8, 8]} />
-        <meshStandardMaterial
-          color={starColor}
-          emissive={starColor}
-          emissiveIntensity={isHovered ? 2 : 0.6}
-        />
+        <meshBasicMaterial color={starColor} />
       </mesh>
       {isHovered && isInteractive && (
-        <Html distanceFactor={8} style={{ pointerEvents: 'none' }}>
+        <Html style={{ pointerEvents: 'none' }}>
           <div
             style={{
               background: 'rgba(28, 25, 23, 0.92)',

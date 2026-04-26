@@ -31,10 +31,8 @@ export default function StarField({ entries, connections, isInteractive }: StarF
   return (
     <Canvas
       camera={{ position: [0, 0, 12], fov: 60 }}
-      style={{ background: '#0C0A09', width: '100%', height: '100%' }}
+      style={{ background: '#FAFAF9', width: '100%', height: '100%' }}
     >
-      <ambientLight intensity={0.15} />
-      <pointLight position={[0, 0, 0]} intensity={0.6} color="#FAFAF9" />
       {entries.map((entry) => (
         <StarNode
           key={entry.id}

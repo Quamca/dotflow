@@ -75,7 +75,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: isStarFieldActive ? '#0C0A09' : '#FAFAF9' }}>
+    <div className="min-h-screen bg-[#FAFAF9]">
       {/* Star field — blurred background in list mode, full interactive in 3D mode */}
       {hasEntries && (
         <div
@@ -83,8 +83,8 @@ export default function HomePage() {
             isStarFieldActive ? 'z-20' : 'z-0 pointer-events-none'
           }`}
           style={{
-            opacity: isStarFieldActive ? 1 : 0.35,
-            filter: isStarFieldActive ? 'none' : 'blur(5px)',
+            opacity: isStarFieldActive ? 1 : 0.4,
+            filter: isStarFieldActive ? 'none' : 'blur(8px)',
           }}
         >
           <StarField entries={entries} connections={connections} isInteractive={isStarFieldActive} />
@@ -95,7 +95,7 @@ export default function HomePage() {
       {isStarFieldActive && (
         <button
           onClick={handleLogoClick}
-          className="fixed top-4 left-6 z-30 text-white/70 text-xl font-semibold hover:text-white transition-colors bg-transparent border-0"
+          className="fixed top-4 left-6 z-30 text-[#1C1917]/60 text-xl font-semibold hover:text-[#1C1917] transition-colors bg-transparent border-0"
           aria-label="Exit 3D view"
         >
           Dotflow
@@ -106,7 +106,7 @@ export default function HomePage() {
       {!isStarFieldActive && (
         <div
           className="relative z-10 min-h-screen"
-          style={hasEntries ? { background: 'rgba(250, 250, 249, 0.93)' } : undefined}
+          style={undefined}
         >
           <header className="flex items-center justify-between px-6 py-4 border-b border-[#E7E5E4]">
             <button
