@@ -2,7 +2,7 @@
 
 **Project:** Dotflow
 **Version:** 1.1
-**Last Updated:** 2026-04-26 (US-201: 3D Star Field completed)
+**Last Updated:** 2026-04-27 (US-202: Black Hole & Psychological Profile completed)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -629,7 +629,7 @@ Gives the user a spatial, emotional sense of their journal universe. Progress fe
 - **Excludes:** Animated flythrough, VR mode, sharing visualization
 
 **Priority:** P1
-**Status:** 🔄 In Progress
+**Status:** ✅ Completed
 
 ---
 
@@ -679,30 +679,30 @@ Add a "black hole" at the center of the star field — a visual representation o
 **I want to** see a living center in my star field that reflects my values and grows with my entries
 **So that** I feel a sense of psychological depth and personal progress in the visualization
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 **Story Points:** 13
 **Priority:** P1
 
 **Acceptance Criteria:**
-- [ ] Black hole visible at center of 3D scene
-- [ ] Size scales with entry count (min size at 1 entry, max size capped at ~15% of scene)
-- [ ] Hover on black hole shows current pattern insight (black hole is an additional channel — does NOT replace "Generate insights" button; button stays until US-205 glow/pulse signal is implemented)
-- [ ] After N entries (TBD during implementation, min 5), AI proposes 5 recurring themes using observational framing: "W Twoich wpisach te tematy wracają najczęściej: X, Y, Z..."
-- [ ] Values modal includes: AI-proposed list, "Co z tej listy brzmi jak Twoje? Możesz zmienić, usunąć, dodać." instructions, "Żadna z tych" escape hatch + free text field
-- [ ] Confirmed values stored in localStorage (no DB schema change)
-- [ ] Star positions update to reflect value alignment once values are confirmed
-- [ ] Entries aligned with values appear closer to black hole; divergent entries appear further
+- [x] Black hole visible at center of 3D scene
+- [x] Size scales with entry count (min size at 1 entry, max size capped at ~15% of scene)
+- [x] Hover on black hole shows current pattern insight (black hole is an additional channel — does NOT replace "Generate insights" button; button stays until US-205 glow/pulse signal is implemented)
+- [x] After N entries (TBD during implementation, min 5), AI proposes 5 recurring themes using observational framing: "W Twoich wpisach te tematy wracają najczęściej: X, Y, Z..."
+- [x] Values modal includes: AI-proposed list, "Co z tej listy brzmi jak Twoje? Możesz zmienić, usunąć, dodać." instructions, "Żadna z tych" escape hatch + free text field
+- [x] Confirmed values stored in localStorage (no DB schema change)
+- [x] Star positions update to reflect value alignment once values are confirmed
+- [x] Entries aligned with values appear closer to black hole; divergent entries appear further
 
 **Tasks:**
-- [ ] **TASK-202.1:** Create black hole mesh in StarField scene - 45min
-- [ ] **TASK-202.2:** Scale black hole size based on entry count (with cap) - 20min
-- [ ] **TASK-202.3:** Hover on black hole → show insight (reuse PatternSummary data) - 30min
-- [ ] **TASK-202.4:** Implement `aiService.extractUserValues()` — proposes 5 themes using observational-data language - 60min
-- [ ] **TASK-202.5:** Create values confirmation modal with observational framing + escape hatch - 45min
-- [ ] **TASK-202.6:** Implement value alignment scoring per entry - 45min
-- [ ] **TASK-202.7:** Update star positions based on value alignment scores - 30min
-- [ ] **TASK-202.8:** Write tests (/qa) - 60min
-- [ ] **TASK-202.9:** Manual verification - 20min
+- [x] **TASK-202.1:** Create black hole mesh in StarField scene - 45min
+- [x] **TASK-202.2:** Scale black hole size based on entry count (with cap) - 20min
+- [x] **TASK-202.3:** Hover on black hole → show insight (reuse PatternSummary data) - 30min
+- [x] **TASK-202.4:** Implement `aiService.extractUserValues()` — proposes 5 themes using observational-data language - 60min
+- [x] **TASK-202.5:** Create values confirmation modal with observational framing + escape hatch - 45min
+- [x] **TASK-202.6:** Implement value alignment scoring per entry - 45min
+- [x] **TASK-202.7:** Update star positions based on value alignment scores - 30min
+- [x] **TASK-202.8:** Write tests (/qa) - 60min
+- [x] **TASK-202.9:** Manual verification - 20min
 
 ---
 
