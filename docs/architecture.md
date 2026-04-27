@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 2.2
+**Version:** 2.3
 **Date:** 2026-04-27
 **Author:** Solution Architect
-**Status:** Updated after US-202
+**Status:** Updated after US-203
 
 ---
 
@@ -132,12 +132,12 @@ dotflow/
 │   │   ├── StarField/       # 3D star-field visualization (US-201, US-202)
 │   │   │   ├── StarField.tsx        # Canvas scene: Camera, OrbitControls, lights, star nodes, constellation lines, black hole
 │   │   │   ├── StarNode.tsx         # Individual star mesh + Html tooltip on hover
-│   │   │   ├── BlackHole.tsx        # Black hole at origin: pulsing glow halo, hover insight tooltip, entry-count sizing (US-202)
+│   │   │   ├── BlackHole.tsx        # Black hole at origin: pulsing glow halo, hover insight tooltip, entry-count sizing, disagree flow with 2-round AI dialogue (US-202, US-203)
 │   │   │   └── ConstellationLines.tsx # Line segments between connected entry pairs
 │   │   └── ValuesModal/     # Recurring-themes confirmation modal (US-202)
 │   │       └── ValuesModal.tsx      # AI-proposed themes: edit/remove/restore, add input, "Żadna z tych" escape hatch
 │   ├── pages/               # Route-level components
-│   │   ├── HomePage.tsx     # Home screen: entry list, loading skeleton, empty state, warning banner, connection badges, pattern summary, values flow (US-004, US-005, US-007, US-101, US-102, US-202)
+│   │   ├── HomePage.tsx     # Home screen: entry list, loading skeleton, empty state, warning banner, connection badges, pattern summary, values flow, Write Entry CTA highlight on round limit (US-004, US-005, US-007, US-101, US-102, US-202, US-203)
 │   │   ├── NewEntryPage.tsx # Entry writing, AI follow-up dialog orchestration, fire-and-forget connection detection (US-005, US-006, US-101)
 │   │   ├── EntryDetailPage.tsx # Full entry view with follow-up Q&A (US-007)
 │   │   └── SettingsPage.tsx # API key management screen (US-004)
@@ -149,12 +149,12 @@ dotflow/
 │   ├── lib/                 # Third-party client initializations
 │   │   └── supabase.ts      # Supabase client (US-002)
 │   ├── services/            # External API integrations
-│   │   ├── aiService.ts     # OpenAI GPT-4o-mini via native fetch: generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues (US-006, US-101, US-102, US-202)
+│   │   ├── aiService.ts     # OpenAI GPT-4o-mini via native fetch: generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback (US-006, US-101, US-102, US-202, US-203)
 │   │   └── entryService.ts  # Supabase CRUD: createEntry, getEntries, getEntryById, saveFollowUps, saveConnection, getConnectionsForEntry (US-002, US-006, US-101)
 │   ├── types/               # TypeScript type definitions
 │   │   └── index.ts         # Entry, FollowUp, Connection, EntryWithFollowUps, UserValuesState (US-002, US-202)
 │   ├── utils/               # Pure utility functions
-│   │   ├── prompts.ts       # AI prompt templates: FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT (US-006, US-101, US-102, US-202)
+│   │   ├── prompts.ts       # AI prompt templates: FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT (US-006, US-101, US-102, US-202, US-203)
 │   │   └── starPositions.ts # Deterministic 3D position from entry UUID; getAlignedStarPosition() for value-aligned positioning (US-201, US-202)
 │   ├── __tests__/           # Tests mirror source structure
 │   │   ├── setup.ts         # Vitest + jest-dom + RTL cleanup setup
@@ -179,11 +179,11 @@ dotflow/
 │   │   │   ├── NewEntryPage.test.tsx # TC-003–009, TC-025–026, TC-034 (US-005, US-006)
 │   │   │   └── SettingsPage.test.tsx # TC-001, TC-023 (US-004)
 │   │   ├── services/
-│   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043, TC-051–054, TC-099–102 (US-006, US-101, US-102, US-202)
+│   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043, TC-051–054, TC-099–102, TC-107–112 (US-006, US-101, US-102, US-202, US-203)
 │   │   │   └── entryService.test.ts  # TC-012–018, TC-044–047 (US-002, US-006, US-101)
 │   │   └── utils/
 │   │       ├── testHelpers.tsx       # renderWithRouter helper
-│   │       ├── prompts.test.ts       # TC-063–064: prompt contract tests (US-103)
+│   │       ├── prompts.test.ts       # TC-063–064, TC-113–115: prompt contract tests (US-103, US-203)
 │   │       └── starPositions.test.ts # TC-065–068, TC-103–106: deterministic position, radius range, aligned positioning (US-201, US-202)
 │   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004, US-005, US-007)
 │   ├── index.css            # Tailwind directives
@@ -300,13 +300,22 @@ dotflow/
 - **Z-layering:** `StarField` is `position: fixed, z-0` (background). Entry list content is `relative, z-10`. Exit 3D button is `z-30`. Logo toggle is `z-20`.
 - **jsdom compatibility:** `ResizeObserver` global mock in `src/__tests__/setup.ts`; `StarField` component is fully mocked with `vi.mock` in all page-level tests to avoid WebGL Canvas dependency.
 
-### 5.8 BlackHole (US-202)
+### 5.8 BlackHole (US-202, US-203)
 
-**Responsibility:** Render the user's psychological center at the origin of the 3D scene. Scales with entry count. Shows the current holistic insight on hover (in interactive mode only).
+**Responsibility:** Render the user's psychological center at the origin of the 3D scene. Scales with entry count. Shows the current holistic insight on hover (in interactive mode only). Hosts the dialectical insight feedback loop — user can push back on insights, AI responds with a deepening question (max 2 rounds).
 
-**Props:** `size: number` (pre-computed from entry count), `insight: string[] | null` (pattern observations), `isInteractive: boolean`
+**Props:** `size: number` (pre-computed from entry count), `insight: string[] | null` (pattern observations), `isInteractive: boolean`, `apiKey: string`, `onRoundLimitReached?: () => void`
 
 **Animation:** `useFrame` drives a continuous sin-wave pulse on the glow halo (scale ±4%, speed 0.8). Core rotates slowly on hover.
+
+**Disagree flow (US-203):**
+1. Insight tooltip shows "To nie brzmi jak ja" button (non-adversarial framing — identity expression, not confrontation)
+2. Clicking shows textarea: placeholder "Co sprawia, że ten wgląd nie pasuje?"
+3. On submit: calls `respondToInsightFeedback(insight, userFeedback, round, apiKey)` — round 1 returns deepening question, round 2 returns paraphrased closing phrase incorporating user's words
+4. After round 2: `onRoundLimitReached()` fires → parent highlights Write Entry CTA
+5. Round counter is internal state — never exposed to user
+
+**Tooltip debounce:** 300ms delay on `onPointerLeave` (Three.js mesh) allows user to move mouse from the sphere to the HTML overlay without tooltip disappearing. `cancelHide()` is called on `onMouseEnter` of the HTML wrapper.
 
 ### 5.9 ValuesModal (US-202)
 
@@ -459,6 +468,32 @@ User: [array of entry content strings]
 
 **Framing rule:** Themes are presented to user as "W Twoich wpisach te tematy wracają najczęściej: X, Y..." — observational, not identity-prescribing. Defined in `docs/ai_communication_principles.md`.
 
+### Deepening Question Prompt (US-203 — round 1)
+```
+System: You are a non-directive journal companion. When the user pushes back on an insight,
+respond with a single open question that invites deeper exploration — never defend the insight.
+Use observational language only. NEVER use "Dlaczego" (creates argumentation mode).
+NEVER use "Ale" (creates opposition framing). Max 15 words. Neutral-curious tone.
+Safe openers: "Co sprawia, że...", "Skąd pochodzi...", "Jak rozumiesz...", "Co w tym jest dla Ciebie ważne..."
+Respond in the same language as the user.
+
+User: Insight: [insight text]
+User feedback: [user's pushback]
+```
+
+### Closing Phrase Prompt (US-203 — round 2)
+```
+System: You are a non-directive journal companion. The user has shared two responses.
+Write one short closing sentence (max 15 words) that gently incorporates the user's words
+from their most recent message and gestures toward writing as a next step.
+Do NOT use a fixed template. Paraphrase the user so the closing feels like a conclusion,
+not a mechanical limit. Respond in the same language as the user.
+
+User: User's most recent message: [user's second response]
+```
+
+**Round selection:** `respondToInsightFeedback(insight, userFeedback, round, apiKey)` uses `DEEPENING_QUESTION_SYSTEM_PROMPT` for round 1 and `CLOSING_PHRASE_SYSTEM_PROMPT` for round 2. Returns plain string (not JSON).
+
 ---
 
 ## 9. Deployment Architecture
@@ -536,7 +571,7 @@ graph LR
 
 - [x] **US-201:** 3D star field visualization (react-three-fiber) — M2.5 ✅ Completed
 - [x] **US-202:** Black hole psychological center, values extraction, value-aligned star positioning — M2.5 ✅ Completed
-- [ ] **US-203:** Dialectical insight feedback loop — M2.5
+- [x] **US-203:** Dialectical insight feedback loop — `respondToInsightFeedback()`, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT, disagree flow in BlackHole, Amber Write CTA on round limit — M2.5 ✅ Completed
 - [ ] User onboarding & instructions — M2.5 (FEATURE-013, US-204)
 - [ ] **US-205:** Depth accumulator adaptive insights — `useDepthAccumulator` hook, `insightConfig.ts` (configurable weights/threshold), `aiService.generateHolisticInsight()`, two insight types (connection inline + holistic on black hole hover), heartbeat pulse per entry save proportional to depth score — M2.5
 - [ ] **FEATURE-015:** Security & privacy messaging — deferred to M3 (end-user context: registration/login, Dotflow-owned AI)
