@@ -28,6 +28,7 @@ export default function HomePage() {
   const [isStarFieldActive, setIsStarFieldActive] = useState(false)
   const [proposedThemes, setProposedThemes] = useState<string[] | null>(null)
   const [isValuesModalOpen, setIsValuesModalOpen] = useState(false)
+  const [writeEntryHighlighted, setWriteEntryHighlighted] = useState(false)
 
   const hasEntries = !isLoading && !error && entries.length > 0
   const shouldOfferValues =
@@ -133,6 +134,8 @@ export default function HomePage() {
             isInteractive={isStarFieldActive}
             insight={observations.length > 0 ? observations : null}
             userValues={confirmedValues}
+            apiKey={apiKey ?? undefined}
+            onRoundLimitReached={() => setWriteEntryHighlighted(true)}
           />
         </div>
       )}
@@ -146,6 +149,18 @@ export default function HomePage() {
         >
           Dotflow
         </button>
+      )}
+
+      {/* Write Entry CTA in 3D mode — promoted to primary after round limit */}
+      {isStarFieldActive && writeEntryHighlighted && (
+        <div className="fixed bottom-8 left-0 right-0 flex justify-center z-30">
+          <Link
+            to="/new"
+            className="px-6 py-3 rounded-full text-sm font-medium shadow-lg transition-opacity hover:opacity-90 bg-amber-500 text-white"
+          >
+            + Write
+          </Link>
+        </div>
       )}
 
       {/* Main content — only in list mode */}

@@ -17,9 +17,11 @@ interface StarFieldProps {
   isInteractive: boolean
   insight?: string[] | null
   userValues?: string[]
+  apiKey?: string
+  onRoundLimitReached?: () => void
 }
 
-export default function StarField({ entries, connections, isInteractive, insight, userValues }: StarFieldProps) {
+export default function StarField({ entries, connections, isInteractive, insight, userValues, apiKey, onRoundLimitReached }: StarFieldProps) {
   const positionMap = useMemo(() => {
     const map = new Map<string, [number, number, number]>()
     entries.forEach((e) => {
@@ -60,7 +62,7 @@ export default function StarField({ entries, connections, isInteractive, insight
         />
       ))}
       <ConstellationLines connections={connections} positionMap={positionMap} />
-      <BlackHole size={blackHoleSize} insight={insight ?? null} isInteractive={isInteractive} />
+      <BlackHole size={blackHoleSize} insight={insight ?? null} isInteractive={isInteractive} apiKey={apiKey ?? ''} onRoundLimitReached={onRoundLimitReached} />
       {isInteractive && <OrbitControls enablePan enableZoom enableRotate makeDefault />}
     </Canvas>
   )
