@@ -19,6 +19,8 @@
 
 > **M3 Blocker:** M3 will not start until all M2.5 items are complete: 3D Visualization (US-201, US-202), User Onboarding (US-204), Adaptive Pattern Summaries (US-205), AI Communication Principles document. Security/Privacy Messaging (FEATURE-015) is a M3 item, not a blocker.
 
+> **Test Corpus:** `docs/test_corpus.md` contains 15 predefined Polish-language journal entries for manual AI verification. Use these instead of random text when verifying connection detection (US-101), pattern summary (US-102), and values extraction (US-202). See `docs/test_cases.md` section 6 for step-by-step instructions referencing specific corpus entries.
+
 ---
 
 ## 🎯 Epic Structure

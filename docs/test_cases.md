@@ -2035,7 +2035,11 @@ Tests run automatically on:
 
 ## 6. Manual Test Checklist
 
-For verification after /dev implementation:
+For verification after /dev implementation.
+
+> **Test Corpus:** Use predefined entries from `docs/test_corpus.md` for all AI feature verification. Do NOT type random text — AI outputs become unverifiable. Copy entry text exactly as written.
+
+---
 
 ### Entry Creation Flow
 - [ ] Can type and submit an entry
@@ -2055,6 +2059,69 @@ For verification after /dev implementation:
 - [ ] Submit empty entry — Save disabled
 - [ ] Submit with no API key — saves without AI, shows info message
 - [ ] Network offline — error shown, content not lost
+
+---
+
+### US-101: Connection Detection — Manual Verification
+
+> Uses Scenario A from `docs/test_corpus.md`
+
+1. Ensure API key is set in Settings
+2. Write entry **A1** (copy exact text from corpus) — save it
+3. Write entry **A2** (copy exact text from corpus) — save it
+4. **Check:** A connection badge appears on A2 pointing to A1 — PASS
+5. Write entry **A3** (copy exact text from corpus) — save it
+6. **Check:** A connection badge appears on A3 pointing to A1 or A2 — PASS
+7. **Pass criteria:** At least 2 of 3 pairs (A1↔A2, A1↔A3, A2↔A3) received a connection badge
+
+> Negative test — uses Scenario B from corpus:
+8. Write entry **B1**, save it
+9. Write entry **B2**, save it
+10. **Check:** No connection badge appears on B2 — PASS if no badge shown
+
+---
+
+### US-102: Pattern Summary — Manual Verification
+
+> Uses Scenario D from `docs/test_corpus.md` (requires 10 entries: C1–C5 + D1–D5)
+
+1. Ensure API key is set in Settings
+2. Write and save entries **C1, C2, C3, C4, C5** (copy exact text from corpus)
+3. Write and save entries **D1, D2, D3, D4, D5** (copy exact text from corpus)
+4. Return to Home — "Generate insights" button should now be visible (10+ entries)
+5. Click "Generate insights"
+6. **Check:** 3–5 bullet observations appear — PASS
+7. **Evaluate semantically:** Observations should cover at least 2 of these themes:
+   - Avoidance / procrastination pattern
+   - Relationships as energy source
+   - Self-discipline struggles
+   - Professional growth motivation
+8. **Pass criteria:** AI returns 3–5 observations, at least 2 themes recognizably covered
+
+---
+
+### US-202: Values Extraction & Aligned Stars — Manual Verification
+
+> Uses Scenario C from `docs/test_corpus.md`
+
+**Values extraction:**
+1. Ensure API key is set in Settings
+2. Clear localStorage (or use a fresh browser profile) to start without prior values
+3. Write and save entries **C1, C2, C3, C4, C5** (copy exact text from corpus)
+4. **Check:** ValuesModal appears after saving the 5th entry — PASS
+5. **Evaluate semantically:** Proposed themes should cover at least 3 of:
+   - relacje z bliskimi / relationships
+   - rozwój osobisty / personal growth
+   - pomaganie innym / helping others
+   - zdrowie i energia / health and energy
+   - rodzina / family
+6. Click "Zatwierdź" to confirm values
+
+**Aligned star positioning:**
+7. Enter 3D mode (click Dotflow logo)
+8. **Check:** Stars for C1–C5 entries appear closer to the black hole center than randomly-written entries — PASS if visible clustering near center
+9. Hover over the black hole
+10. **Check:** Tooltip shows insight text or fallback "Keep writing — your center is forming." — PASS
 
 ---
 
