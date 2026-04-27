@@ -2,22 +2,39 @@ import { useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import type { Entry, Connection } from '../../types'
-import { getStarPosition } from '../../utils/starPositions'
+import { getStarPosition, getAlignedStarPosition } from '../../utils/starPositions'
 import StarNode from './StarNode'
 import ConstellationLines from './ConstellationLines'
+import BlackHole from './BlackHole'
+
+const BLACK_HOLE_MIN_SIZE = 0.3
+const BLACK_HOLE_MAX_SIZE = 1.2
+const BLACK_HOLE_SCALE_AT = 50
 
 interface StarFieldProps {
   entries: Entry[]
   connections: Record<string, Connection>
   isInteractive: boolean
+  insight?: string[] | null
+  userValues?: string[]
 }
 
-export default function StarField({ entries, connections, isInteractive }: StarFieldProps) {
+export default function StarField({ entries, connections, isInteractive, insight, userValues }: StarFieldProps) {
   const positionMap = useMemo(() => {
     const map = new Map<string, [number, number, number]>()
-    entries.forEach((e) => map.set(e.id, getStarPosition(e.id)))
+    entries.forEach((e) => {
+      const pos = userValues && userValues.length > 0
+        ? getAlignedStarPosition(e.id, e.content, userValues)
+        : getStarPosition(e.id)
+      map.set(e.id, pos)
+    })
     return map
-  }, [entries])
+  }, [entries, userValues])
+
+  const blackHoleSize = useMemo(() => {
+    const t = Math.min(entries.length / BLACK_HOLE_SCALE_AT, 1)
+    return BLACK_HOLE_MIN_SIZE + t * (BLACK_HOLE_MAX_SIZE - BLACK_HOLE_MIN_SIZE)
+  }, [entries.length])
 
   const connectionCount = useMemo(() => {
     const count: Record<string, number> = {}
@@ -43,6 +60,7 @@ export default function StarField({ entries, connections, isInteractive }: StarF
         />
       ))}
       <ConstellationLines connections={connections} positionMap={positionMap} />
+      <BlackHole size={blackHoleSize} insight={insight ?? null} isInteractive={isInteractive} />
       {isInteractive && <OrbitControls enablePan enableZoom enableRotate makeDefault />}
     </Canvas>
   )

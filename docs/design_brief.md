@@ -227,4 +227,38 @@ SVG style, no gradients.
 
 ---
 
+## 12. Black Hole Visual Design Decisions (US-202)
+
+### Black Hole Colors
+
+**Decision:** Two-layer sphere — core `#0a0a0f` (near-black with slight blue tint, metalness 0.8, roughness 0.2) + glow halo `#3b2a4a` (dark purple, 18% opacity).
+
+**Why:** Pure black (`#000000`) on the Cream background reads as a "hole" but loses the sense of mass. The dark purple halo references the scientific visualization of accretion disks without being literal — maintains the journaling metaphor while giving the object visual weight.
+
+### Black Hole Pulse Animation
+
+**Decision:** Glow halo pulses continuously via `useFrame` sin-wave: `scale = 1 + sin(t * 0.8) * 0.04`. Core rotates slowly (0.3 rad/s) only while hovered.
+
+**Why:** The resting pulse (±4% scale) makes the black hole feel alive — breathing, not static. The rotation-on-hover gives tactile feedback without being distracting during passive browsing. Scale kept small (4%) to avoid drawing attention away from entries.
+
+### Black Hole Size Scaling
+
+**Decision:** `clampedSize = max(0.3, entryCount * scaleFactor)`. Capped to ensure it never dominates the scene.
+
+**Why:** Growth must feel proportional but never threatening. At 1 entry it's already visible (0.3 minimum); growth slows logarithmically by virtue of being a sphere — doubling the value yields a visually modest size increase.
+
+### Hover Tooltip
+
+**Decision:** Dark overlay (`rgba(10,10,15,0.94)`) with Cream text, max 3 observations shown. If no insight yet: *"Keep writing — your center is forming."*
+
+**Why:** Dark tooltip on the dark object feels continuous — the insight emerges from the center rather than appearing above it. Limiting to 3 observations avoids overwhelming the hover moment; the full set is available via the "Generate insights" button.
+
+### Value-Aligned Star Positioning
+
+**Decision:** Entries matching user's confirmed values use radius 1.5–3 (close to black hole); neutral entries use radius 3–8 (standard range).
+
+**Why:** The black hole represents the user's psychological core — entries aligned with their values should feel drawn toward it. The dual radius ranges create visible clustering without forcing all stars into the center, preserving the spatial sense of the full universe.
+
+---
+
 *This brief is a living document — update when design decisions evolve.*

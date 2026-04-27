@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSettings } from '../hooks/useSettings'
+import { useUserValues } from '../hooks/useUserValues'
 import { getEntries, getConnectionsForEntry } from '../services/entryService'
-import { generatePatternSummary } from '../services/aiService'
+import { generatePatternSummary, extractUserValues } from '../services/aiService'
 import EntryCard from '../components/EntryCard/EntryCard'
 import ConnectionBadge from '../components/ConnectionBadge/ConnectionBadge'
 import PatternSummary from '../components/PatternSummary/PatternSummary'
 import StarField from '../components/StarField/StarField'
+import ValuesModal from '../components/ValuesModal/ValuesModal'
 import type { Entry, Connection } from '../types'
 
 const INSIGHTS_MIN_ENTRIES = 10
+const VALUES_MIN_ENTRIES = 5
 
 export default function HomePage() {
   const navigate = useNavigate()
   const { apiKey } = useSettings()
+  const { confirmedValues, hasConfirmed, proposalDismissed, confirmValues, dismissProposal } = useUserValues()
   const [entries, setEntries] = useState<Entry[]>([])
   const [connections, setConnections] = useState<Record<string, Connection>>({})
   const [isLoading, setIsLoading] = useState(true)
@@ -22,8 +26,12 @@ export default function HomePage() {
   const [isInsightsLoading, setIsInsightsLoading] = useState(false)
   const [insightsError, setInsightsError] = useState<string | null>(null)
   const [isStarFieldActive, setIsStarFieldActive] = useState(false)
+  const [proposedThemes, setProposedThemes] = useState<string[] | null>(null)
+  const [isValuesModalOpen, setIsValuesModalOpen] = useState(false)
 
   const hasEntries = !isLoading && !error && entries.length > 0
+  const shouldOfferValues =
+    !isLoading && !error && entries.length >= VALUES_MIN_ENTRIES && !hasConfirmed && !proposalDismissed && !!apiKey
 
   async function handleGenerateInsights() {
     if (!apiKey) {
@@ -42,6 +50,24 @@ export default function HomePage() {
       setIsInsightsLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (!shouldOfferValues || proposedThemes !== null) return
+
+    async function fetchThemes() {
+      try {
+        const themes = await extractUserValues(entries, apiKey!)
+        if (themes.length > 0) {
+          setProposedThemes(themes)
+          setIsValuesModalOpen(true)
+        }
+      } catch {
+        // silently fail — values proposal is non-blocking
+      }
+    }
+
+    void fetchThemes()
+  }, [shouldOfferValues, entries, apiKey, proposedThemes])
 
   useEffect(() => {
     async function load() {
@@ -76,6 +102,20 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF9]">
+      {isValuesModalOpen && proposedThemes && (
+        <ValuesModal
+          proposedThemes={proposedThemes}
+          onConfirm={(values) => {
+            confirmValues(values)
+            setIsValuesModalOpen(false)
+          }}
+          onDismiss={() => {
+            dismissProposal()
+            setIsValuesModalOpen(false)
+          }}
+        />
+      )}
+
       {/* Star field — blurred background in list mode, full interactive in 3D mode */}
       {hasEntries && (
         <div
@@ -87,7 +127,13 @@ export default function HomePage() {
             filter: isStarFieldActive ? 'none' : 'blur(8px)',
           }}
         >
-          <StarField entries={entries} connections={connections} isInteractive={isStarFieldActive} />
+          <StarField
+            entries={entries}
+            connections={connections}
+            isInteractive={isStarFieldActive}
+            insight={observations.length > 0 ? observations : null}
+            userValues={confirmedValues}
+          />
         </div>
       )}
 

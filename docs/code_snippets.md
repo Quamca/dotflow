@@ -515,8 +515,112 @@ vi.mocked(supabase.from).mockReturnValue({
 | Supabase | Client initialization pattern | 2.1 |
 | Supabase | Mocking chained calls in tests | 2.2 |
 | React Hooks | localStorage hook with lazy initializer | 5.1 |
+| React Hooks | Multi-key localStorage hook with JSON serialization | 5.2 |
 | Page Patterns | Async form submit with navigate | 6.1 |
 | Page Patterns | useEffect data loading with loading/error state | 6.2 |
+| UI Patterns | Strikethrough-restore editable list | 7.1 |
+
+---
+
+## 7. UI Patterns
+
+### 7.1 Strikethrough-Restore Editable List (US-202)
+
+Pattern for a list where items are "soft-removed" (strikethrough + Restore link) instead of hard-deleted. Avoids accidental deletion and allows the user to change their mind without re-typing.
+
+```typescript
+// src/components/ValuesModal/ValuesModal.tsx (simplified)
+interface ThemeItem {
+  text: string
+  removed: boolean
+}
+
+const [items, setItems] = useState<ThemeItem[]>(
+  () => proposedThemes.map((text) => ({ text, removed: false }))
+)
+
+function handleToggleRemove(index: number) {
+  setItems(items.map((item, i) =>
+    i === index ? { ...item, removed: !item.removed } : item
+  ))
+}
+
+// Render:
+{items.map((item, i) => (
+  <div key={i} style={{ textDecoration: item.removed ? 'line-through' : 'none' }}>
+    <span>{item.text}</span>
+    <button onClick={() => handleToggleRemove(i)}>
+      {item.removed ? 'Restore' : 'Remove'}
+    </button>
+  </div>
+))}
+
+// On confirm — collect only active items:
+const activeValues = items.filter((item) => !item.removed).map((item) => item.text)
+```
+
+**Key decisions:**
+- `removed` flag on each item — never splice, never lose data
+- Toggle function: one handler for both remove and restore — same index, flip `removed`
+- Confirm filters out removed items — caller never sees them
+
+**When to use:** Any editable list where accidental deletion would be costly or frustrating (tag editing, value lists, configuration items).
+
+---
+
+## 5. React Hook Patterns (continued)
+
+### 5.2 Multi-Key localStorage Hook with JSON Serialization (US-202)
+
+Pattern for a hook that manages multiple related localStorage keys — one storing a JSON array, one storing a boolean flag. Both are initialized lazily on mount.
+
+```typescript
+// src/hooks/useUserValues.ts
+const CONFIRMED_VALUES_KEY = 'dotflow_user_values'
+const PENDING_PROPOSAL_KEY = 'dotflow_values_proposal_dismissed'
+
+export function useUserValues() {
+  const [confirmedValues, setConfirmedValues] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem(CONFIRMED_VALUES_KEY)
+      return raw ? (JSON.parse(raw) as string[]) : []
+    } catch {
+      return []  // guard against malformed JSON in storage
+    }
+  })
+
+  const [proposalDismissed, setProposalDismissed] = useState<boolean>(
+    () => localStorage.getItem(PENDING_PROPOSAL_KEY) === 'true'
+  )
+
+  function confirmValues(values: string[]) {
+    localStorage.setItem(CONFIRMED_VALUES_KEY, JSON.stringify(values))
+    setConfirmedValues(values)
+  }
+
+  function dismissProposal() {
+    localStorage.setItem(PENDING_PROPOSAL_KEY, 'true')
+    setProposalDismissed(true)
+  }
+
+  function clearValues() {
+    localStorage.removeItem(CONFIRMED_VALUES_KEY)
+    localStorage.removeItem(PENDING_PROPOSAL_KEY)
+    setConfirmedValues([])
+    setProposalDismissed(false)
+  }
+
+  return { confirmedValues, hasConfirmed: confirmedValues.length > 0, proposalDismissed, confirmValues, dismissProposal, clearValues }
+}
+```
+
+**Key decisions:**
+- `try/catch` around `JSON.parse` — defensive against manually corrupted localStorage
+- `hasConfirmed` is derived (not stored) — single source of truth is `confirmedValues.length`
+- `clearValues` removes both keys atomically — no partial state left in storage
+- Follows the same lazy initializer pattern as `useSettings` (5.1)
+
+**When to use:** Any hook that manages related localStorage state where one key stores JSON and another stores a simple flag.
 
 ---
 

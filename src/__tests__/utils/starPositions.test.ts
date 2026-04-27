@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getStarPosition } from '../../utils/starPositions'
+import { getStarPosition, getAlignedStarPosition } from '../../utils/starPositions'
 
 describe('getStarPosition', () => {
   it('should return a tuple of 3 numbers for a given entry id', () => {
@@ -29,5 +29,44 @@ describe('getStarPosition', () => {
 
     expect(radius).toBeGreaterThanOrEqual(3)
     expect(radius).toBeLessThanOrEqual(8)
+  })
+})
+
+describe('getAlignedStarPosition', () => {
+  it('should return a tuple of 3 numbers', () => {
+    const pos = getAlignedStarPosition('uuid-1', 'autonomy is important', ['autonomy'])
+
+    expect(pos).toHaveLength(3)
+    pos.forEach((coord) => expect(typeof coord).toBe('number'))
+  })
+
+  it('should return same position for same inputs', () => {
+    const pos1 = getAlignedStarPosition('uuid-abc', 'growth mindset', ['growth'])
+    const pos2 = getAlignedStarPosition('uuid-abc', 'growth mindset', ['growth'])
+
+    expect(pos1).toEqual(pos2)
+  })
+
+  it('should position aligned entry within inner radius range (1.5 to 3)', () => {
+    const [x, y, z] = getAlignedStarPosition('entry-aligned-001', 'autonomy is important', ['autonomy'])
+    const radius = Math.sqrt(x * x + y * y + z * z)
+
+    expect(radius).toBeGreaterThanOrEqual(1.5)
+    expect(radius).toBeLessThanOrEqual(3)
+  })
+
+  it('should position non-aligned entry within outer radius range (3 to 8)', () => {
+    const [x, y, z] = getAlignedStarPosition('entry-noalign-001', 'went to the park today', ['autonomy'])
+    const radius = Math.sqrt(x * x + y * y + z * z)
+
+    expect(radius).toBeGreaterThanOrEqual(3)
+    expect(radius).toBeLessThanOrEqual(8)
+  })
+
+  it('should fall back to default position when no user values provided', () => {
+    const aligned = getAlignedStarPosition('uuid-fallback', 'any content', [])
+    const defaultPos = getStarPosition('uuid-fallback')
+
+    expect(aligned).toEqual(defaultPos)
   })
 })

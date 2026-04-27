@@ -72,6 +72,7 @@ This project uses Claude Code with specialized agents. See [MULTI_AGENT_ARCHITEC
 
 ## Latest
 
+- v1.1 — US-202: Black Hole & Psychological Profile — black hole at center of 3D scene with pulsing glow halo and entry-count-based sizing; hover tooltip shows current insight; AI proposes 5 recurring themes (observational framing); ValuesModal with edit/remove/restore/add + "Żadna z tych" escape hatch; confirmed values stored in localStorage; star positions reflect value alignment (closer to center = more aligned)
 - v1.0 — US-201: 3D Star Field — blurred star background on Home, Dotflow logo toggles interactive 3D mode; orbit controls (rotate/pan/zoom), hover entry previews, constellation lines between connected entries
 - v0.9.1 — US-103: Fix AI insights language — pattern summary now responds in the language of journal entries (prompt language instruction added)
 - v0.9.0 — US-102: AI pattern summary — "Generate insights" button (gated at 10+ entries), generatePatternSummary() service, PatternSummary component

@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 2.1
-**Date:** 2026-04-26
+**Version:** 2.2
+**Date:** 2026-04-27
 **Author:** Solution Architect
-**Status:** Updated after US-201
+**Status:** Updated after US-202
 
 ---
 
@@ -129,29 +129,33 @@ dotflow/
 │   │   │   └── ConnectionBadge.tsx
 │   │   ├── PatternSummary/  # Bullet-list display of AI pattern observations (US-102)
 │   │   │   └── PatternSummary.tsx
-│   │   └── StarField/       # 3D star-field visualization (US-201)
-│   │       ├── StarField.tsx        # Canvas scene: Camera, OrbitControls, lights, star nodes, constellation lines
-│   │       ├── StarNode.tsx         # Individual star mesh + Html tooltip on hover
-│   │       └── ConstellationLines.tsx # Line segments between connected entry pairs
+│   │   ├── StarField/       # 3D star-field visualization (US-201, US-202)
+│   │   │   ├── StarField.tsx        # Canvas scene: Camera, OrbitControls, lights, star nodes, constellation lines, black hole
+│   │   │   ├── StarNode.tsx         # Individual star mesh + Html tooltip on hover
+│   │   │   ├── BlackHole.tsx        # Black hole at origin: pulsing glow halo, hover insight tooltip, entry-count sizing (US-202)
+│   │   │   └── ConstellationLines.tsx # Line segments between connected entry pairs
+│   │   └── ValuesModal/     # Recurring-themes confirmation modal (US-202)
+│   │       └── ValuesModal.tsx      # AI-proposed themes: edit/remove/restore, add input, "Żadna z tych" escape hatch
 │   ├── pages/               # Route-level components
-│   │   ├── HomePage.tsx     # Home screen: entry list, loading skeleton, empty state, warning banner, connection badges, pattern summary (US-004, US-005, US-007, US-101, US-102)
+│   │   ├── HomePage.tsx     # Home screen: entry list, loading skeleton, empty state, warning banner, connection badges, pattern summary, values flow (US-004, US-005, US-007, US-101, US-102, US-202)
 │   │   ├── NewEntryPage.tsx # Entry writing, AI follow-up dialog orchestration, fire-and-forget connection detection (US-005, US-006, US-101)
 │   │   ├── EntryDetailPage.tsx # Full entry view with follow-up Q&A (US-007)
 │   │   └── SettingsPage.tsx # API key management screen (US-004)
 │   ├── hooks/               # Custom React hooks
 │   │   ├── useSettings.ts   # localStorage API key management (US-004)
+│   │   ├── useUserValues.ts # localStorage confirmed values + proposalDismissed state (US-202)
 │   │   ├── useEntries.ts    # (planned)
 │   │   └── useAI.ts         # (planned)
 │   ├── lib/                 # Third-party client initializations
 │   │   └── supabase.ts      # Supabase client (US-002)
 │   ├── services/            # External API integrations
-│   │   ├── aiService.ts     # OpenAI GPT-4o-mini via native fetch: generateFollowUpQuestions, findConnection, generatePatternSummary (US-006, US-101, US-102)
+│   │   ├── aiService.ts     # OpenAI GPT-4o-mini via native fetch: generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues (US-006, US-101, US-102, US-202)
 │   │   └── entryService.ts  # Supabase CRUD: createEntry, getEntries, getEntryById, saveFollowUps, saveConnection, getConnectionsForEntry (US-002, US-006, US-101)
 │   ├── types/               # TypeScript type definitions
-│   │   └── index.ts         # Entry, FollowUp, Connection, EntryWithFollowUps (US-002)
+│   │   └── index.ts         # Entry, FollowUp, Connection, EntryWithFollowUps, UserValuesState (US-002, US-202)
 │   ├── utils/               # Pure utility functions
-│   │   ├── prompts.ts       # AI prompt templates: FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT (US-006, US-101, US-102)
-│   │   └── starPositions.ts # Seeded deterministic 3D position from entry UUID — sin-based hash, uniform sphere distribution, radius 3–8 (US-201)
+│   │   ├── prompts.ts       # AI prompt templates: FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT (US-006, US-101, US-102, US-202)
+│   │   └── starPositions.ts # Deterministic 3D position from entry UUID; getAlignedStarPosition() for value-aligned positioning (US-201, US-202)
 │   ├── __tests__/           # Tests mirror source structure
 │   │   ├── setup.ts         # Vitest + jest-dom + RTL cleanup setup
 │   │   ├── setup.test.ts    # TC-000: framework smoke test
@@ -162,22 +166,25 @@ dotflow/
 │   │   │   │   └── EntryCard.test.tsx       # TC-035–039 (US-007)
 │   │   │   ├── FollowUpDialog/
 │   │   │   │   └── FollowUpDialog.test.tsx  # TC-029–034 (US-006)
-│   │   │   └── PatternSummary/
-│   │   │       └── PatternSummary.test.tsx  # TC-055–056 (US-102)
+│   │   │   ├── PatternSummary/
+│   │   │   │   └── PatternSummary.test.tsx  # TC-055–056 (US-102)
+│   │   │   └── ValuesModal/
+│   │   │       └── ValuesModal.test.tsx     # TC-072–083: modal render, edit, remove/restore, add theme, escape hatch, confirm (US-202)
 │   │   ├── hooks/
-│   │   │   └── useSettings.test.ts   # TC-019–022 (US-004)
+│   │   │   ├── useSettings.test.ts   # TC-019–022 (US-004)
+│   │   │   └── useUserValues.test.ts # TC-084–091: localStorage read/write, confirmValues, dismissProposal, clearValues (US-202)
 │   │   ├── pages/
-│   │   │   ├── HomePage.test.tsx     # TC-002, TC-005, TC-010–011, TC-024, TC-028, TC-050, TC-057–062, TC-069–071 (US-004, US-005, US-007, US-101, US-102, US-201)
+│   │   │   ├── HomePage.test.tsx     # TC-002, TC-005, TC-010–011, TC-024, TC-028, TC-050, TC-057–062, TC-069–071, TC-092–098 (US-004, US-005, US-007, US-101, US-102, US-201, US-202)
 │   │   │   ├── EntryDetailPage.test.tsx # TC-036–039 (US-007)
 │   │   │   ├── NewEntryPage.test.tsx # TC-003–009, TC-025–026, TC-034 (US-005, US-006)
 │   │   │   └── SettingsPage.test.tsx # TC-001, TC-023 (US-004)
 │   │   ├── services/
-│   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043, TC-051–054 (US-006, US-101, US-102)
+│   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043, TC-051–054, TC-099–102 (US-006, US-101, US-102, US-202)
 │   │   │   └── entryService.test.ts  # TC-012–018, TC-044–047 (US-002, US-006, US-101)
 │   │   └── utils/
 │   │       ├── testHelpers.tsx       # renderWithRouter helper
 │   │       ├── prompts.test.ts       # TC-063–064: prompt contract tests (US-103)
-│   │       └── starPositions.test.ts # TC-065–068: deterministic position, radius range (US-201)
+│   │       └── starPositions.test.ts # TC-065–068, TC-103–106: deterministic position, radius range, aligned positioning (US-201, US-202)
 │   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004, US-005, US-007)
 │   ├── index.css            # Tailwind directives
 │   ├── main.tsx
@@ -277,20 +284,42 @@ dotflow/
 - Each entry's `connections[entry.id]` lookup resolves to a `Connection` record
 - If found, `targetEntry` is located in the loaded entries array and `ConnectionBadge` is rendered
 
-### 5.7 StarField (US-201)
+### 5.7 StarField (US-201, US-202)
 
-**Responsibility:** Render a 3D visualization of journal entries as stars in space, with constellation lines between connected entries. Lives as a fixed CSS layer on the Home screen; toggled between blurred background mode and interactive 3D mode by clicking the Dotflow logo.
+**Responsibility:** Render a 3D visualization of journal entries as stars in space, with constellation lines between connected entries, and a black hole at the center. Lives as a fixed CSS layer on the Home screen; toggled between blurred background mode and interactive 3D mode by clicking the Dotflow logo.
 
 **Components:**
-- `StarField.tsx` — Canvas root (`@react-three/fiber`). Sets up Camera (PerspectiveCamera, FOV 60), OrbitControls (drag to rotate, scroll to zoom), ambient light, and renders `<StarNode>` per entry and `<ConstellationLines>` for all connected pairs.
-- `StarNode.tsx` — `<mesh>` with `sphereGeometry` + `meshBasicMaterial` (no lights needed). On hover: renders `<Html>` overlay from `@react-three/drei` showing entry date + 80-char content snippet.
+- `StarField.tsx` — Canvas root (`@react-three/fiber`). Sets up Camera (PerspectiveCamera, FOV 60), OrbitControls, ambient light. Renders `<StarNode>` per entry (using aligned positions if values confirmed), `<ConstellationLines>`, and `<BlackHole>`.
+- `StarNode.tsx` — `<mesh>` with `sphereGeometry` + `meshBasicMaterial`. On hover: renders `<Html>` overlay showing entry date + 80-char content snippet.
+- `BlackHole.tsx` — Sphere mesh at origin `[0, 0, 0]`. Two meshes: pulsing glow halo (`#3b2a4a`, 18% opacity) and core (`#0a0a0f`, metalness 0.8). Size is clamped `max(0.3, entryCount * scale)`. On hover (interactive mode only): shows insight tooltip with up to 3 pattern observations or fallback "Keep writing — your center is forming."
 - `ConstellationLines.tsx` — `<Line>` from `@react-three/drei` for each connection pair. Color `#D6D3D1`, opacity 0.5.
 
 **Key design decisions:**
 - **Light theme:** Canvas background `#FAFAF9` (Cream), star dots `#78716C` (Warm Stone). Decided by /consult — subtle visibility, warm tone, non-distracting.
-- **Deterministic positions:** `getStarPosition(entry.id)` in `starPositions.ts` generates a stable 3-tuple `[x, y, z]` from a sin-based hash of the UUID. Same entry always maps to the same point — no random layout changes on re-render.
+- **Deterministic positions:** `getStarPosition(entry.id)` generates a stable `[x, y, z]` from sin-based UUID hash, radius 3–8. Value-aligned entries use `getAlignedStarPosition()` (radius 1.5–3, closer to black hole); divergent entries use radius 3–8.
 - **Z-layering:** `StarField` is `position: fixed, z-0` (background). Entry list content is `relative, z-10`. Exit 3D button is `z-30`. Logo toggle is `z-20`.
 - **jsdom compatibility:** `ResizeObserver` global mock in `src/__tests__/setup.ts`; `StarField` component is fully mocked with `vi.mock` in all page-level tests to avoid WebGL Canvas dependency.
+
+### 5.8 BlackHole (US-202)
+
+**Responsibility:** Render the user's psychological center at the origin of the 3D scene. Scales with entry count. Shows the current holistic insight on hover (in interactive mode only).
+
+**Props:** `size: number` (pre-computed from entry count), `insight: string[] | null` (pattern observations), `isInteractive: boolean`
+
+**Animation:** `useFrame` drives a continuous sin-wave pulse on the glow halo (scale ±4%, speed 0.8). Core rotates slowly on hover.
+
+### 5.9 ValuesModal (US-202)
+
+**Responsibility:** Present AI-proposed recurring themes to the user with observational framing. Allow editing before confirming. Stores result via `onConfirm` callback.
+
+**Props:** `proposedThemes: string[]`, `onConfirm: (values: string[]) => void`, `onDismiss: () => void`
+
+**Key behaviors:**
+- Each item has `removed` state — strikethrough + "Restore" link instead of hard delete
+- Inline edit per item (click to edit, Enter/blur to save)
+- Add new theme input field at the bottom of the list
+- "Żadna z tych" toggle: hides the list, shows a free-text field for manual input
+- `onConfirm` called with active (non-removed) items OR parsed custom text from free-text field
 
 ---
 
@@ -417,6 +446,19 @@ User: [array of entry content strings]
 
 **Language handling (US-103):** The prompt explicitly instructs the AI to match the language of the entries. No hardcoded language — AI auto-detects from entry content.
 
+### User Values Extraction Prompt (US-202)
+```
+System: You are analyzing a personal journal to identify recurring themes.
+Use observational-data language only — describe what appears in the entries,
+never claim to know the user's inner values. Respond only with a JSON array
+of 5 short theme strings. Respond in the same language as the entries.
+Example format: ["temat1", "temat2", "temat3", "temat4", "temat5"]
+
+User: [array of entry content strings]
+```
+
+**Framing rule:** Themes are presented to user as "W Twoich wpisach te tematy wracają najczęściej: X, Y..." — observational, not identity-prescribing. Defined in `docs/ai_communication_principles.md`.
+
 ---
 
 ## 9. Deployment Architecture
@@ -493,7 +535,7 @@ graph LR
 ## 11. Future Considerations
 
 - [x] **US-201:** 3D star field visualization (react-three-fiber) — M2.5 ✅ Completed
-- [ ] **US-202:** Black hole psychological center, semi-automatic values extraction — M2.5
+- [x] **US-202:** Black hole psychological center, values extraction, value-aligned star positioning — M2.5 ✅ Completed
 - [ ] **US-203:** Dialectical insight feedback loop — M2.5
 - [ ] User onboarding & instructions — M2.5 (FEATURE-013, US-204)
 - [ ] **US-205:** Depth accumulator adaptive insights — `useDepthAccumulator` hook, `insightConfig.ts` (configurable weights/threshold), `aiService.generateHolisticInsight()`, two insight types (connection inline + holistic on black hole hover), heartbeat pulse per entry save proportional to depth score — M2.5

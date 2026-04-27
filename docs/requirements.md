@@ -196,19 +196,28 @@ A "black hole" at the center of the 3D visualization represents the user's psych
 **Priority:** SHOULD HAVE (M2.5)
 
 **Description:**
-Users can push back on AI insights. The AI responds dialectically: it either updates the insight when given genuine new information, or gently holds its position when the pushback is emotional. The AI never confronts contradictions in entries.
+Users can push back on AI insights. The AI responds with a single deepening question — it never updates the insight through conversation. Insights can only change when new entries are written and the depth accumulator threshold is crossed again. Max 2 rounds of dialogue; after round 2, the AI gently redirects the user to write a new entry.
 
-**AI Behavior Contract:**
-- Mode A — new information received: acknowledge and update insight
-- Mode B — emotional pushback: hold position warmly, add a deepening question
+**AI Behavior Contract (per docs/ai_communication_principles.md):**
+- One mode only: respond with a deepening question using observational-data language
+- Insight never updates through conversation — only through new entries
+- Max 2 dialogue rounds; after round 2: *"To brzmi jak coś wartego zapisania."* + Write Entry CTA highlight
+- Round limit is invisible to the user — never communicated explicitly
 - Never confront entry contradictions even if detected
 - Never simply agree to validate the user
+- Never clinical interpretation
+
+**Deepening question rules:**
+- Open question, max 15 words, neutral-curious tone
+- Safe openers: "Co sprawia, że...", "Skąd pochodzi to poczucie, że..."
+- Forbidden: "Dlaczego...", "Ale...", any reference to the insight text
 
 **Acceptance Criteria:**
 - "I disagree" option visible below insight
 - User can type reason for disagreement
-- AI responds in Mode A or Mode B based on content
-- Mode A: insight updates; Mode B: deepening question displayed
+- AI responds with one deepening question (never updates insight)
+- After 2 rounds: closing phrase displayed, Write Entry button highlighted
+- Round limit mechanism is invisible to user
 
 **Related User Stories:** US-203
 

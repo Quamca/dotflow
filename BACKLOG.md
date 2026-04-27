@@ -2,7 +2,7 @@
 
 **Project:** Dotflow
 **Version:** 1.1
-**Last Updated:** 2026-04-26 (US-201: 3D Star Field completed)
+**Last Updated:** 2026-04-27 (US-202: Black Hole & Psychological Profile completed)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -629,7 +629,7 @@ Gives the user a spatial, emotional sense of their journal universe. Progress fe
 - **Excludes:** Animated flythrough, VR mode, sharing visualization
 
 **Priority:** P1
-**Status:** 🔄 In Progress
+**Status:** ✅ Completed
 
 ---
 
@@ -679,55 +679,60 @@ Add a "black hole" at the center of the star field — a visual representation o
 **I want to** see a living center in my star field that reflects my values and grows with my entries
 **So that** I feel a sense of psychological depth and personal progress in the visualization
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 **Story Points:** 13
 **Priority:** P1
 
 **Acceptance Criteria:**
-- [ ] Black hole visible at center of 3D scene
-- [ ] Size scales with entry count (min size at 1 entry, max size capped at ~15% of scene)
-- [ ] Hover on black hole shows current pattern insight
-- [ ] This replaces the "Generate insights" button on Home
-- [ ] After N entries (TBD during implementation), AI proposes 5 user values
-- [ ] User can confirm, edit, or dismiss proposed values in a modal
-- [ ] Confirmed values stored (localStorage or Supabase — TBD)
-- [ ] Star positions update to reflect value alignment once values are confirmed
-- [ ] Entries aligned with values appear closer to black hole; divergent entries appear further
+- [x] Black hole visible at center of 3D scene
+- [x] Size scales with entry count (min size at 1 entry, max size capped at ~15% of scene)
+- [x] Hover on black hole shows current pattern insight (black hole is an additional channel — does NOT replace "Generate insights" button; button stays until US-205 glow/pulse signal is implemented)
+- [x] After N entries (TBD during implementation, min 5), AI proposes 5 recurring themes using observational framing: "W Twoich wpisach te tematy wracają najczęściej: X, Y, Z..."
+- [x] Values modal includes: AI-proposed list, "Co z tej listy brzmi jak Twoje? Możesz zmienić, usunąć, dodać." instructions, "Żadna z tych" escape hatch + free text field
+- [x] Confirmed values stored in localStorage (no DB schema change)
+- [x] Star positions update to reflect value alignment once values are confirmed
+- [x] Entries aligned with values appear closer to black hole; divergent entries appear further
 
 **Tasks:**
-- [ ] **TASK-202.1:** Create black hole mesh in StarField scene - 45min
-- [ ] **TASK-202.2:** Scale black hole size based on entry count (with cap) - 20min
-- [ ] **TASK-202.3:** Hover on black hole → show insight (reuse PatternSummary data) - 30min
-- [ ] **TASK-202.4:** Remove "Generate insights" button from HomePage - 15min
-- [ ] **TASK-202.5:** Implement `aiService.extractUserValues()` — proposes 5 values from entries - 60min
-- [ ] **TASK-202.6:** Create values confirmation modal - 45min
-- [ ] **TASK-202.7:** Implement value alignment scoring per entry - 45min
-- [ ] **TASK-202.8:** Update star positions based on value alignment scores - 30min
-- [ ] **TASK-202.9:** Write tests (/qa) - 60min
-- [ ] **TASK-202.10:** Manual verification - 20min
+- [x] **TASK-202.1:** Create black hole mesh in StarField scene - 45min
+- [x] **TASK-202.2:** Scale black hole size based on entry count (with cap) - 20min
+- [x] **TASK-202.3:** Hover on black hole → show insight (reuse PatternSummary data) - 30min
+- [x] **TASK-202.4:** Implement `aiService.extractUserValues()` — proposes 5 themes using observational-data language - 60min
+- [x] **TASK-202.5:** Create values confirmation modal with observational framing + escape hatch - 45min
+- [x] **TASK-202.6:** Implement value alignment scoring per entry - 45min
+- [x] **TASK-202.7:** Update star positions based on value alignment scores - 30min
+- [x] **TASK-202.8:** Write tests (/qa) - 60min
+- [x] **TASK-202.9:** Manual verification - 20min
 
 ---
 
 ## 🔧 FEATURE-012: Insight Feedback Loop
 
 **Description:**
-When the user reads an insight (from black hole hover), they can push back: "I disagree, because...". The AI responds dialectically — not as a yes-man. It either updates the insight (when given genuinely new information) or holds its position with care (when the pushback is emotional). The AI never confronts contradictions in entries even if they exist.
+When the user reads an insight (from black hole hover), they can push back: "I disagree, because...". The AI responds with a single deepening question — it never updates the insight through conversation. The insight can only change when new entries are written and the depth accumulator threshold is crossed again.
 
 **User Value:**
-Transforms passive insights into a conversation. The user feels heard but also gently challenged — like a good journal companion.
+Transforms passive insights into a conversation. The user feels heard but also gently redirected toward writing — which is where deeper processing happens.
 
 **Dependencies:**
 - US-202 (black hole + insight display)
 - AI Communication Principles document (must be defined before implementation)
 
-**AI Behavior Rules:**
-- Mode A (new information): *"That's important — it changes the picture for you."* → insight updates
-- Mode B (emotional pushback): *"I hear you — but when I look at your entries, I still see..."* → holds position with a deepening question
+**AI Behavior Rules (per docs/ai_communication_principles.md):**
+- One mode only: respond with a single deepening question using observational-data language
+- Insight never updates through conversation — only through new entries
+- Max 2 dialogue rounds; after round 2: *"To brzmi jak coś wartego zapisania."* → highlight Write Entry button
 - Never: confront contradictions between entries, even if detected
 - Never: simply agree to make the user feel good
+- Never: clinical interpretation
+
+**Deepening question rules:**
+- Open question, max 15 words, tone neutral-curious
+- Safe openers: "Co sprawia, że...", "Skąd pochodzi to poczucie, że...", "Jak rozumiesz...", "Co w tym jest dla Ciebie ważne..."
+- Forbidden: "Dlaczego...", "Ale...", any reference to the insight in the question text
 
 **Scope Boundaries:**
-- **Includes:** Disagree input, AI dialectical response (2 modes), deepening follow-up question
+- **Includes:** Disagree input, single-mode AI deepening response, max 2 round limit with write redirect
 - **Excludes:** Persistence of feedback conversation (deferred decision), clinical-level interpretation
 
 **Priority:** P1
@@ -738,50 +743,53 @@ Transforms passive insights into a conversation. The user feels heard but also g
 ### US-203: Dialectical Insight Response
 
 **Description:**
-After viewing an insight (on black hole hover), the user can tap "I disagree" and type their reason. The AI reads the disagreement and responds in one of two modes: acknowledging genuine new information and updating the insight, or gently holding its position while asking a deeper question.
+After viewing an insight (on black hole hover), the user can tap "I disagree" and type their reason. The AI always responds with a single deepening question — it never updates the insight. Max 2 rounds of dialogue; after round 2, the AI gently redirects to writing a new entry.
 
 **As a** user
 **I want to** be able to push back on AI insights
 **So that** the insights feel like a real dialogue, not just a one-way summary I must accept
 
 **Status:** 📋 Planned
-**Story Points:** 8
+**Story Points:** 5
 **Priority:** P1
 
 **Acceptance Criteria:**
 - [ ] "I disagree" button visible below insight text
 - [ ] Clicking opens text input: "I disagree because..."
-- [ ] On submit: AI responds with one of two modes (Mode A or Mode B — see FEATURE-012)
-- [ ] Mode A response updates the displayed insight
-- [ ] Mode B response shows AI's position + one deepening question
+- [ ] On submit: AI responds with one deepening question (observational-data language, max 15 words, neutral-curious tone)
+- [ ] Insight text never changes as a result of user pushback
+- [ ] Round 2: AI responds with a second deepening question OR closing phrase: *"To brzmi jak coś wartego zapisania."*
+- [ ] After round 2: Write Entry button becomes visually prominent
+- [ ] Round limit is invisible to user — never communicated explicitly
 - [ ] AI response never confronts contradictions in user's entries
-- [ ] Persistence of feedback: **deferred** — to be decided before implementation
 - [ ] Loading state during AI response
+- [ ] Prompts follow rules in `docs/ai_communication_principles.md`
 
 **Tasks:**
 - [ ] **TASK-203.1:** Add "I disagree" button to insight display - 20min
-- [ ] **TASK-203.2:** Create disagree input field + submit flow - 30min
-- [ ] **TASK-203.3:** Implement `aiService.respondToInsightFeedback()` with Mode A/B logic - 90min
-- [ ] **TASK-203.4:** Create dialectical response prompt in `src/utils/prompts.ts` - 45min
-- [ ] **TASK-203.5:** Update insight display on Mode A response - 20min
-- [ ] **TASK-203.6:** Render deepening question on Mode B response - 20min
-- [ ] **TASK-203.7:** Write tests (/qa) - 60min
-- [ ] **TASK-203.8:** Manual verification - 20min
+- [ ] **TASK-203.2:** Create disagree input field + submit flow with round counter (max 2) - 30min
+- [ ] **TASK-203.3:** Implement `aiService.respondToInsightFeedback()` — single-mode deepening question - 60min
+- [ ] **TASK-203.4:** Create deepening question prompt in `src/utils/prompts.ts` per `docs/ai_communication_principles.md` - 45min
+- [ ] **TASK-203.5:** Implement round 2 closing phrase + Write Entry CTA highlight - 20min
+- [ ] **TASK-203.6:** Write tests (/qa) - 60min
+- [ ] **TASK-203.7:** Manual verification - 20min
 
 ---
 
-## 📋 Pre-requisite: AI Communication Principles
+## ✅ Pre-requisite: AI Communication Principles
 
-**Before implementing US-202 and US-203**, a dedicated /discover session must produce:
-`docs/ai_communication_principles.md` — a reference document defining:
-- When AI validates vs. when AI holds position
-- Language patterns to use and avoid
-- How AI distinguishes new information from emotional pushback
-- Tone guidelines: reflective, warm, non-directive
-- Based on: Motivational Interviewing, Socratic dialogue, non-directive coaching
-- Before M3: lightweight review by a psychologist
+**Completed 2026-04-27** via /discover + /consult session.
+`docs/ai_communication_principles.md` defines:
+- Observational-data language (no first-person AI voice)
+- Single-mode deepening question response (no Mode A/B)
+- Deepening question formulation rules (safe/forbidden openers, max 15 words, neutral-curious tone)
+- Max 2 dialogue rounds, then write redirect
+- Insight update policy (never through conversation, only through new entries)
+- Red lines (never capitulate, never clinical)
+- Based on: Motivational Interviewing, Nolen-Hoeksema, Festinger, Turkle (MIT)
+- Before M3: lightweight review by a psychologist (still recommended)
 
-**Status:** 📋 To be discovered
+**Status:** ✅ Completed
 
 ---
 
