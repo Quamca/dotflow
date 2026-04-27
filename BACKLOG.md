@@ -1,8 +1,8 @@
 # Dotflow - Product Backlog
 
 **Project:** Dotflow
-**Version:** 1.1
-**Last Updated:** 2026-04-27 (US-202: Black Hole & Psychological Profile completed)
+**Version:** 1.2
+**Last Updated:** 2026-04-27 (US-203: Dialectical Insight Response completed)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -18,6 +18,8 @@
 | M3 | Multi-User + Mobile | ⏸️ Blocked — M2.5 must complete first |
 
 > **M3 Blocker:** M3 will not start until all M2.5 items are complete: 3D Visualization (US-201, US-202), User Onboarding (US-204), Adaptive Pattern Summaries (US-205), AI Communication Principles document. Security/Privacy Messaging (FEATURE-015) is a M3 item, not a blocker.
+
+> **Test Corpus:** `docs/test_corpus.md` contains 15 predefined Polish-language journal entries for manual AI verification. Use these instead of random text when verifying connection detection (US-101), pattern summary (US-102), and values extraction (US-202). See `docs/test_cases.md` section 6 for step-by-step instructions referencing specific corpus entries.
 
 ---
 
@@ -736,7 +738,7 @@ Transforms passive insights into a conversation. The user feels heard but also g
 - **Excludes:** Persistence of feedback conversation (deferred decision), clinical-level interpretation
 
 **Priority:** P1
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
 ---
 
@@ -749,30 +751,31 @@ After viewing an insight (on black hole hover), the user can tap "I disagree" an
 **I want to** be able to push back on AI insights
 **So that** the insights feel like a real dialogue, not just a one-way summary I must accept
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 **Story Points:** 5
 **Priority:** P1
 
 **Acceptance Criteria:**
-- [ ] "I disagree" button visible below insight text
-- [ ] Clicking opens text input: "I disagree because..."
-- [ ] On submit: AI responds with one deepening question (observational-data language, max 15 words, neutral-curious tone)
-- [ ] Insight text never changes as a result of user pushback
-- [ ] Round 2: AI responds with a second deepening question OR closing phrase: *"To brzmi jak coś wartego zapisania."*
-- [ ] After round 2: Write Entry button becomes visually prominent
-- [ ] Round limit is invisible to user — never communicated explicitly
-- [ ] AI response never confronts contradictions in user's entries
-- [ ] Loading state during AI response
-- [ ] Prompts follow rules in `docs/ai_communication_principles.md`
+- [x] "To nie brzmi jak ja" button visible below insight text (non-adversarial framing per Motivational Interviewing — expresses identity, not confrontation)
+- [x] Clicking opens text input with placeholder: "Co sprawia, że ten wgląd nie pasuje?"
+- [x] On submit: AI responds with one deepening question (observational-data language, max 15 words, neutral-curious tone)
+- [x] Insight text never changes as a result of user pushback
+- [x] Round 2: AI responds with a second deepening question OR closing phrase that paraphrases user's content: *"To, co opisujesz, brzmi jak coś wartego zapisania."* — not a fixed template; AI incorporates user's words so the closing feels like a conclusion, not a mechanical limit
+- [x] After round 2: Write Entry button style changes from secondary to primary (Amber fill, no pulsing — pulsing creates anxiety)
+- [x] Round limit is invisible to user — never communicated explicitly
+- [x] AI response never confronts contradictions in user's entries
+- [x] Loading state during AI response
+- [x] Prompts follow rules in `docs/ai_communication_principles.md`
+- [x] `generateHolisticInsight()` prompt uses observational language ("W Twoich wpisach pojawia się wzorzec...") not identity-prescribing language ("Masz tendencję do...")
 
 **Tasks:**
-- [ ] **TASK-203.1:** Add "I disagree" button to insight display - 20min
-- [ ] **TASK-203.2:** Create disagree input field + submit flow with round counter (max 2) - 30min
-- [ ] **TASK-203.3:** Implement `aiService.respondToInsightFeedback()` — single-mode deepening question - 60min
-- [ ] **TASK-203.4:** Create deepening question prompt in `src/utils/prompts.ts` per `docs/ai_communication_principles.md` - 45min
-- [ ] **TASK-203.5:** Implement round 2 closing phrase + Write Entry CTA highlight - 20min
-- [ ] **TASK-203.6:** Write tests (/qa) - 60min
-- [ ] **TASK-203.7:** Manual verification - 20min
+- [x] **TASK-203.1:** Add "I disagree" button to insight display - 20min
+- [x] **TASK-203.2:** Create disagree input field + submit flow with round counter (max 2) - 30min
+- [x] **TASK-203.3:** Implement `aiService.respondToInsightFeedback()` — single-mode deepening question - 60min
+- [x] **TASK-203.4:** Create deepening question prompt in `src/utils/prompts.ts` per `docs/ai_communication_principles.md` - 45min
+- [x] **TASK-203.5:** Implement round 2 closing phrase + Write Entry CTA highlight - 20min
+- [x] **TASK-203.6:** Write tests (/qa) - 60min
+- [x] **TASK-203.7:** Manual verification - 20min
 
 ---
 

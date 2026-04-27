@@ -1,58 +1,76 @@
-# Current Task — US-202: Black Hole & Psychological Profile
+# Current Task — US-203: Dialectical Insight Response
 
-**Branch:** 202-black-hole-profile
+**Branch:** 203-dialectical-insight-response
 **Created:** 2026-04-27
 **Status:** 🔄 In Progress
 
 ## Context
-Adding a "black hole" mesh at the center of the StarField scene — a visual representation of the user's psychological core. The black hole grows with entry count, shows insight on hover (as an additional channel — the "Generate insights" button stays until US-205), and enables a values workflow where AI proposes recurring themes (observational framing) and the user confirms/edits/rejects them. Confirmed values affect star positioning in 3D space.
+Adding the ability for the user to push back on holistic insights shown on black hole hover. The AI responds with a single deepening question (never updates the insight). Max 2 rounds of dialogue — after round 2 the AI paraphrases the user's words in a closing phrase and the Write Entry button becomes visually primary. The round limit is never communicated to the user.
+
+UX refinements from /consult:
+- Button label: "To nie brzmi jak ja" (not "I disagree" — avoids adversarial framing)
+- Input placeholder: "Co sprawia, że ten wgląd nie pasuje?"
+- Closing phrase: AI paraphrases user content (not a fixed template)
+- Write Entry highlight: secondary → primary style (Amber fill), no pulsing
 
 ## Files to Read First
-- `src/components/StarField/StarField.tsx` — extend with BlackHole mesh
-- `src/components/StarField/StarNode.tsx` — reference for 3D mesh pattern
-- `src/utils/starPositions.ts` — extend with value-alignment positioning
-- `src/services/aiService.ts` — add extractUserValues()
-- `src/utils/prompts.ts` — add USER_VALUES_SYSTEM_PROMPT
-- `src/types/index.ts` — add UserValues type
-- `src/hooks/useSettings.ts` — localStorage pattern for values storage
+- `src/components/StarField/BlackHole.tsx` — insight tooltip lives here; add disagree button
+- `src/services/aiService.ts` — add respondToInsightFeedback()
+- `src/utils/prompts.ts` — add DEEPENING_QUESTION_SYSTEM_PROMPT
+- `docs/ai_communication_principles.md` — prompt rules (safe/forbidden openers, max 15 words, observational language)
+- `src/components/StarField/StarField.tsx` — Write Entry button location (for highlight logic)
+- `src/pages/HomePage.tsx` — Write Entry button rendered here; needs highlight prop
 
 ## Tasks
-1. [ ] **TASK-202.1:** Create BlackHole mesh component in `src/components/StarField/BlackHole.tsx` — sphere mesh at origin with dark material and subtle glow
-2. [ ] **TASK-202.2:** Scale black hole size based on entry count (min 0.3, max 1.2 at ~50 entries) — add to StarField.tsx
-3. [ ] **TASK-202.3:** Hover on black hole → show insight tooltip (reuse pattern summary data via prop from HomePage) — hover state in BlackHole component
-4. [ ] **TASK-202.4:** Add `USER_VALUES_SYSTEM_PROMPT` to `src/utils/prompts.ts` — observational framing, returns JSON array of 5 theme strings
-5. [ ] **TASK-202.5:** Add `extractUserValues(entries, apiKey)` to `src/services/aiService.ts` — calls OpenAI, returns string[]
-6. [ ] **TASK-202.6:** Create `ValuesModal` component (`src/components/ValuesModal.tsx`) — observational framing + editable list + "Żadna z tych" escape hatch + free text field
-7. [ ] **TASK-202.7:** Add `useUserValues` hook (`src/hooks/useUserValues.ts`) — localStorage read/write for confirmed values + pending proposal state
-8. [ ] **TASK-202.8:** Extend `getStarPosition` or add `getAlignedStarPosition(entryId, entry, userValues)` in `starPositions.ts` — values-aligned entries get radius 1.5–3, neutral entries radius 3–8
-9. [ ] **TASK-202.9:** Wire values trigger in HomePage — after 5+ entries and no confirmed values, trigger `extractUserValues` and show ValuesModal
+1. [ ] **TASK-203.1:** Add "To nie brzmi jak ja" button to BlackHole insight tooltip (visible only in interactive mode, only when insight exists) - 20min
+2. [ ] **TASK-203.2:** Add disagree input field + submit flow inside BlackHole tooltip with round counter state (max 2, hidden from user) - 30min
+3. [ ] **TASK-203.3:** Implement `aiService.respondToInsightFeedback(insight, userFeedback, round, apiKey)` — single deepening question on round 1, paraphrased closing phrase on round 2 - 60min
+4. [ ] **TASK-203.4:** Create `DEEPENING_QUESTION_SYSTEM_PROMPT` in `src/utils/prompts.ts` per `docs/ai_communication_principles.md` rules - 45min
+5. [ ] **TASK-203.5:** On round 2 completion — render closing phrase + emit `onRoundLimitReached` prop upward (BlackHole → StarField → HomePage) to trigger Write Entry highlight (secondary → primary, Amber fill, no pulsing) - 20min
+6. [ ] **TASK-203.6:** Write tests (/qa) - 60min
+7. [ ] **TASK-203.7:** Manual verification - 20min
 
 ## Constraints
-- Black hole hover insight: observational-data language (per docs/ai_communication_principles.md) — reuse generatePatternSummary() output
-- Values modal framing: "W Twoich wpisach te tematy wracają najczęściej: X, Y..." — NOT "Twoje wartości: X"
-- "Generate insights" button stays on Home — black hole is additional channel, not replacement
-- Values stored in localStorage only (no Supabase schema change)
-- react-three-fiber + @react-three/drei already installed — no new deps needed
-- Max file length: 300 lines; max function length: 50 lines
+- "To nie brzmi jak ja" button only visible in interactive mode (isInteractive prop) and when insight is not null
+- AI NEVER updates the insight text — only responds with a question or closing phrase
+- Round counter is internal state — never displayed or communicated to user
+- Max 2 rounds — round 1: deepening question; round 2: paraphrased closing phrase
+- Closing phrase must incorporate user's own words (not a fixed template)
+- Write Entry highlight: style change only (secondary → primary), NO pulsing animation
+- All OpenAI calls go through aiService.ts — never call fetch directly from component
+- Prompt must follow docs/ai_communication_principles.md:
+  - Safe openers: "Co sprawia, że...", "Skąd pochodzi to poczucie, że...", "Jak rozumiesz...", "Co w tym jest dla Ciebie ważne..."
+  - Forbidden: "Dlaczego...", "Ale...", any reference to insight text
+  - Max 15 words, neutral-curious tone
+  - Observational language in closing phrase ("W Twoich słowach..." not "Ty uważasz...")
+- generateHolisticInsight() prompt must use observational language ("W Twoich wpisach pojawia się wzorzec...") not identity-prescribing ("Masz tendencję do...")
 
 ## Acceptance Criteria
-- [ ] Black hole visible at center of 3D scene (both blurred background and interactive mode)
-- [ ] Size scales with entry count (min at 1 entry, max capped at ~15% of scene)
-- [ ] Hover on black hole shows current pattern insight ("Generate insights" button remains)
-- [ ] After 5+ entries with no confirmed values, AI proposes themes with observational framing
-- [ ] ValuesModal: proposal list + editing + "Żadna z tych" + free text field
-- [ ] Confirmed values stored in localStorage
-- [ ] Star positions update based on value alignment after confirming values
+- [ ] "To nie brzmi jak ja" button visible below insight text (interactive mode only)
+- [ ] Clicking opens text input with placeholder: "Co sprawia, że ten wgląd nie pasuje?"
+- [ ] On submit: AI responds with one deepening question (max 15 words, neutral-curious, observational language)
+- [ ] Insight text never changes as a result of user pushback
+- [ ] Round 2: AI paraphrases user's content in closing phrase (not fixed template)
+- [ ] After round 2: Write Entry button changes from secondary to primary style (Amber fill, no pulsing)
+- [ ] Round limit is invisible to user — never communicated explicitly
+- [ ] AI response never confronts contradictions in user's entries
+- [ ] Loading state during AI response
+- [ ] generateHolisticInsight() prompt uses observational language
 
 ## After Implementation
 - [ ] Run: `npm run lint`
 - [ ] Run: `npm test`
-- [ ] Manual verification steps:
-  1. Otwórz Dotflow i kliknij logo Dotflow → tryb 3D
-  2. Sprawdź czy w centrum sceny widoczna jest ciemna kula (black hole)
-  3. Najedź myszą na kulę — powinien pojawić się insight (lub info "Add API key")
-  4. Sprawdź że przycisk "Generate insights" nadal jest widoczny na Home (nie usunięty)
-  5. (Jeśli masz 5+ wpisów) Sprawdź że pojawia się modal wartości z observational framing
-  6. W modalu przetestuj edycję listy, usuwanie pozycji i kliknięcie "Żadna z tych"
-  7. Po zatwierdzeniu wartości — wróć do trybu 3D i sprawdź czy gwiazdy się przepozycjonowały
+- [ ] Manual verification steps (po polsku):
+  1. Otwórz aplikację, upewnij się że masz ustawiony klucz API i min. 5 wpisów z wygenerowanym pattern summary
+  2. Kliknij logo Dotflow aby wejść w tryb 3D
+  3. Najedź na czarną dziurę — powinna pojawić się tooltip z wglądem
+  4. Sprawdź: pod wglądem widoczny przycisk "To nie brzmi jak ja"
+  5. Kliknij przycisk — powinno pojawić się pole z placeholderem "Co sprawia, że ten wgląd nie pasuje?"
+  6. Wpisz dowolny tekst i zatwierdź (runda 1)
+  7. Sprawdź: AI odpowiada jednym pytaniem (max 15 słów, neutralny ton) — wgląd NIE zmienił się
+  8. Wpisz kolejną odpowiedź i zatwierdź (runda 2)
+  9. Sprawdź: AI odpowiada frazą zamykającą która nawiązuje do Twoich słów
+  10. Sprawdź: przycisk Write Entry zmienił styl na primary (bursztynowe tło, bez pulsowania)
+  11. Sprawdź: nigdzie nie pojawia się komunikat o limicie rund
+  12. Sprawdź: wgląd na czarnej dziurze nadal pokazuje oryginalny tekst (nie zmienił się)
 - [ ] Potwierdź weryfikację wpisując 1 → agent automatycznie uruchomi /qa
