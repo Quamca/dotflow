@@ -756,16 +756,17 @@ After viewing an insight (on black hole hover), the user can tap "I disagree" an
 **Priority:** P1
 
 **Acceptance Criteria:**
-- [ ] "I disagree" button visible below insight text
-- [ ] Clicking opens text input: "I disagree because..."
+- [ ] "To nie brzmi jak ja" button visible below insight text (non-adversarial framing per Motivational Interviewing — expresses identity, not confrontation)
+- [ ] Clicking opens text input with placeholder: "Co sprawia, że ten wgląd nie pasuje?"
 - [ ] On submit: AI responds with one deepening question (observational-data language, max 15 words, neutral-curious tone)
 - [ ] Insight text never changes as a result of user pushback
-- [ ] Round 2: AI responds with a second deepening question OR closing phrase: *"To brzmi jak coś wartego zapisania."*
-- [ ] After round 2: Write Entry button becomes visually prominent
+- [ ] Round 2: AI responds with a second deepening question OR closing phrase that paraphrases user's content: *"To, co opisujesz, brzmi jak coś wartego zapisania."* — not a fixed template; AI incorporates user's words so the closing feels like a conclusion, not a mechanical limit
+- [ ] After round 2: Write Entry button style changes from secondary to primary (Amber fill, no pulsing — pulsing creates anxiety)
 - [ ] Round limit is invisible to user — never communicated explicitly
 - [ ] AI response never confronts contradictions in user's entries
 - [ ] Loading state during AI response
 - [ ] Prompts follow rules in `docs/ai_communication_principles.md`
+- [ ] `generateHolisticInsight()` prompt uses observational language ("W Twoich wpisach pojawia się wzorzec...") not identity-prescribing language ("Masz tendencję do...")
 
 **Tasks:**
 - [ ] **TASK-203.1:** Add "I disagree" button to insight display - 20min

@@ -213,10 +213,10 @@ Users can push back on AI insights. The AI responds with a single deepening ques
 - Forbidden: "Dlaczego...", "Ale...", any reference to the insight text
 
 **Acceptance Criteria:**
-- "I disagree" option visible below insight
-- User can type reason for disagreement
+- "To nie brzmi jak ja" button visible below insight (non-adversarial framing)
+- User can type reason using placeholder: "Co sprawia, że ten wgląd nie pasuje?"
 - AI responds with one deepening question (never updates insight)
-- After 2 rounds: closing phrase displayed, Write Entry button highlighted
+- After 2 rounds: closing phrase paraphrases user's content (not a fixed template), Write Entry button style changes to primary (Amber fill, no pulsing)
 - Round limit mechanism is invisible to user
 
 **Related User Stories:** US-203
