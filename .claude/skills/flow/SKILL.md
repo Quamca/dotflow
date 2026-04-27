@@ -29,17 +29,27 @@ Zapytaj:
 1. Tak — napisz je
 2. Nie"
 
-Jeśli tak — wysłuchaj, a potem zdecyduj:
-- Czy to **bug** → zaproponuj dodanie do backlogu, potem zapytaj o przekierowanie (patrz niżej)
-- Czy to **pomysł na nową funkcję** → zaproponuj /discover po /docs, potem zapytaj o przekierowanie (patrz niżej)
+Jeśli **nie** → przejdź od razu do Kroku 2.
+
+Jeśli **tak** — wysłuchaj wszystkich obserwacji (może być kilka), a potem oceń każdą i zdecyduj:
+
+| Typ obserwacji | Akcja |
+|---|---|
+| Bug / coś nie działa | Dodaj do backlogu jako bug, zaproponuj fix teraz lub w osobnym US |
+| Coś nie pasuje UX / psychologia / AI behavior | Zaproponuj `/consult` z gotowym pytaniem |
+| Pomysł na nową funkcję | Zaproponuj `/discover` po `/docs` |
+| Decyzja produktowa (co dalej, priorytet) | Zaproponuj `/discover` |
+| Pozytywna obserwacja | Potwierdź, zanotuj jeśli warto, idź dalej |
 
 **Gdy rekomenujesz przekierowanie do innego agenta**, od razu zapytaj:
 "Czy chcesz żebym teraz wysłał to do /[agent]?
-[Przeredagowane zapytanie gotowe do wysłania]
+[Przeredagowane pytanie gotowe do wysłania]
 1. Tak
 2. Nie"
 
 Jeśli użytkownik wybierze **1** → wywołaj odpowiedni skill z przeredagowanym zapytaniem jako ARGUMENTS. Nie pytaj ponownie — działaj.
+
+Obserwacje możesz przetwarzać po kolei — jedna rozmowa może prowadzić do kilku agentów.
 
 ---
 
