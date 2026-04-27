@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { generateFollowUpQuestions, findConnection, generatePatternSummary } from '../../services/aiService'
+import { generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues } from '../../services/aiService'
 import type { Entry } from '../../types'
 
 const mockNewEntry: Entry = {
@@ -250,6 +250,81 @@ describe('aiService', () => {
 
       // Act
       const result = await generatePatternSummary([mockPastEntry], 'sk-test')
+
+      // Assert
+      expect(result).toHaveLength(5)
+    })
+  })
+
+  describe('extractUserValues', () => {
+    it('should return array of theme strings when OpenAI responds successfully', async () => {
+      // Arrange
+      const mockThemes = ['autonomy', 'relationships', 'growth', 'creativity', 'rest']
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: JSON.stringify(mockThemes) } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await extractUserValues([mockPastEntry], 'sk-test')
+
+      // Assert
+      expect(result).toEqual(mockThemes)
+      result.forEach((t) => expect(typeof t).toBe('string'))
+    })
+
+    it('should throw when OpenAI returns non-ok response', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({ ok: false, status: 401 })
+      )
+
+      // Act & Assert
+      await expect(
+        extractUserValues([mockPastEntry], 'sk-invalid')
+      ).rejects.toThrow('OpenAI API error: 401')
+    })
+
+    it('should return empty array when response JSON is malformed', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: 'not valid json' } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await extractUserValues([mockPastEntry], 'sk-test')
+
+      // Assert
+      expect(result).toEqual([])
+    })
+
+    it('should cap themes at 5 when AI returns more than 5', async () => {
+      // Arrange
+      const tooMany = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: JSON.stringify(tooMany) } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await extractUserValues([mockPastEntry], 'sk-test')
 
       // Assert
       expect(result).toHaveLength(5)

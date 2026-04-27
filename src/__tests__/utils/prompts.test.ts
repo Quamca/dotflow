@@ -3,6 +3,7 @@ import {
   FOLLOW_UP_SYSTEM_PROMPT,
   CONNECTION_DETECTION_SYSTEM_PROMPT,
   PATTERN_SUMMARY_SYSTEM_PROMPT,
+  USER_VALUES_SYSTEM_PROMPT,
 } from '../../utils/prompts'
 
 describe('prompts', () => {
@@ -22,5 +23,17 @@ describe('prompts', () => {
 
   it('should instruct AI to return JSON object in CONNECTION_DETECTION_SYSTEM_PROMPT', () => {
     expect(CONNECTION_DETECTION_SYSTEM_PROMPT).toContain('JSON object')
+  })
+
+  it('should instruct AI to return JSON array in USER_VALUES_SYSTEM_PROMPT', () => {
+    expect(USER_VALUES_SYSTEM_PROMPT).toContain('JSON array')
+  })
+
+  it('should use observational-data language in USER_VALUES_SYSTEM_PROMPT', () => {
+    expect(USER_VALUES_SYSTEM_PROMPT).toContain('observed patterns')
+  })
+
+  it('should include language instruction in USER_VALUES_SYSTEM_PROMPT', () => {
+    expect(USER_VALUES_SYSTEM_PROMPT).toContain('Respond in the same language as the journal entries')
   })
 })

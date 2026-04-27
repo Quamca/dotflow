@@ -1582,6 +1582,394 @@ export const mockEntry = {
 
 ---
 
+## 3.8 FEATURE: Black Hole & Psychological Profile (US-202)
+
+### TC-072: getAlignedStarPosition returns tuple of 3 numbers
+
+**Related US:** US-202
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `getAlignedStarPosition` imported
+
+**Test Steps:**
+1. Call `getAlignedStarPosition('uuid-1', 'autonomy is important', ['autonomy'])`
+
+**Expected Result:**
+- Returns array of length 3, all elements are numbers
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-073: getAlignedStarPosition returns same position for same inputs
+
+**Related US:** US-202
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-074: getAlignedStarPosition positions aligned entry within inner radius (1.5–3)
+
+**Related US:** US-202
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- Entry content contains the matched value
+
+**Test Steps:**
+1. Call with content `'autonomy is important'` and values `['autonomy']`
+2. Compute radius
+
+**Expected Result:**
+- `radius >= 1.5` and `radius <= 3`
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-075: getAlignedStarPosition positions non-aligned entry within outer radius (3–8)
+
+**Related US:** US-202
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- Entry content does not contain any matched value
+
+**Test Steps:**
+1. Call with content `'went to the park today'` and values `['autonomy']`
+2. Compute radius
+
+**Expected Result:**
+- `radius >= 3` and `radius <= 8`
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-076: getAlignedStarPosition falls back to default position when no values
+
+**Related US:** US-202
+**Type:** Unit
+**Priority:** High
+
+**Test Steps:**
+1. Call `getAlignedStarPosition('uuid-fallback', 'any content', [])`
+2. Call `getStarPosition('uuid-fallback')`
+
+**Expected Result:**
+- Both calls return identical `[x, y, z]`
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-077: extractUserValues returns array of theme strings when API succeeds
+
+**Related US:** US-202
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return valid OpenAI response with JSON array of 5 themes
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-078: extractUserValues throws when OpenAI returns non-ok response
+
+**Related US:** US-202
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-079: extractUserValues returns empty array when response JSON is malformed
+
+**Related US:** US-202
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-080: extractUserValues caps themes at 5
+
+**Related US:** US-202
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-081: USER_VALUES_SYSTEM_PROMPT uses observational-data language
+
+**Related US:** US-202
+**Type:** Unit
+**Priority:** Critical
+
+**Test Steps:**
+1. Check prompt contains `'observed patterns'`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-082: USER_VALUES_SYSTEM_PROMPT includes language instruction
+
+**Related US:** US-202
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-083: USER_VALUES_SYSTEM_PROMPT instructs AI to return JSON array
+
+**Related US:** US-202
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-084: useUserValues returns empty array when localStorage has no values
+
+**Related US:** US-202
+**Type:** Unit (hook)
+**Priority:** Critical
+
+**File:** `src/__tests__/hooks/useUserValues.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-085: useUserValues initializes with existing values from localStorage
+
+**Related US:** US-202
+**Type:** Unit (hook)
+**Priority:** Critical
+
+**File:** `src/__tests__/hooks/useUserValues.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-086: useUserValues saves values to localStorage when confirmValues is called
+
+**Related US:** US-202
+**Type:** Unit (hook)
+**Priority:** Critical
+
+**File:** `src/__tests__/hooks/useUserValues.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-087: useUserValues sets proposalDismissed when dismissProposal is called
+
+**Related US:** US-202
+**Type:** Unit (hook)
+**Priority:** Critical
+
+**File:** `src/__tests__/hooks/useUserValues.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-088: useUserValues clears all values when clearValues is called
+
+**Related US:** US-202
+**Type:** Unit (hook)
+**Priority:** High
+
+**File:** `src/__tests__/hooks/useUserValues.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-089: ValuesModal displays proposed themes
+
+**Related US:** US-202
+**Type:** Component
+**Priority:** Critical
+
+**File:** `src/__tests__/components/ValuesModal/ValuesModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-090: ValuesModal displays observational framing heading
+
+**Related US:** US-202
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- ValuesModal rendered with proposed themes
+
+**Expected Result:**
+- Text "W Twoich wpisach te tematy wracają najczęściej" visible
+
+**File:** `src/__tests__/components/ValuesModal/ValuesModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-091: ValuesModal calls onDismiss when Pomiń is clicked
+
+**Related US:** US-202
+**Type:** Component
+**Priority:** Critical
+
+**File:** `src/__tests__/components/ValuesModal/ValuesModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-092: ValuesModal calls onConfirm with original themes when Zatwierdź clicked
+
+**Related US:** US-202
+**Type:** Component
+**Priority:** Critical
+
+**File:** `src/__tests__/components/ValuesModal/ValuesModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-093: ValuesModal removes theme from list when × clicked
+
+**Related US:** US-202
+**Type:** Component
+**Priority:** High
+
+**File:** `src/__tests__/components/ValuesModal/ValuesModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-094: ValuesModal shows textarea when Żadna z tych checkbox is checked
+
+**Related US:** US-202
+**Type:** Component
+**Priority:** Critical
+
+**File:** `src/__tests__/components/ValuesModal/ValuesModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-095: ValuesModal calls onConfirm with custom themes when Żadna z tych selected
+
+**Related US:** US-202
+**Type:** Component
+**Priority:** Critical
+
+**File:** `src/__tests__/components/ValuesModal/ValuesModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-096: HomePage shows ValuesModal when 5+ entries exist and API key is set
+
+**Related US:** US-202
+**Type:** Integration
+**Priority:** Critical
+
+**Preconditions:**
+- API key in localStorage
+- `getEntries` returns 5 entries
+- `extractUserValues` returns 5 theme strings
+
+**Expected Result:**
+- ValuesModal visible with observational heading
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-097: HomePage does not show ValuesModal when fewer than 5 entries
+
+**Related US:** US-202
+**Type:** Component
+**Priority:** Critical
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-098: HomePage does not show ValuesModal when API key is missing
+
+**Related US:** US-202
+**Type:** Component
+**Priority:** High
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-099: HomePage does not show ValuesModal when values already confirmed
+
+**Related US:** US-202
+**Type:** Component
+**Priority:** High
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-100: HomePage closes ValuesModal after confirming values
+
+**Related US:** US-202
+**Type:** Integration
+**Priority:** Critical
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-101: HomePage closes ValuesModal when Pomiń is clicked
+
+**Related US:** US-202
+**Type:** Component
+**Priority:** High
+
+**File:** `src/__tests__/pages/HomePage.test.tsx`
+**Status:** ✅ Done
+
+---
+
 ## 4. Test Data
 
 ### 4.1 Mock Data Sets

@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import HomePage from '../../pages/HomePage'
 import { getEntries, getConnectionsForEntry } from '../../services/entryService'
-import { generatePatternSummary } from '../../services/aiService'
+import { generatePatternSummary, extractUserValues } from '../../services/aiService'
 
 vi.mock('../../services/entryService', () => ({
   getEntries: vi.fn(),
@@ -13,6 +13,7 @@ vi.mock('../../services/entryService', () => ({
 
 vi.mock('../../services/aiService', () => ({
   generatePatternSummary: vi.fn(),
+  extractUserValues: vi.fn(),
 }))
 
 const STORAGE_KEY = 'dotflow_openai_api_key'
@@ -49,6 +50,7 @@ describe('HomePage', () => {
     vi.mocked(getEntries).mockResolvedValue([])
     vi.mocked(getConnectionsForEntry).mockResolvedValue([])
     vi.mocked(generatePatternSummary).mockResolvedValue([])
+    vi.mocked(extractUserValues).mockResolvedValue([])
   })
 
   afterEach(() => {
@@ -217,5 +219,78 @@ describe('HomePage', () => {
     await user.click(screen.getByRole('button', { name: /exit 3d view/i }))
 
     expect(screen.getByRole('link', { name: /write/i })).toBeInTheDocument()
+  })
+
+  it('should show ValuesModal when 5 or more entries exist and API key is set and values not confirmed', async () => {
+    localStorage.setItem(STORAGE_KEY, 'sk-testkey')
+    vi.mocked(getEntries).mockResolvedValue(generateMockEntries(5))
+    vi.mocked(extractUserValues).mockResolvedValue(['autonomy', 'relationships', 'growth', 'creativity', 'rest'])
+
+    renderHomePage()
+
+    expect(await screen.findByText(/W Twoich wpisach te tematy wracają najczęściej/i)).toBeInTheDocument()
+    expect(screen.getByText('autonomy')).toBeInTheDocument()
+  })
+
+  it('should not show ValuesModal when fewer than 5 entries', async () => {
+    localStorage.setItem(STORAGE_KEY, 'sk-testkey')
+    vi.mocked(getEntries).mockResolvedValue(generateMockEntries(4))
+
+    renderHomePage()
+
+    await screen.findByText('Entry number 1')
+
+    expect(screen.queryByText(/W Twoich wpisach te tematy wracają najczęściej/i)).not.toBeInTheDocument()
+  })
+
+  it('should not show ValuesModal when API key is not set', async () => {
+    vi.mocked(getEntries).mockResolvedValue(generateMockEntries(5))
+
+    renderHomePage()
+
+    await screen.findByText('Entry number 1')
+
+    expect(screen.queryByText(/W Twoich wpisach te tematy wracają najczęściej/i)).not.toBeInTheDocument()
+  })
+
+  it('should not show ValuesModal when values already confirmed in localStorage', async () => {
+    localStorage.setItem(STORAGE_KEY, 'sk-testkey')
+    localStorage.setItem('dotflow_user_values', JSON.stringify(['autonomy', 'growth']))
+    vi.mocked(getEntries).mockResolvedValue(generateMockEntries(5))
+
+    renderHomePage()
+
+    await screen.findByText('Entry number 1')
+
+    expect(screen.queryByText(/W Twoich wpisach te tematy wracają najczęściej/i)).not.toBeInTheDocument()
+  })
+
+  it('should close ValuesModal and show entry list after confirming values', async () => {
+    localStorage.setItem(STORAGE_KEY, 'sk-testkey')
+    vi.mocked(getEntries).mockResolvedValue(generateMockEntries(5))
+    vi.mocked(extractUserValues).mockResolvedValue(['autonomy', 'relationships', 'growth', 'creativity', 'rest'])
+
+    const user = userEvent.setup()
+    renderHomePage()
+
+    await screen.findByText(/W Twoich wpisach te tematy wracają najczęściej/i)
+    await user.click(screen.getByRole('button', { name: /zatwierdź/i }))
+
+    expect(screen.queryByText(/W Twoich wpisach te tematy wracają najczęściej/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /write/i })).toBeInTheDocument()
+  })
+
+  it('should close ValuesModal when Pomiń is clicked', async () => {
+    localStorage.setItem(STORAGE_KEY, 'sk-testkey')
+    vi.mocked(getEntries).mockResolvedValue(generateMockEntries(5))
+    vi.mocked(extractUserValues).mockResolvedValue(['autonomy', 'relationships', 'growth', 'creativity', 'rest'])
+
+    const user = userEvent.setup()
+    renderHomePage()
+
+    await screen.findByText(/W Twoich wpisach te tematy wracają najczęściej/i)
+    await user.click(screen.getByRole('button', { name: /pomiń/i }))
+
+    expect(screen.queryByText(/W Twoich wpisach te tematy wracają najczęściej/i)).not.toBeInTheDocument()
   })
 })
