@@ -56,7 +56,7 @@ describe('ValuesModal', () => {
     expect(onConfirm).toHaveBeenCalledWith(mockProposedThemes)
   })
 
-  it('should remove a theme from list when × button is clicked', async () => {
+  it('should exclude struck-through theme from onConfirm when × clicked', async () => {
     const user = userEvent.setup()
     const { onConfirm } = renderModal()
 
@@ -68,6 +68,47 @@ describe('ValuesModal', () => {
     const confirmed = (onConfirm.mock.calls[0] as [string[]])[0]
     expect(confirmed).not.toContain('autonomy')
     expect(confirmed).toContain('relationships')
+  })
+
+  it('should restore a struck-through theme when ↺ is clicked', async () => {
+    const user = userEvent.setup()
+    const { onConfirm } = renderModal()
+
+    const removeButtons = screen.getAllByRole('button', { name: '×' })
+    await user.click(removeButtons[0])
+
+    const restoreButton = screen.getByRole('button', { name: '↺' })
+    await user.click(restoreButton)
+
+    await user.click(screen.getByRole('button', { name: /zatwierdź/i }))
+
+    const confirmed = (onConfirm.mock.calls[0] as [string[]])[0]
+    expect(confirmed).toContain('autonomy')
+  })
+
+  it('should add a new theme when text is typed and Dodaj clicked', async () => {
+    const user = userEvent.setup()
+    const { onConfirm } = renderModal()
+
+    await user.type(screen.getByPlaceholderText(/dodaj własny temat/i), 'praca')
+    await user.click(screen.getByRole('button', { name: /dodaj/i }))
+
+    await user.click(screen.getByRole('button', { name: /zatwierdź/i }))
+
+    const confirmed = (onConfirm.mock.calls[0] as [string[]])[0]
+    expect(confirmed).toContain('praca')
+    expect(confirmed).toContain('autonomy')
+  })
+
+  it('should clear add-theme input after Dodaj is clicked', async () => {
+    const user = userEvent.setup()
+    renderModal()
+
+    const addInput = screen.getByPlaceholderText(/dodaj własny temat/i)
+    await user.type(addInput, 'praca')
+    await user.click(screen.getByRole('button', { name: /dodaj/i }))
+
+    expect(addInput).toHaveValue('')
   })
 
   it('should show textarea when Żadna z tych checkbox is checked', async () => {

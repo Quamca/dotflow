@@ -1,5 +1,10 @@
 import { useState } from 'react'
 
+interface ThemeItem {
+  text: string
+  removed: boolean
+}
+
 interface ValuesModalProps {
   proposedThemes: string[]
   onConfirm: (values: string[]) => void
@@ -7,28 +12,39 @@ interface ValuesModalProps {
 }
 
 export default function ValuesModal({ proposedThemes, onConfirm, onDismiss }: ValuesModalProps) {
-  const [themes, setThemes] = useState<string[]>(proposedThemes)
-  const [useNone, setUseNone] = useState(false)
-  const [customText, setCustomText] = useState('')
+  const [items, setItems] = useState<ThemeItem[]>(
+    () => proposedThemes.map((text) => ({ text, removed: false }))
+  )
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editValue, setEditValue] = useState('')
+  const [newThemeInput, setNewThemeInput] = useState('')
+  const [useNone, setUseNone] = useState(false)
+  const [customText, setCustomText] = useState('')
 
-  function handleRemove(index: number) {
-    setThemes(themes.filter((_, i) => i !== index))
+  function handleToggleRemove(index: number) {
+    setItems(items.map((item, i) => i === index ? { ...item, removed: !item.removed } : item))
   }
 
   function handleStartEdit(index: number) {
     setEditingIndex(index)
-    setEditValue(themes[index])
+    setEditValue(items[index].text)
   }
 
   function handleSaveEdit() {
     if (editingIndex === null) return
-    const updated = [...themes]
-    updated[editingIndex] = editValue.trim() || themes[editingIndex]
-    setThemes(updated)
+    const trimmed = editValue.trim()
+    if (trimmed) {
+      setItems(items.map((item, i) => i === editingIndex ? { ...item, text: trimmed } : item))
+    }
     setEditingIndex(null)
     setEditValue('')
+  }
+
+  function handleAddTheme() {
+    const trimmed = newThemeInput.trim()
+    if (!trimmed) return
+    setItems([...items, { text: trimmed, removed: false }])
+    setNewThemeInput('')
   }
 
   function handleConfirm() {
@@ -39,7 +55,7 @@ export default function ValuesModal({ proposedThemes, onConfirm, onDismiss }: Va
         .filter((s) => s.length > 0)
       onConfirm(custom)
     } else {
-      onConfirm(themes.filter((t) => t.length > 0))
+      onConfirm(items.filter((item) => !item.removed).map((item) => item.text))
     }
   }
 
@@ -51,30 +67,53 @@ export default function ValuesModal({ proposedThemes, onConfirm, onDismiss }: Va
         </p>
 
         {!useNone && (
-          <ul style={listStyle}>
-            {themes.map((theme, i) => (
-              <li key={i} style={itemStyle}>
-                {editingIndex === i ? (
-                  <span style={{ display: 'flex', gap: '6px', flex: 1 }}>
-                    <input
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit()}
-                      style={inputStyle}
-                      autoFocus
-                    />
-                    <button onClick={handleSaveEdit} style={smallBtnStyle}>✓</button>
-                  </span>
-                ) : (
-                  <>
-                    <span style={{ flex: 1 }}>{theme}</span>
-                    <button onClick={() => handleStartEdit(i)} style={smallBtnStyle}>edit</button>
-                    <button onClick={() => handleRemove(i)} style={{ ...smallBtnStyle, color: '#A8A29E' }}>×</button>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul style={listStyle}>
+              {items.map((item, i) => (
+                <li key={i} style={itemStyle}>
+                  {editingIndex === i ? (
+                    <span style={{ display: 'flex', gap: '6px', flex: 1 }}>
+                      <input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit()}
+                        style={inputStyle}
+                        autoFocus
+                      />
+                      <button onClick={handleSaveEdit} style={smallBtnStyle}>✓</button>
+                    </span>
+                  ) : (
+                    <>
+                      <span style={{ flex: 1, textDecoration: item.removed ? 'line-through' : 'none', color: item.removed ? '#A8A29E' : '#44403C' }}>
+                        {item.text}
+                      </span>
+                      {!item.removed && (
+                        <button onClick={() => handleStartEdit(i)} style={smallBtnStyle}>edit</button>
+                      )}
+                      <button
+                        onClick={() => handleToggleRemove(i)}
+                        style={{ ...smallBtnStyle, color: item.removed ? '#1C1917' : '#A8A29E' }}
+                        title={item.removed ? 'Przywróć' : 'Usuń'}
+                      >
+                        {item.removed ? '↺' : '×'}
+                      </button>
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
+
+            <div style={addRowStyle}>
+              <input
+                value={newThemeInput}
+                onChange={(e) => setNewThemeInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddTheme()}
+                placeholder="Dodaj własny temat..."
+                style={{ ...inputStyle, flex: 1 }}
+              />
+              <button onClick={handleAddTheme} style={addBtnStyle}>Dodaj</button>
+            </div>
+          </>
         )}
 
         <p style={instructionStyle}>
@@ -130,6 +169,8 @@ const modalStyle: React.CSSProperties = {
   maxWidth: '400px',
   width: '90%',
   boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+  maxHeight: '90vh',
+  overflowY: 'auto',
 }
 
 const headingStyle: React.CSSProperties = {
@@ -142,7 +183,7 @@ const headingStyle: React.CSSProperties = {
 const listStyle: React.CSSProperties = {
   listStyle: 'none',
   padding: 0,
-  margin: '0 0 12px 0',
+  margin: '0 0 8px 0',
 }
 
 const itemStyle: React.CSSProperties = {
@@ -152,7 +193,13 @@ const itemStyle: React.CSSProperties = {
   padding: '6px 0',
   borderBottom: '1px solid #E7E5E4',
   fontSize: '14px',
-  color: '#44403C',
+}
+
+const addRowStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: '6px',
+  marginBottom: '12px',
+  marginTop: '4px',
 }
 
 const instructionStyle: React.CSSProperties = {
@@ -219,8 +266,18 @@ const smallBtnStyle: React.CSSProperties = {
   padding: '2px 6px',
 }
 
+const addBtnStyle: React.CSSProperties = {
+  background: 'transparent',
+  border: '1px solid #D6D3D1',
+  borderRadius: '6px',
+  color: '#44403C',
+  cursor: 'pointer',
+  fontSize: '13px',
+  padding: '4px 12px',
+  whiteSpace: 'nowrap',
+}
+
 const inputStyle: React.CSSProperties = {
-  flex: 1,
   border: '1px solid #D6D3D1',
   borderRadius: '6px',
   padding: '3px 8px',
