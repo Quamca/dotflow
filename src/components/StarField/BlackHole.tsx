@@ -22,6 +22,7 @@ interface DisagreeState {
 
 const MIN_SIZE = 0.3
 const PULSE_SPEED = 0.8
+const TOOLTIP_HIDE_DELAY = 300
 
 export default function BlackHole({ size, insight, isInteractive, apiKey, onRoundLimitReached }: BlackHoleProps) {
   const [isHovered, setIsHovered] = useState(false)
@@ -34,6 +35,7 @@ export default function BlackHole({ size, insight, isInteractive, apiKey, onRoun
   })
   const meshRef = useRef<Mesh>(null)
   const glowRef = useRef<Mesh>(null)
+  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useFrame((_, delta) => {
     if (glowRef.current) {
@@ -45,6 +47,14 @@ export default function BlackHole({ size, insight, isInteractive, apiKey, onRoun
       meshRef.current.rotation.y += delta * 0.3
     }
   })
+
+  function scheduleHide() {
+    hideTimeoutRef.current = setTimeout(() => setIsHovered(false), TOOLTIP_HIDE_DELAY)
+  }
+
+  function cancelHide() {
+    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
+  }
 
   const clampedSize = Math.max(MIN_SIZE, size)
   const showTooltip = (isHovered && isInteractive) || disagree.isActive
@@ -71,8 +81,8 @@ export default function BlackHole({ size, insight, isInteractive, apiKey, onRoun
 
       <mesh
         ref={meshRef}
-        onPointerEnter={isInteractive ? () => setIsHovered(true) : undefined}
-        onPointerLeave={isInteractive ? () => setIsHovered(false) : undefined}
+        onPointerEnter={isInteractive ? () => { cancelHide(); setIsHovered(true) } : undefined}
+        onPointerLeave={isInteractive ? () => scheduleHide() : undefined}
       >
         <sphereGeometry args={[clampedSize, 24, 24]} />
         <meshStandardMaterial color="#0a0a0f" roughness={0.2} metalness={0.8} />
@@ -80,14 +90,20 @@ export default function BlackHole({ size, insight, isInteractive, apiKey, onRoun
 
       {showTooltip && (
         <Html style={{ pointerEvents: 'none' }}>
-          <InsightTooltip
-            insight={insight}
-            isInteractive={isInteractive}
-            disagreeState={disagree}
-            onDisagreeClick={() => setDisagree((prev) => ({ ...prev, isActive: true }))}
-            onFeedbackChange={(val) => setDisagree((prev) => ({ ...prev, feedbackInput: val }))}
-            onFeedbackSubmit={handleFeedbackSubmit}
-          />
+          <div
+            style={{ pointerEvents: 'auto' }}
+            onMouseEnter={cancelHide}
+            onMouseLeave={scheduleHide}
+          >
+            <InsightTooltip
+              insight={insight}
+              isInteractive={isInteractive}
+              disagreeState={disagree}
+              onDisagreeClick={() => setDisagree((prev) => ({ ...prev, isActive: true }))}
+              onFeedbackChange={(val) => setDisagree((prev) => ({ ...prev, feedbackInput: val }))}
+              onFeedbackSubmit={handleFeedbackSubmit}
+            />
+          </div>
         </Html>
       )}
     </group>
@@ -109,7 +125,7 @@ function InsightTooltip({ insight, isInteractive, disagreeState, onDisagreeClick
   if (!insight || insight.length === 0) {
     return (
       <div style={tooltipStyle}>
-        <div style={{ color: '#A8A29E', fontSize: '12px' }}>
+        <div style={{ color: '#A8A29E', fontSize: '13px' }}>
           Keep writing — your center is forming.
         </div>
       </div>
@@ -117,20 +133,20 @@ function InsightTooltip({ insight, isInteractive, disagreeState, onDisagreeClick
   }
 
   return (
-    <div style={{ ...tooltipStyle, maxWidth: '240px', pointerEvents: 'auto' }}>
-      <div style={{ fontWeight: 600, marginBottom: '8px', fontSize: '12px', color: '#FAFAF9' }}>
+    <div style={{ ...tooltipStyle, maxWidth: '300px' }}>
+      <div style={{ fontWeight: 600, marginBottom: '8px', fontSize: '13px', color: '#FAFAF9' }}>
         Your entries suggest:
       </div>
       <ul style={{ margin: 0, padding: '0 0 0 14px', listStyle: 'disc' }}>
         {insight.slice(0, 3).map((obs, i) => (
-          <li key={i} style={{ color: '#A8A29E', fontSize: '12px', lineHeight: 1.5, marginBottom: '4px' }}>
+          <li key={i} style={{ color: '#A8A29E', fontSize: '13px', lineHeight: 1.6, marginBottom: '4px' }}>
             {obs}
           </li>
         ))}
       </ul>
 
       {aiResponse && (
-        <div style={{ marginTop: '10px', color: '#D6D3D1', fontSize: '11px', fontStyle: 'italic', lineHeight: 1.5 }}>
+        <div style={{ marginTop: '10px', color: '#D6D3D1', fontSize: '12px', fontStyle: 'italic', lineHeight: 1.6 }}>
           {aiResponse}
         </div>
       )}
@@ -167,13 +183,13 @@ function InsightTooltip({ insight, isInteractive, disagreeState, onDisagreeClick
 const tooltipStyle: React.CSSProperties = {
   background: 'rgba(10, 10, 15, 0.94)',
   color: '#FAFAF9',
-  fontSize: '12px',
-  padding: '10px 14px',
+  fontSize: '13px',
+  padding: '12px 16px',
   borderRadius: '8px',
   boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
   userSelect: 'none',
   whiteSpace: 'normal',
-  minWidth: '160px',
+  minWidth: '220px',
 }
 
 const disagreeButtonStyle: React.CSSProperties = {
@@ -182,7 +198,7 @@ const disagreeButtonStyle: React.CSSProperties = {
   background: 'transparent',
   border: '1px solid rgba(255,255,255,0.15)',
   color: '#A8A29E',
-  fontSize: '11px',
+  fontSize: '12px',
   padding: '4px 10px',
   borderRadius: '4px',
   cursor: 'pointer',
@@ -195,7 +211,7 @@ const textareaStyle: React.CSSProperties = {
   border: '1px solid rgba(255,255,255,0.15)',
   borderRadius: '4px',
   color: '#FAFAF9',
-  fontSize: '11px',
+  fontSize: '12px',
   padding: '6px 8px',
   resize: 'none',
   outline: 'none',
