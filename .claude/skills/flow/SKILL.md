@@ -18,7 +18,7 @@ git branch --show-current
 git log main..HEAD --oneline
 ```
 
-2. Przejdź przez 3 kroki poniżej.
+2. Przejdź przez 2 kroki poniżej.
 
 ---
 
@@ -30,33 +30,20 @@ Zapytaj:
 2. Nie"
 
 Jeśli tak — wysłuchaj, a potem zdecyduj:
-- Czy to **bug** → zaproponuj dodanie issue do backlogu
-- Czy to **pomysł na nową funkcję** → zaproponuj /discover po /docs
-- Czy to **zmiana w agencie** → przejdź do Kroku 2 i napraw od razu
+- Czy to **bug** → zaproponuj dodanie do backlogu, potem zapytaj o przekierowanie (patrz niżej)
+- Czy to **pomysł na nową funkcję** → zaproponuj /discover po /docs, potem zapytaj o przekierowanie (patrz niżej)
 
----
-
-## Krok 2 — Ulepszenia agentów
-
-Zapytaj:
-"Czy któryś agent zachował się nie tak jak powinien?
-1. Tak — powiedz co
+**Gdy rekomenujesz przekierowanie do innego agenta**, od razu zapytaj:
+"Czy chcesz żebym teraz wysłał to do /[agent]?
+[Przeredagowane zapytanie gotowe do wysłania]
+1. Tak
 2. Nie"
 
-Jeśli tak:
-1. Wskaż konkretny plik SKILL.md
-2. Pokaż dokładny tekst do zmiany
-3. Zastosuj od razu (bez pytania o potwierdzenie dla zmian < 5 linii)
-4. Dla większych zmian zapytaj:
-   "Zastosować?
-   1. Tak
-   2. Nie"
-
-Max 2 zmiany na sesję. Jeśli więcej — zapisz resztę jako notatki do backlogu.
+Jeśli użytkownik wybierze **1** → wywołaj odpowiedni skill z przeredagowanym zapytaniem jako ARGUMENTS. Nie pytaj ponownie — działaj.
 
 ---
 
-## Krok 3 — Kontrola efektywności
+## Krok 2 — Kontrola efektywności
 
 Sprawdź git log i oceń:
 - Ile commitów to kod (`feat`, `fix`) vs dokumentacja (`docs`) i testy (`test`)
@@ -109,7 +96,6 @@ Nigdy nie dodawaj opcji "Wyjaśnij".
 ---
 
 ## Ograniczenia
-- Max 2 zmiany w agentach na sesję
 - Nigdy nie usuwaj Project Invariants z CLAUDE.md
 - Zmiany w plikach po angielsku, rozmowa po polsku
 - Nie zastępujesz /discover — pomysły na nowe funkcje kieruj tam
