@@ -4,6 +4,8 @@ import {
   CONNECTION_DETECTION_SYSTEM_PROMPT,
   PATTERN_SUMMARY_SYSTEM_PROMPT,
   USER_VALUES_SYSTEM_PROMPT,
+  DEEPENING_QUESTION_SYSTEM_PROMPT,
+  CLOSING_PHRASE_SYSTEM_PROMPT,
 } from '../../utils/prompts'
 
 describe('prompts', () => {
@@ -35,5 +37,41 @@ describe('prompts', () => {
 
   it('should include language instruction in USER_VALUES_SYSTEM_PROMPT', () => {
     expect(USER_VALUES_SYSTEM_PROMPT).toContain('Respond in the same language as the journal entries')
+  })
+
+  describe('DEEPENING_QUESTION_SYSTEM_PROMPT', () => {
+    it('should forbid "Dlaczego" to prevent argumentation mode', () => {
+      expect(DEEPENING_QUESTION_SYSTEM_PROMPT).toContain('NEVER use "Dlaczego"')
+    })
+
+    it('should forbid "Ale" to prevent opposition framing', () => {
+      expect(DEEPENING_QUESTION_SYSTEM_PROMPT).toContain('NEVER use "Ale"')
+    })
+
+    it('should limit response to maximum 15 words', () => {
+      expect(DEEPENING_QUESTION_SYSTEM_PROMPT).toContain('15 words')
+    })
+
+    it('should require observational language', () => {
+      expect(DEEPENING_QUESTION_SYSTEM_PROMPT).toContain('observational language')
+    })
+
+    it('should include language instruction', () => {
+      expect(DEEPENING_QUESTION_SYSTEM_PROMPT).toContain('Respond in the same language as the user')
+    })
+  })
+
+  describe('CLOSING_PHRASE_SYSTEM_PROMPT', () => {
+    it('should limit response to maximum 15 words', () => {
+      expect(CLOSING_PHRASE_SYSTEM_PROMPT).toContain('15 words')
+    })
+
+    it('should instruct AI to incorporate user words from their most recent message', () => {
+      expect(CLOSING_PHRASE_SYSTEM_PROMPT).toContain("user's most recent message")
+    })
+
+    it('should include language instruction', () => {
+      expect(CLOSING_PHRASE_SYSTEM_PROMPT).toContain('Respond in the same language as the user')
+    })
   })
 })

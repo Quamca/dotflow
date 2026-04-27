@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues } from '../../services/aiService'
+import { generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback } from '../../services/aiService'
+import { DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT } from '../../utils/prompts'
 import type { Entry } from '../../types'
 
 const mockNewEntry: Entry = {
@@ -253,6 +254,112 @@ describe('aiService', () => {
 
       // Assert
       expect(result).toHaveLength(5)
+    })
+  })
+
+  describe('respondToInsightFeedback', () => {
+    function stubFetchText(text: string) {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: text } }],
+          }),
+        })
+      )
+    }
+
+    it('should return response string when round is 1 and API succeeds', async () => {
+      // Arrange
+      stubFetchText('Co sprawia, że to poczucie jest silne właśnie teraz?')
+
+      // Act
+      const result = await respondToInsightFeedback(['insight text'], 'user feedback', 1, 'sk-test')
+
+      // Assert
+      expect(typeof result).toBe('string')
+      expect(result.length).toBeGreaterThan(0)
+    })
+
+    it('should return response string when round is 2 and API succeeds', async () => {
+      // Arrange
+      stubFetchText('To, co opisujesz, brzmi jak coś wartego zapisania.')
+
+      // Act
+      const result = await respondToInsightFeedback(['insight text'], 'my response', 2, 'sk-test')
+
+      // Assert
+      expect(typeof result).toBe('string')
+      expect(result.length).toBeGreaterThan(0)
+    })
+
+    it('should throw when OpenAI returns non-ok response', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({ ok: false, status: 401 })
+      )
+
+      // Act & Assert
+      await expect(
+        respondToInsightFeedback(['insight'], 'feedback', 1, 'sk-invalid')
+      ).rejects.toThrow('OpenAI API error: 401')
+    })
+
+    it('should use DEEPENING_QUESTION_SYSTEM_PROMPT for round 1', async () => {
+      // Arrange
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          choices: [{ message: { content: 'Deepening question?' } }],
+        }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      // Act
+      await respondToInsightFeedback(['insight'], 'feedback', 1, 'sk-test')
+
+      // Assert
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body as string) as { messages: Array<{ role: string; content: string }> }
+      expect(body.messages[0].content).toBe(DEEPENING_QUESTION_SYSTEM_PROMPT)
+    })
+
+    it('should use CLOSING_PHRASE_SYSTEM_PROMPT for round 2', async () => {
+      // Arrange
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          choices: [{ message: { content: 'Closing phrase.' } }],
+        }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      // Act
+      await respondToInsightFeedback(['insight'], 'my response', 2, 'sk-test')
+
+      // Assert
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body as string) as { messages: Array<{ role: string; content: string }> }
+      expect(body.messages[0].content).toBe(CLOSING_PHRASE_SYSTEM_PROMPT)
+    })
+
+    it('should return empty string when response content is missing', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: null } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await respondToInsightFeedback(['insight'], 'feedback', 1, 'sk-test')
+
+      // Assert
+      expect(result).toBe('')
     })
   })
 

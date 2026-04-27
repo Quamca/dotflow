@@ -1970,6 +1970,242 @@ export const mockEntry = {
 
 ---
 
+## 3.9 FEATURE: Dialectical Insight Response (US-203)
+
+### TC-102: respondToInsightFeedback returns string when round 1 and API succeeds
+
+**Related US:** US-203
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return valid OpenAI response with question string
+
+**Test Steps:**
+1. Call `respondToInsightFeedback(['insight'], 'feedback', 1, 'sk-test')`
+
+**Expected Result:**
+- Returns non-empty string
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-103: respondToInsightFeedback returns string when round 2 and API succeeds
+
+**Related US:** US-203
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return valid OpenAI response with closing phrase string
+
+**Test Steps:**
+1. Call `respondToInsightFeedback(['insight'], 'my response', 2, 'sk-test')`
+
+**Expected Result:**
+- Returns non-empty string
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-104: respondToInsightFeedback throws when OpenAI returns non-ok response
+
+**Related US:** US-203
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return `{ ok: false, status: 401 }`
+
+**Test Steps:**
+1. Call `respondToInsightFeedback(['insight'], 'feedback', 1, 'sk-invalid')`
+
+**Expected Result:**
+- Promise rejects with `'OpenAI API error: 401'`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-105: respondToInsightFeedback uses DEEPENING_QUESTION_SYSTEM_PROMPT for round 1
+
+**Related US:** US-203
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` spy set up
+
+**Test Steps:**
+1. Call `respondToInsightFeedback(['insight'], 'feedback', 1, 'sk-test')`
+2. Inspect fetch body — `messages[0].content`
+
+**Expected Result:**
+- System prompt equals `DEEPENING_QUESTION_SYSTEM_PROMPT`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-106: respondToInsightFeedback uses CLOSING_PHRASE_SYSTEM_PROMPT for round 2
+
+**Related US:** US-203
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` spy set up
+
+**Test Steps:**
+1. Call `respondToInsightFeedback(['insight'], 'my response', 2, 'sk-test')`
+2. Inspect fetch body — `messages[0].content`
+
+**Expected Result:**
+- System prompt equals `CLOSING_PHRASE_SYSTEM_PROMPT`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-107: respondToInsightFeedback returns empty string when response content is missing
+
+**Related US:** US-203
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- `fetch` stubbed to return `content: null`
+
+**Test Steps:**
+1. Call `respondToInsightFeedback(['insight'], 'feedback', 1, 'sk-test')`
+
+**Expected Result:**
+- Returns `''`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-108: DEEPENING_QUESTION_SYSTEM_PROMPT forbids "Dlaczego"
+
+**Related US:** US-203
+**Type:** Unit
+**Priority:** Critical
+
+**Expected Result:**
+- Prompt contains `NEVER use "Dlaczego"`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-109: DEEPENING_QUESTION_SYSTEM_PROMPT forbids "Ale"
+
+**Related US:** US-203
+**Type:** Unit
+**Priority:** Critical
+
+**Expected Result:**
+- Prompt contains `NEVER use "Ale"`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-110: DEEPENING_QUESTION_SYSTEM_PROMPT limits response to 15 words
+
+**Related US:** US-203
+**Type:** Unit
+**Priority:** Critical
+
+**Expected Result:**
+- Prompt contains `15 words`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-111: DEEPENING_QUESTION_SYSTEM_PROMPT requires observational language
+
+**Related US:** US-203
+**Type:** Unit
+**Priority:** Critical
+
+**Expected Result:**
+- Prompt contains `observational language`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-112: DEEPENING_QUESTION_SYSTEM_PROMPT includes language instruction
+
+**Related US:** US-203
+**Type:** Unit
+**Priority:** High
+
+**Expected Result:**
+- Prompt contains `Respond in the same language as the user`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-113: CLOSING_PHRASE_SYSTEM_PROMPT limits response to 15 words
+
+**Related US:** US-203
+**Type:** Unit
+**Priority:** Critical
+
+**Expected Result:**
+- Prompt contains `15 words`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-114: CLOSING_PHRASE_SYSTEM_PROMPT instructs AI to incorporate user's words
+
+**Related US:** US-203
+**Type:** Unit
+**Priority:** Critical
+
+**Expected Result:**
+- Prompt contains `user's most recent message`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-115: CLOSING_PHRASE_SYSTEM_PROMPT includes language instruction
+
+**Related US:** US-203
+**Type:** Unit
+**Priority:** High
+
+**Expected Result:**
+- Prompt contains `Respond in the same language as the user`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
 ## 4. Test Data
 
 ### 4.1 Mock Data Sets
@@ -2122,6 +2358,27 @@ For verification after /dev implementation.
 8. **Check:** Stars for C1–C5 entries appear closer to the black hole center than randomly-written entries — PASS if visible clustering near center
 9. Hover over the black hole
 10. **Check:** Tooltip shows insight text or fallback "Keep writing — your center is forming." — PASS
+
+---
+
+### US-203: Dialectical Insight Response — Manual Verification
+
+> Requires 10 entries with generated insight (C1–C5 + D1–D5 from corpus, then "Generate insights" clicked)
+
+1. Ensure API key is set in Settings and you have 10+ entries with a generated pattern summary
+2. Click Dotflow logo — enter 3D mode
+3. Hover over the black hole — tooltip with insight appears
+4. **Check:** "To nie brzmi jak ja" button visible below insight — PASS
+5. Click the button — **Check:** input field appears with placeholder "Co sprawia, że ten wgląd nie pasuje?" — PASS
+6. Type any text and submit (round 1)
+7. **Check:** AI responds with one short question (≤15 words, neutral tone) — insight text unchanged — PASS
+8. Type another response and submit (round 2)
+9. **Check:** AI responds with a closing phrase that echoes your own words — PASS
+10. **Check:** Amber "Write Entry" button appears at bottom of screen — PASS
+11. **Check:** No message anywhere about hitting a round limit — PASS
+12. **Check:** Insight on black hole still shows original text — PASS
+
+**Pass criteria:** All 12 steps pass. Tooltip UX (hover reliability, sizing) tracked separately as open UX issues for /consult.
 
 ---
 
