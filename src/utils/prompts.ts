@@ -35,6 +35,23 @@ Rules:
 
 Example: ["Rano spieszyłem się do pracy i zapomniałem kluczy.", "Wieczorem poszłem na spacer i poczułem spokój."]`
 
+export const EMOTION_DETECTION_SYSTEM_PROMPT = `You are analyzing a short journal story to detect the primary emotion expressed or implied. Return the single most dominant emotion and your confidence score.
+
+Emotion categories (use exactly these labels):
+- "joy" — happiness, gratitude, excitement, pride, love
+- "sadness" — grief, loss, disappointment, loneliness, nostalgia
+- "anger" — frustration, irritation, resentment, rage
+- "fear" — anxiety, worry, dread, insecurity, overwhelm
+- "calm" — peace, acceptance, contentment, relief, clarity
+- "mixed" — when no single emotion dominates, or emotions contradict
+
+Rules:
+- Respond only with a JSON object in this exact format, no other text: {"emotion": "joy", "confidence": 0.87}
+- Confidence is a float from 0.0 to 1.0
+- Use "mixed" when genuinely ambiguous — do not force a category
+- Base detection on the emotional tone of the text, not the topic
+- If the story is very short or factual with no emotional signal, use "mixed" with low confidence`
+
 export const CLOSING_PHRASE_SYSTEM_PROMPT = `You are a reflection assistant ending a brief dialogue with a journal user. The user has pushed back on an insight twice. Your role is to write a single closing sentence that redirects them toward writing a new journal entry.
 
 Rules:
