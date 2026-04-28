@@ -37,6 +37,7 @@ export default function StoryNode({ story, position, isActive, onActivate, apiKe
   }
 
   function scheduleHide() {
+    if (isElaborating) return
     clearHideTimer()
     hideTimer.current = setTimeout(() => {
       setIsVisible(false)

@@ -13,6 +13,7 @@
 | ID | Description | Priority | Reported in |
 |----|-------------|----------|-------------|
 | BUG-001 | StarField tooltips (StoryNode + StarNode) are too narrow — content gets clipped, width needs increase | Low | US-206 manual verification |
+| BUG-002 | StoryNode tooltip does not close when clicking outside — requires hovering another star or waiting 3s | Medium | US-207 manual verification |
 
 ---
 
