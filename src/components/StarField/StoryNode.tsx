@@ -6,20 +6,25 @@ import { addElaboration } from '../../services/storyService'
 interface StoryNodeProps {
   story: Story
   position: [number, number, number]
+  isActive: boolean
+  onActivate: (id: string) => void
 }
 
 const STORY_STAR_SIZE = 0.06
 const HIDE_DELAY_MS = 3000
+const CONFIRMATION_DURATION_MS = 2000
 
-export default function StoryNode({ story, position }: StoryNodeProps) {
+export default function StoryNode({ story, position, isActive, onActivate }: StoryNodeProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [isElaborating, setIsElaborating] = useState(false)
   const [elaborationText, setElaborationText] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const preview = story.content.length > 80 ? `${story.content.slice(0, 80)}…` : story.content
+  const tooltipVisible = isVisible && isActive
 
   function clearHideTimer() {
     if (hideTimer.current) {
@@ -44,6 +49,11 @@ export default function StoryNode({ story, position }: StoryNodeProps) {
       setSaved(true)
       setIsElaborating(false)
       setElaborationText('')
+      setShowConfirmation(true)
+      setTimeout(() => {
+        setShowConfirmation(false)
+        setIsVisible(false)
+      }, CONFIRMATION_DURATION_MS)
     } finally {
       setIsSaving(false)
     }
@@ -55,16 +65,17 @@ export default function StoryNode({ story, position }: StoryNodeProps) {
         onPointerEnter={() => {
           clearHideTimer()
           setIsVisible(true)
+          onActivate(story.id)
         }}
         onPointerLeave={scheduleHide}
       >
         <sphereGeometry args={[STORY_STAR_SIZE, 8, 8]} />
         <meshBasicMaterial color={saved ? '#A8A29E' : '#C4B5A5'} />
       </mesh>
-      {isVisible && (
+      {tooltipVisible && (
         <Html style={{ pointerEvents: 'auto' }}>
           <div
-            onMouseEnter={clearHideTimer}
+            onMouseEnter={() => { clearHideTimer(); onActivate(story.id) }}
             onMouseLeave={scheduleHide}
             style={{
               background: 'rgba(28, 25, 23, 0.95)',
@@ -76,6 +87,12 @@ export default function StoryNode({ story, position }: StoryNodeProps) {
               width: '220px',
             }}
           >
+            {showConfirmation ? (
+              <div style={{ color: '#A8A29E', textAlign: 'center', padding: '8px 0', fontStyle: 'italic' }}>
+                Pięknie.
+              </div>
+            ) : (
+            <>
             <div
               style={{
                 color: '#A8A29E',
@@ -160,6 +177,8 @@ export default function StoryNode({ story, position }: StoryNodeProps) {
                   </button>
                 </div>
               </div>
+            )}
+            </>
             )}
           </div>
         </Html>

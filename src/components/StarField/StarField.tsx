@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Line } from '@react-three/drei'
 import type { Entry, Connection, Story } from '../../types'
@@ -24,6 +24,8 @@ interface StarFieldProps {
 }
 
 export default function StarField({ entries, connections, stories = [], isInteractive, insight, userValues, apiKey, onRoundLimitReached }: StarFieldProps) {
+  const [activeStoryId, setActiveStoryId] = useState<string | null>(null)
+
   const positionMap = useMemo(() => {
     const map = new Map<string, [number, number, number]>()
     entries.forEach((e) => {
@@ -99,6 +101,8 @@ export default function StarField({ entries, connections, stories = [], isIntera
           key={story.id}
           story={story}
           position={storyPositionMap.get(story.id) ?? [0, 0, 0]}
+          isActive={activeStoryId === story.id}
+          onActivate={setActiveStoryId}
         />
       ))}
       {sessionLines.map((line) => (
