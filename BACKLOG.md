@@ -17,7 +17,7 @@
 | M2.5 | Experience Depth (pre-M3) | 🔄 In Progress |
 | M3 | Multi-User + Mobile | ⏸️ Blocked — M2.5 must complete first |
 
-> **M3 Blocker:** M3 will not start until all M2.5 items are complete: 3D Visualization (US-201, US-202), User Onboarding (US-204), Adaptive Pattern Summaries (US-205), AI Communication Principles document. Security/Privacy Messaging (FEATURE-015) is a M3 item, not a blocker.
+> **M3 Blocker:** M3 will not start until all M2.5 P0/P1 items are complete: 3D Visualization (US-201, US-202), Story Extraction (US-206, P0), Emotion Intelligence (US-207), Contextual Follow-Up (US-210), Adaptive Pattern Summaries (US-205), Life Area Zones (US-208), AI Communication Principles document. US-204 (Onboarding, P2) and US-209 (Typed Connections, P2) may follow the M3 gate. Security/Privacy Messaging (FEATURE-015) is a M3 item, not a blocker.
 
 > **Test Corpus:** `docs/test_corpus.md` contains 15 predefined Polish-language journal entries for manual AI verification. Use these instead of random text when verifying connection detection (US-101), pattern summary (US-102), and values extraction (US-202). See `docs/test_cases.md` section 6 for step-by-step instructions referencing specific corpus entries.
 
@@ -41,9 +41,14 @@ EPIC-002: Dotflow M2 — Connections + Patterns
 EPIC-002b: Dotflow M2.5 — Experience Depth (pre-M3)
 ├── FEATURE-011: 3D Entry Visualization ("Gwiezdne niebo")
 ├── FEATURE-012: Insight Feedback Loop
-├── FEATURE-013: User Onboarding & Instructions         [to be discovered]
+├── FEATURE-013: User Onboarding & Instructions         [P2 — after story model]
 ├── FEATURE-014: Adaptive Pattern Summaries
-└── FEATURE-015: Security & Privacy Messaging           [deferred to M3]
+├── FEATURE-015: Security & Privacy Messaging           [deferred to M3]
+├── FEATURE-016: Story Extraction                       [P0 — architectural pivot]
+├── FEATURE-017: Emotion Intelligence per Story         [P1]
+├── FEATURE-018: Contextual Follow-Up Questions         [P1]
+├── FEATURE-019: Life Area Zones                        [P1]
+└── FEATURE-020: Typed Connection Visualization         [P2]
 
 EPIC-003: Dotflow M3 — Multi-User + Mobile             [BLOCKED — M2.5 first]
 ├── FEATURE-009: Authentication
@@ -821,7 +826,7 @@ Each hint's "seen" state stored in localStorage. Never shown again after first v
 - FEATURE-005, FEATURE-007 (hints 1 and 2)
 - US-201 (hint 3 — black hole must exist)
 
-**Priority:** P1
+**Priority:** P2
 **Status:** 📋 Planned
 
 ---
@@ -837,7 +842,7 @@ Add a one-time contextual hint to three AI feature moments: first follow-up ques
 
 **Status:** 📋 Planned
 **Story Points:** 3
-**Priority:** P1
+**Priority:** P2
 
 **Acceptance Criteria:**
 - [ ] First FollowUpDialog render: one-liner hint above dialog: *"Dotflow asks 2–3 questions to help you go deeper."*
@@ -928,6 +933,15 @@ Depth score per entry — range 0–20 pts (based on Pennebaker Expressive Writi
 | Character | Immediate, specific | Cumulative, identity-level |
 | Example | *"This echoes something you felt 3 weeks ago."* | *"You tend to doubt yourself before big decisions."* |
 
+**Black Hole Insight Behavior by Story Context:**
+
+| Incoming story pattern | Black hole response |
+|---|---|
+| Same/repeated topic appears again | *"Ten temat pojawia się kolejny raz — coś w nim jest ważnego."* |
+| Contradicting or different story from previous | *"Tym razem inaczej — coś się zdaje zmieniać."* |
+| Single short entry (<30 words) | Silence — no comment |
+| 3+ consecutive short entries | *"Czy nie chcesz dziś pisać, czy jest coś co sprawia Ci trudność w opowiedzeniu?"* |
+
 **Acceptance Criteria:**
 - [ ] Each entry contributes a depth score to the accumulator on save
 - [ ] Depth score follows Pennebaker model: 3 pts/follow-up answer (max 15), word count tier (+1/+2/+3), connection bonus (+2), <30 words = 0 flat; range 0–20
@@ -941,6 +955,10 @@ Depth score per entry — range 0–20 pts (based on Pennebaker Expressive Writi
 - [ ] Connection insight: appears inline near ConnectionBadge when connection detected — one sentence, specific
 - [ ] Before first holistic insight: black hole hover shows: *"Keep writing — your center is forming."*
 - [ ] All insight persistence in localStorage; holistic insight does not regenerate on every hover
+- [ ] Repeated topic detected → black hole shows: *"Ten temat pojawia się kolejny raz — coś w nim jest ważnego."*
+- [ ] Contradicting topic detected → black hole shows: *"Tym razem inaczej — coś się zdaje zmieniać."*
+- [ ] Single short entry → silence (no black hole comment)
+- [ ] 3 or more consecutive short entries → *"Czy nie chcesz dziś pisać, czy jest coś co sprawia Ci trudność w opowiedzeniu?"*
 
 **Tasks:**
 - [ ] **TASK-205.1:** Design and implement `src/hooks/useDepthAccumulator.ts` — score computation + localStorage persistence - 45min
@@ -961,6 +979,299 @@ Depth score per entry — range 0–20 pts (based on Pennebaker Expressive Writi
 
 **Description:** Moved to M3. Privacy messaging for end users (registration/login flow, no API key required). Details to be defined in /discover session before M3 planning.
 **Status:** ⏸️ Deferred to M3
+
+---
+
+## 🔧 FEATURE-016: Story Extraction
+
+**Description:**
+Architectural pivot: the star in the 3D visualization is no longer an entry — it is a **story**. When the user saves an entry, AI automatically extracts N distinct stories (scenes, situations, events) from the entry text. Each story becomes a separate star. Stories from the same entry are connected by a session line. Each star has a "Dopowiedz" (Elaborate) button — writing more about a story adds context; it never deletes or replaces the original. AI re-classifies emotion and life area based on the elaboration.
+
+**User Value:**
+One long entry can contain multiple emotionally distinct events. Treating the entry as a single star loses nuance. Story-as-star makes the 3D sky richer and psychologically truer.
+
+**Dependencies:**
+- US-201, US-202 (3D visualization must exist)
+
+**New Supabase Table: `stories`**
+- `id` (uuid PK), `entry_id` (uuid FK), `content` (text), `emotion` (text), `emotion_confidence` (float), `life_area` (text, nullable), `position` (float[], stable 3D [x,y,z]), `created_at` (timestamp)
+
+**Scope Boundaries:**
+- **Includes:** AI story extraction, `stories` table, StoryNode component in 3D scene, session lines, "Dopowiedz" elaboration flow
+- **Excludes:** Emotion classification (US-207), life area clustering (US-208)
+
+**Priority:** P0
+**Status:** 📋 Planned
+
+---
+
+### US-206: Story Extraction — One Entry, Many Stars
+
+**Description:**
+After the user saves an entry, AI automatically segments it into N distinct stories/situations. Each story becomes a separate star in the 3D visualization. Stories from the same entry are visually connected by a thin session line. Every star has a "Dopowiedz" button — the user can add more context later; AI re-classifies based on the elaboration.
+
+**As a** user
+**I want** my entry automatically split into individual story stars
+**So that** each distinct moment in my life has its own visual presence in the sky
+
+**Status:** 📋 Planned
+**Story Points:** 13
+**Priority:** P0
+
+**Acceptance Criteria:**
+- [ ] On entry save, `aiService.extractStories(content, apiKey)` called — returns array of story strings
+- [ ] Each story saved to `stories` table linked to the entry
+- [ ] Each story rendered as a separate `<StoryNode>` in StarField
+- [ ] Stories from same entry connected by a thin session line (distinct from constellation connection lines)
+- [ ] "Dopowiedz" button on each StoryNode tooltip — opens elaboration textarea
+- [ ] On submit of elaboration: original story content preserved, AI re-classifies based on combined text
+- [ ] Story positions are stable (derived from story id, not entry id)
+- [ ] Entry with 0 detectable stories (e.g., single-word entry) → treated as 1 story
+
+**Tasks:**
+- [ ] **TASK-206.1:** Create `stories` table in Supabase — id, entry_id, content, emotion, emotion_confidence, life_area, position, created_at - 20min
+- [ ] **TASK-206.2:** Implement `aiService.extractStories(content, apiKey)` with story segmentation prompt - 60min
+- [ ] **TASK-206.3:** Implement `storyService.saveStories(entryId, stories)` and `storyService.getStoriesForEntry(entryId)` - 30min
+- [ ] **TASK-206.4:** Create `src/components/StoryNode/StoryNode.tsx` — star mesh + tooltip + "Dopowiedz" button - 60min
+- [ ] **TASK-206.5:** Add session lines between stories from same entry in StarField - 30min
+- [ ] **TASK-206.6:** Implement "Dopowiedz" elaboration flow — save elaboration, call re-classification - 45min
+- [ ] **TASK-206.7:** Update `starPositions.ts` to derive stable position from story id - 20min
+- [ ] **TASK-206.8:** Write tests (/qa) - 60min
+- [ ] **TASK-206.9:** Manual verification - 20min
+
+---
+
+## 🔧 FEATURE-017: Emotion Intelligence per Story
+
+**Description:**
+Each story has an AI-detected emotion and a confidence score. If confidence is above 80%, emotion is assigned silently. If below 80%, AI still assigns its best guess silently — no prompt, no wheel. The user corrects emotion post-hoc: noticing a wrong star color → "Dopowiedz" → elaboration → AI re-classifies. No emotion wheel is ever shown in the UI.
+
+**UX Decision (confirmed by /consult):** Removing the emotion wheel from the post-write flow eliminates cumulative friction. Deferred emotion correction via "Dopowiedz" is grounded in self-determination theory — user initiates, not prompted.
+
+**User Value:**
+Star colors reflect emotional truth. The user trusts the sky more when they can correct it naturally, without being interrogated.
+
+**Dependencies:**
+- US-206 (stories must exist)
+
+**Scope Boundaries:**
+- **Includes:** Emotion detection per story, confidence threshold logic, star color mapping, post-hoc correction via "Dopowiedz"
+- **Excludes:** Emotion wheel UI (explicitly removed)
+
+**Priority:** P1
+**Status:** 📋 Planned
+
+---
+
+### US-207: Emotion Intelligence per Story
+
+**Description:**
+AI detects emotion and confidence for each story on save. High confidence (>80%) → silent assignment. Low confidence (<80%) → best guess assigned silently, no prompt. Star color = story emotion. Correction happens post-hoc via "Dopowiedz" elaboration.
+
+**As a** user
+**I want** each star to have a color that reflects the emotion of that story
+**So that** the sky gives me an honest emotional picture of my life
+
+**Status:** 📋 Planned
+**Story Points:** 8
+**Priority:** P1
+
+**Emotion Color Palette:**
+- Joy / gratitude → warm amber (#F59E0B)
+- Sadness / grief → deep blue (#3B82F6)
+- Anger / frustration → red (#EF4444)
+- Fear / anxiety → violet (#8B5CF6)
+- Calm / acceptance → teal (#14B8A6)
+- Mixed / unclear → neutral stone (#78716C, default)
+
+**Acceptance Criteria:**
+- [ ] On story save, `aiService.detectEmotionConfidence(storyContent, apiKey)` called — returns `{emotion, confidence}`
+- [ ] Emotion and confidence stored in `stories` table
+- [ ] Star color in StoryNode reflects emotion (color mapping from palette above)
+- [ ] Both high-confidence (>80%) and low-confidence (<80%) results assigned silently — no UI prompt shown either way
+- [ ] No emotion wheel shown at any point in the flow
+- [ ] "Dopowiedz" elaboration triggers re-classification: `aiService.detectEmotionConfidence(originalContent + elaboration, apiKey)` → updates story emotion
+- [ ] Star color updates after re-classification
+- [ ] Default color (stone) shown before emotion is classified
+
+**Tasks:**
+- [ ] **TASK-207.1:** Implement `aiService.detectEmotionConfidence(storyContent, apiKey)` - 45min
+- [ ] **TASK-207.2:** Add emotion prompt to `src/utils/prompts.ts` - 20min
+- [ ] **TASK-207.3:** Map emotion strings to color hex values in `src/utils/emotionColors.ts` - 20min
+- [ ] **TASK-207.4:** Update StoryNode to apply color from emotion mapping - 20min
+- [ ] **TASK-207.5:** Trigger re-classification on "Dopowiedz" submission - 30min
+- [ ] **TASK-207.6:** Write tests (/qa) - 45min
+- [ ] **TASK-207.7:** Manual verification - 15min
+
+---
+
+## 🔧 FEATURE-018: Contextual Follow-Up Questions Between Lines
+
+**Description:**
+Follow-up questions are rewritten: AI no longer asks about emotions or facts already written explicitly. It asks about what is between the lines — hidden context, people mentioned in passing, life areas the user never addresses. AI has access to stories from the current entry and recent past entries.
+
+**Long Entry Rule (confirmed by /consult):** If the entry is >300 words, no follow-up questions are shown. The app responds with a single word: *"Pięknie."* — an acknowledgment of depth, not an evaluation. The user then explores the sky.
+
+**User Value:**
+Questions that ask about what's already written feel redundant and surveillance-like. Questions that find what's missing feel like a thoughtful friend noticed something.
+
+**Dependencies:**
+- US-206 (stories must exist — AI reads current stories for context)
+
+**Scope Boundaries:**
+- **Includes:** Updated follow-up prompt with story context, long entry threshold (>300 words), "Pięknie." acknowledgment
+- **Excludes:** Emotion wheel (removed in US-207)
+
+**Priority:** P1
+**Status:** 📋 Planned
+
+---
+
+### US-210: Contextual Follow-Up Questions Between Lines
+
+**Description:**
+Rewrite follow-up question generation so AI avoids restating what was already written. AI reads current entry stories and last 3 entries to find implicit context, unmentioned people, recurring avoidance patterns. Entries >300 words receive only "Pięknie." — no questions.
+
+**As a** user
+**I want** follow-up questions that ask about what I didn't write
+**So that** the questions feel like real insight, not a form to fill
+
+**Status:** 📋 Planned
+**Story Points:** 5
+**Priority:** P1
+
+**Acceptance Criteria:**
+- [ ] If entry word count >300: no follow-up dialog shown; AI responds with *"Pięknie."* acknowledgment text; user navigates to home/sky
+- [ ] If entry word count ≤300: follow-up dialog shown with updated questions
+- [ ] Updated `generateFollowUpQuestions()` prompt includes: current entry stories + last 3 entry stories as context
+- [ ] Prompt explicitly instructs AI to avoid restating emotions/facts already written in the entry
+- [ ] Prompt focuses on: hidden context, people mentioned briefly, life areas the user doesn't address
+- [ ] "Pięknie." text shown inline on NewEntryPage before navigation (not a separate screen)
+
+**Tasks:**
+- [ ] **TASK-210.1:** Add word count check in NewEntryPage — branch to "Pięknie." path if >300 words - 15min
+- [ ] **TASK-210.2:** Add "Pięknie." UI state in NewEntryPage (text + navigate to home button) - 20min
+- [ ] **TASK-210.3:** Update `generateFollowUpQuestions()` signature and prompt to include story context - 45min
+- [ ] **TASK-210.4:** Update prompt in `src/utils/prompts.ts` with between-the-lines instruction - 30min
+- [ ] **TASK-210.5:** Write tests (/qa) - 45min
+- [ ] **TASK-210.6:** Manual verification - 15min
+
+---
+
+## 🔧 FEATURE-019: Life Area Zones
+
+**Description:**
+Life area zones emerge organically from stories accumulated in the sky — no default zones (no "Praca", "Rodzina", "Zdrowie" preset). After ~15 stories, clusters of thematically related stars become visible. AI suggests a zone label (hover-only). User can rename the label or leave it blank (no label = no zone). Areas the user never writes about are not shown as empty zones.
+
+**User Value:**
+Default life area zones create a surveillance feeling — "you haven't written about Health this week." Emergent zones reflect the user's actual life, not a template of what life should look like.
+
+**Dependencies:**
+- US-206 (stories must exist and accumulate)
+- US-207 (emotion per story — clusters may also reflect emotional similarity)
+
+**Scope Boundaries:**
+- **Includes:** Life area classification per story, cluster emergence after ~15 stories, hover-only label, user renaming
+- **Excludes:** Any default/preset zones, empty zone visualization
+
+**Priority:** P1
+**Status:** 📋 Planned
+
+---
+
+### US-208: Life Area Zones — Emergent Clusters
+
+**Description:**
+After ~15 stories, AI detects thematic clusters and suggests hover-only zone labels. User can rename or clear a label. No default zones. No visualization of absent life areas.
+
+**As a** user
+**I want** my sky to naturally group into areas of my life
+**So that** I see my actual patterns — not a template of what I should be writing about
+
+**Status:** 📋 Planned
+**Story Points:** 8
+**Priority:** P1
+
+**Acceptance Criteria:**
+- [ ] `aiService.classifyLifeArea(storyContent, existingAreas, apiKey)` assigns a life area label to each story (or null if unclear)
+- [ ] Life area stored in `stories.life_area` field
+- [ ] Zone clusters rendered in 3D as subtle ambient glows grouping nearby story stars
+- [ ] Zone label appears only on hover — not visible by default
+- [ ] User can rename a zone label (stored in localStorage)
+- [ ] User can clear a zone label (zone disappears without label)
+- [ ] Zones only emerge when cluster has ≥5 stories in the same area
+- [ ] No placeholder / empty zones for life areas the user never writes about
+- [ ] Zones are fully emergent — no preset list (no "Praca", "Rodzina", etc.)
+
+**Tasks:**
+- [ ] **TASK-208.1:** Implement `aiService.classifyLifeArea(storyContent, existingAreas, apiKey)` - 45min
+- [ ] **TASK-208.2:** Add life area prompt to `src/utils/prompts.ts` - 20min
+- [ ] **TASK-208.3:** Implement zone cluster detection from `stories.life_area` values — group stories, compute cluster centroid - 40min
+- [ ] **TASK-208.4:** Render zone ambient glow in StarField (visible only when cluster ≥5 stories) - 45min
+- [ ] **TASK-208.5:** Add hover-only label rendering per zone cluster - 20min
+- [ ] **TASK-208.6:** Create `useLifeAreaZones.ts` hook — manages labels + user renames in localStorage - 30min
+- [ ] **TASK-208.7:** Write tests (/qa) - 45min
+- [ ] **TASK-208.8:** Manual verification - 20min
+
+---
+
+## 🔧 FEATURE-020: Typed Connection Visualization
+
+**Description:**
+Connections between stories are visually differentiated by content type. No labels shown to user — only visual line style. Three types based on content analysis:
+- Similar emotions in both stories → solid colored lines
+- Similar topic/situation → dashed lines
+- Similar life choices → chain-style lines
+
+A connection filter panel in 3D mode lets the user hide/show connection types.
+
+**UX Decision (confirmed by /consult):** No Dilts neurological level labels visible to user. No psychological typing (DISC, MBTI). Classification is content-based only, internal to the AI. Visual differentiation communicates "these are different kinds of connections" without naming the framework.
+
+**Dependencies:**
+- US-206 (story-level connections), US-208 (life area context for life-choice classification)
+
+**Scope Boundaries:**
+- **Includes:** Connection type classification, visual line styles per type, 3D filter panel
+- **Excludes:** Any visible psychological labels, DISC/MBTI/Dilts labels
+
+**Priority:** P2
+**Status:** 📋 Planned
+
+---
+
+### US-209: Typed Connection Visualization
+
+**Description:**
+Add visual type differentiation to constellation lines between connected stories. Three line styles based on content: solid colored (emotional similarity), dashed (thematic similarity), chain (similar life choices). Filter panel in 3D mode to show/hide types.
+
+**As a** user
+**I want** to see different kinds of connections between my stories visually
+**So that** I can explore what kind of patterns keep appearing in my life
+
+**Status:** 📋 Planned
+**Story Points:** 8
+**Priority:** P2
+
+**Acceptance Criteria:**
+- [ ] `aiService.classifyConnectionType(story1, story2, apiKey)` returns `"emotional" | "thematic" | "life-choices"`
+- [ ] Connection type stored in `connections.type` field
+- [ ] Solid colored lines render for `emotional` connections
+- [ ] Dashed lines render for `thematic` connections
+- [ ] Chain-style lines render for `life-choices` connections
+- [ ] No labels on lines — visual differentiation only
+- [ ] Filter panel visible in 3D interactive mode: checkboxes to show/hide each type
+- [ ] Filter state persisted in localStorage
+- [ ] No Dilts labels, no DISC/MBTI, no psychological typing visible to user
+
+**Tasks:**
+- [ ] **TASK-209.1:** Add `type` column to `connections` table in Supabase - 10min
+- [ ] **TASK-209.2:** Implement `aiService.classifyConnectionType(story1, story2, apiKey)` - 45min
+- [ ] **TASK-209.3:** Add connection type prompt to `src/utils/prompts.ts` - 20min
+- [ ] **TASK-209.4:** Update `ConstellationLines.tsx` to render three distinct line styles by type - 45min
+- [ ] **TASK-209.5:** Create 3D filter panel component in StarField - 30min
+- [ ] **TASK-209.6:** Persist filter state in localStorage via `useConnectionFilter.ts` hook - 20min
+- [ ] **TASK-209.7:** Write tests (/qa) - 45min
+- [ ] **TASK-209.8:** Manual verification - 20min
 
 ---
 

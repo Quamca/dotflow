@@ -45,8 +45,11 @@ graph TB
 ```mermaid
 erDiagram
     ENTRY ||--o{ FOLLOWUP : has
+    ENTRY ||--o{ STORY : contains
     ENTRY ||--o{ CONNECTION : source
     ENTRY ||--o{ CONNECTION : target
+    STORY ||--o{ CONNECTION : source_story
+    STORY ||--o{ CONNECTION : target_story
 
     ENTRY {
         uuid id PK
@@ -55,6 +58,17 @@ erDiagram
         text[] tags
         timestamp created_at
         timestamp updated_at
+    }
+
+    STORY {
+        uuid id PK
+        uuid entry_id FK
+        text content
+        text emotion
+        float emotion_confidence
+        text life_area
+        float[] position
+        timestamp created_at
     }
 
     FOLLOWUP {
@@ -70,8 +84,11 @@ erDiagram
         uuid id PK
         uuid source_entry_id FK
         uuid target_entry_id FK
+        uuid source_story_id FK
+        uuid target_story_id FK
         float similarity_score
         text connection_note
+        text type
         timestamp created_at
     }
 ```
@@ -79,8 +96,14 @@ erDiagram
 **Notes:**
 - `ENTRY.emotions` — array of detected/confirmed emotion tags (e.g., ["frustrated", "hopeful"])
 - `ENTRY.tags` — array of topic tags (e.g., ["work", "relationship", "decision"])
+- `STORY.emotion` — AI-detected primary emotion for this story (e.g., "frustrated", "hopeful")
+- `STORY.emotion_confidence` — 0.0 to 1.0; AI confidence in emotion classification; both high and low confidence assigned silently — no UI prompt
+- `STORY.life_area` — emergent life area cluster label (AI-suggested, user-renameable, null if area unclear)
+- `STORY.position` — stable 3D position [x, y, z] derived from story id hash
+- `CONNECTION.source_story_id` / `target_story_id` — story-level connection (null for legacy entry-level connections)
 - `CONNECTION.similarity_score` — 0.0 to 1.0, computed by AI when new entry is created
-- `CONNECTION.connection_note` — AI-generated sentence explaining why entries are connected
+- `CONNECTION.connection_note` — AI-generated sentence explaining why stories are connected
+- `CONNECTION.type` — content-based visual type: `"emotional"` (similar emotions), `"thematic"` (similar topic/situation), `"life-choices"` (similar life decisions); no Dilts or psychological labels
 
 ---
 
@@ -129,11 +152,12 @@ dotflow/
 │   │   │   └── ConnectionBadge.tsx
 │   │   ├── PatternSummary/  # Bullet-list display of AI pattern observations (US-102)
 │   │   │   └── PatternSummary.tsx
-│   │   ├── StarField/       # 3D star-field visualization (US-201, US-202)
-│   │   │   ├── StarField.tsx        # Canvas scene: Camera, OrbitControls, lights, star nodes, constellation lines, black hole
-│   │   │   ├── StarNode.tsx         # Individual star mesh + Html tooltip on hover
+│   │   ├── StarField/       # 3D star-field visualization (US-201, US-202, US-206–209)
+│   │   │   ├── StarField.tsx        # Canvas scene: Camera, OrbitControls, lights, story nodes, session lines, constellation lines, black hole, zone glows
+│   │   │   ├── StarNode.tsx         # Legacy entry star mesh (pre-US-206); replaced by StoryNode after story pivot
+│   │   │   ├── StoryNode.tsx        # Story star mesh + Html tooltip on hover + "Dopowiedz" elaboration button (US-206)
 │   │   │   ├── BlackHole.tsx        # Black hole at origin: pulsing glow halo, hover insight tooltip, entry-count sizing, disagree flow with 2-round AI dialogue (US-202, US-203)
-│   │   │   └── ConstellationLines.tsx # Line segments between connected entry pairs
+│   │   │   └── ConstellationLines.tsx # Line segments between connected story pairs; typed line styles: solid/dashed/chain (US-209)
 │   │   └── ValuesModal/     # Recurring-themes confirmation modal (US-202)
 │   │       └── ValuesModal.tsx      # AI-proposed themes: edit/remove/restore, add input, "Żadna z tych" escape hatch
 │   ├── pages/               # Route-level components
@@ -144,18 +168,24 @@ dotflow/
 │   ├── hooks/               # Custom React hooks
 │   │   ├── useSettings.ts   # localStorage API key management (US-004)
 │   │   ├── useUserValues.ts # localStorage confirmed values + proposalDismissed state (US-202)
+│   │   ├── useDepthAccumulator.ts # Depth score accumulation + threshold check + localStorage persistence (US-205)
+│   │   ├── useLifeAreaZones.ts    # Zone labels + user renames in localStorage (US-208)
+│   │   ├── useConnectionFilter.ts # Filter state for 3D connection type visibility (US-209)
 │   │   ├── useEntries.ts    # (planned)
 │   │   └── useAI.ts         # (planned)
 │   ├── lib/                 # Third-party client initializations
 │   │   └── supabase.ts      # Supabase client (US-002)
 │   ├── services/            # External API integrations
-│   │   ├── aiService.ts     # OpenAI GPT-4o-mini via native fetch: generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback (US-006, US-101, US-102, US-202, US-203)
-│   │   └── entryService.ts  # Supabase CRUD: createEntry, getEntries, getEntryById, saveFollowUps, saveConnection, getConnectionsForEntry (US-002, US-006, US-101)
+│   │   ├── aiService.ts     # OpenAI GPT-4o-mini via native fetch: generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback, extractStories, detectEmotionConfidence, classifyLifeArea, classifyConnectionType (US-006, US-101, US-102, US-202, US-203, US-206, US-207, US-208, US-209)
+│   │   ├── entryService.ts  # Supabase CRUD: createEntry, getEntries, getEntryById, saveFollowUps, saveConnection, getConnectionsForEntry (US-002, US-006, US-101)
+│   │   └── storyService.ts  # Supabase CRUD for stories: saveStories, getStoriesForEntry, updateStoryEmotion, updateStoryLifeArea (US-206, US-207, US-208)
 │   ├── types/               # TypeScript type definitions
 │   │   └── index.ts         # Entry, FollowUp, Connection, EntryWithFollowUps, UserValuesState (US-002, US-202)
 │   ├── utils/               # Pure utility functions
-│   │   ├── prompts.ts       # AI prompt templates: FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT (US-006, US-101, US-102, US-202, US-203)
-│   │   └── starPositions.ts # Deterministic 3D position from entry UUID; getAlignedStarPosition() for value-aligned positioning (US-201, US-202)
+│   │   ├── prompts.ts       # AI prompt templates: FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT, STORY_EXTRACTION_SYSTEM_PROMPT, EMOTION_DETECTION_SYSTEM_PROMPT, LIFE_AREA_SYSTEM_PROMPT, CONNECTION_TYPE_SYSTEM_PROMPT (US-006, US-101, US-102, US-202, US-203, US-206, US-207, US-208, US-209)
+│   │   ├── starPositions.ts # Deterministic 3D position from entry/story UUID; getAlignedStarPosition() for value-aligned positioning (US-201, US-202, US-206)
+│   │   ├── emotionColors.ts # Mapping from emotion string to hex color for star rendering (US-207)
+│   │   └── insightConfig.ts # Configurable depth score weights and accumulator threshold (US-205)
 │   ├── __tests__/           # Tests mirror source structure
 │   │   ├── setup.ts         # Vitest + jest-dom + RTL cleanup setup
 │   │   ├── setup.test.ts    # TC-000: framework smoke test
@@ -572,8 +602,13 @@ graph LR
 - [x] **US-201:** 3D star field visualization (react-three-fiber) — M2.5 ✅ Completed
 - [x] **US-202:** Black hole psychological center, values extraction, value-aligned star positioning — M2.5 ✅ Completed
 - [x] **US-203:** Dialectical insight feedback loop — `respondToInsightFeedback()`, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT, disagree flow in BlackHole, Amber Write CTA on round limit — M2.5 ✅ Completed
-- [ ] User onboarding & instructions — M2.5 (FEATURE-013, US-204)
-- [ ] **US-205:** Depth accumulator adaptive insights — `useDepthAccumulator` hook, `insightConfig.ts` (configurable weights/threshold), `aiService.generateHolisticInsight()`, two insight types (connection inline + holistic on black hole hover), heartbeat pulse per entry save proportional to depth score — M2.5
+- [ ] User onboarding & instructions — M2.5 P2 (FEATURE-013, US-204) — after story model stabilizes
+- [ ] **US-205:** Depth accumulator adaptive insights — `useDepthAccumulator` hook, `insightConfig.ts` (configurable weights/threshold), `aiService.generateHolisticInsight()`, two insight types (connection inline + holistic on black hole hover), heartbeat pulse per entry save proportional to depth score; black hole insight behavior by context (repeated topic / contradicting / short entry pattern) — M2.5
+- [ ] **US-206:** Story Extraction — P0 architectural pivot — `stories` Supabase table, `aiService.extractStories()`, `storyService`, `StoryNode.tsx`, session lines, "Dopowiedz" elaboration flow — M2.5
+- [ ] **US-207:** Emotion Intelligence per Story — P1 — `aiService.detectEmotionConfidence()`, `emotionColors.ts`, star color mapping, silent assignment (no emotion wheel ever), post-hoc correction via "Dopowiedz" — M2.5
+- [ ] **US-210:** Contextual Follow-Up Between Lines — P1 — updated `generateFollowUpQuestions()` with story context, long entry threshold >300 words → "Pięknie." acknowledgment — M2.5
+- [ ] **US-208:** Life Area Zones — P1 — `aiService.classifyLifeArea()`, `useLifeAreaZones`, emergent cluster glows in StarField, hover-only labels, user-renameable, no default zones — M2.5
+- [ ] **US-209:** Typed Connection Visualization — P2 — `aiService.classifyConnectionType()`, `connections.type` field, typed line styles (solid/dashed/chain), 3D filter panel, `useConnectionFilter` hook; no Dilts/DISC/MBTI labels visible — M2.5
 - [ ] **FEATURE-015:** Security & privacy messaging — deferred to M3 (end-user context: registration/login, Dotflow-owned AI)
 - [ ] AI communication principles document (`docs/ai_communication_principles.md`) — M2.5 prereq
 - [ ] Add Supabase Auth + RLS for multi-user support — M3
