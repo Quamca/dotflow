@@ -1,7 +1,7 @@
 # Dotflow - Development Setup Guide
 
-**Version:** 1.1
-**Date:** 2026-04-23
+**Version:** 1.2
+**Date:** 2026-04-28
 **Platform:** Windows (PowerShell), macOS, Linux
 
 ---
@@ -113,7 +113,21 @@ CREATE TABLE connections (
   connection_note TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Stories extracted from entries (US-206)
+CREATE TABLE stories (
+  id UUID PRIMARY KEY,
+  entry_id UUID REFERENCES entries(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  emotion TEXT,
+  emotion_confidence FLOAT,
+  life_area TEXT,
+  position FLOAT[],
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
+
+Note: The `stories.id` is generated client-side via `crypto.randomUUID()` before insert — this ensures the stable 3D position derived from `getStoryPosition(id)` matches the record stored in the database.
 
 ### 3.4 Disable Row Level Security (MVP — single user)
 
@@ -121,6 +135,7 @@ CREATE TABLE connections (
 ALTER TABLE entries DISABLE ROW LEVEL SECURITY;
 ALTER TABLE followups DISABLE ROW LEVEL SECURITY;
 ALTER TABLE connections DISABLE ROW LEVEL SECURITY;
+ALTER TABLE stories DISABLE ROW LEVEL SECURITY;
 ```
 
 **Important:** Re-enable RLS with proper policies when adding multi-user support.

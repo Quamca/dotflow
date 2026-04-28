@@ -54,16 +54,22 @@ The user must be able to write a free-form journal entry. The entry is the prima
 **Description:**
 After an entry is submitted, the AI analyzes the content and generates 2–3 follow-up questions targeting what is missing: emotions (if not mentioned), reflective opinion (if absent), context (if unclear). The user can answer, skip individual questions, or request more questions.
 
+**Long Entry Rule (>300 words, US-210):** If the entry exceeds 300 words, no follow-up questions are shown. The app acknowledges with a single word — *"Pięknie."* — and the user navigates to the home/sky view. This reduces post-write friction for rich, detailed entries and follows /consult guidance on self-determination theory.
+
+**Questions Between the Lines (US-210):** AI avoids restating emotions or facts already written explicitly in the entry. Questions focus on hidden context, people mentioned in passing, and life areas the user consistently avoids addressing. AI reads current entry stories and the last 3 entries for context.
+
 **Acceptance Criteria:**
-- AI generates 2–3 questions after entry submission
-- Questions are shown one at a time or as a dialog
+- If entry word count ≤300: AI generates 2–3 questions after submission
+- If entry word count >300: no dialog shown; "Pięknie." acknowledgment displayed; user navigates to home
+- Questions target what is implicit, not what is already written
+- Questions shown one at a time in a dialog
 - User can answer each question with free text
 - User can skip any question
 - User can request up to 2 additional questions via "Ask me more" button
 - Maximum total questions: 5 (3 default + 2 optional)
 - Answers are saved alongside the entry
 
-**Related User Stories:** US-006
+**Related User Stories:** US-006, US-210
 
 ---
 
@@ -265,6 +271,12 @@ The black hole provides heartbeat feedback on every entry save — pulse intensi
 - Connection insight prompt: contextualizes the specific connection in one sentence
 - Pre-insight state: black hole hover shows *"Keep writing — your center is forming."*
 
+**Black Hole Insight Behavior by Story Context:**
+- Same/repeated story topic → *"Ten temat pojawia się kolejny raz — coś w nim jest ważnego."*
+- Contradicting or different story from previous → *"Tym razem inaczej — coś się zdaje zmieniać."*
+- Single short entry (<30 words) → silence, no comment
+- 3 or more consecutive short entries → *"Czy nie chcesz dziś pisać, czy jest coś co sprawia Ci trudność w opowiedzeniu?"*
+
 **Acceptance Criteria:**
 - Depth accumulator computed per entry: 3 pts/follow-up answer (max 15), word count tiers (+1/+2/+3), connection bonus (+2), <30 words = 0 flat; range 0–20
 - Accumulator threshold is configurable (not hardcoded)
@@ -273,8 +285,94 @@ The black hole provides heartbeat feedback on every entry save — pulse intensi
 - Black hole glows when unread holistic insight is available
 - Connection insight appears inline near ConnectionBadge when connection detected
 - All insights persisted in localStorage (not regenerated on hover)
+- Repeated topic: black hole responds with *"Ten temat pojawia się kolejny raz..."*
+- Contradicting topic: black hole responds with *"Tym razem inaczej..."*
+- Single short entry: no black hole comment (silence)
+- 3+ consecutive short entries: black hole responds with invitation to share difficulty
 
 **Related User Stories:** US-205
+
+---
+
+### FR-013: Story Extraction — One Entry, Many Stars
+
+**Priority:** MUST HAVE (M2.5 P0)
+
+**Description:**
+When an entry is saved, AI automatically extracts N distinct stories (scenes, situations, events) from the text. Each story becomes a separate star in the 3D visualization. Stories from the same entry are connected by a session line. Each story has a "Dopowiedz" (Elaborate) button — the user adds context, never replaces. AI re-classifies emotion and life area based on elaboration.
+
+**Architectural Note:** This is a fundamental pivot — the star in the 3D sky represents a story, not an entry. All features built after US-206 operate at the story level, not the entry level.
+
+**Acceptance Criteria:**
+- AI segments each entry into N stories on save
+- Each story saved to the `stories` Supabase table
+- Each story rendered as a separate star in StarField
+- Stories from the same entry connected by a visible session line
+- "Dopowiedz" button available on every story star (never deletes, only adds context)
+- AI re-classifies emotion and life area when elaboration is submitted
+- Entry with no distinct stories segmented → treated as 1 story
+
+**Related User Stories:** US-206
+
+---
+
+### FR-014: Emotion Intelligence per Story
+
+**Priority:** SHOULD HAVE (M2.5 P1)
+
+**Description:**
+AI detects emotion and confidence score for each story. Both high-confidence (>80%) and low-confidence (<80%) results are assigned silently — no emotion wheel, no prompt. Star color reflects the story's emotion. Emotion correction is post-hoc only: user notices wrong color → "Dopowiedz" elaboration → AI re-classifies.
+
+**UX Principle:** Removing the emotion wheel from the post-write flow (confirmed by /consult). Deferred correction via elaboration respects self-determination theory — user initiates, not prompted.
+
+**Acceptance Criteria:**
+- AI detects `{emotion, confidence}` per story on save
+- Both high (>80%) and low (<80%) confidence results assigned silently — no UI prompt
+- No emotion wheel shown at any point in the application flow
+- Star color = emotion color (palette: joy/amber, sadness/blue, anger/red, fear/violet, calm/teal, mixed/stone)
+- "Dopowiedz" elaboration triggers AI re-classification of emotion
+- Star color updates after re-classification
+
+**Related User Stories:** US-207
+
+---
+
+### FR-015: Life Area Zones — Emergent Clusters
+
+**Priority:** SHOULD HAVE (M2.5 P1)
+
+**Description:**
+Life area zones emerge organically from accumulated stories. No default zones (no preset "Praca", "Rodzina", "Zdrowie"). After ~15 stories, clusters of thematically related stories become visible as subtle ambient glows. AI suggests a zone label shown only on hover. User can rename or clear labels. Areas the user never writes about are never shown as empty zones.
+
+**Acceptance Criteria:**
+- No preset life area zones — all zones are emergent from content
+- Zones appear only when a cluster has ≥5 stories in the same area
+- Zone label visible only on hover — not shown by default
+- User can rename or clear any zone label
+- Absent life areas are never shown as empty zones
+- Zone labels stored in localStorage (user-controlled)
+
+**Related User Stories:** US-208
+
+---
+
+### FR-016: Typed Connection Visualization
+
+**Priority:** COULD HAVE (M2.5 P2)
+
+**Description:**
+Constellation lines between connected stories are visually differentiated by content type. Three visual styles based on AI classification: solid colored lines (similar emotions), dashed lines (similar topic/situation), chain-style lines (similar life choices). No labels shown to user — visual differentiation only. No Dilts, DISC, or MBTI labels visible at any point.
+
+**Acceptance Criteria:**
+- AI classifies connection type: `"emotional"` | `"thematic"` | `"life-choices"`
+- Solid colored lines for emotional connections
+- Dashed lines for thematic connections
+- Chain-style lines for life-choice connections
+- No labels on lines
+- 3D filter panel allows showing/hiding each connection type
+- No psychological framework labels visible to user
+
+**Related User Stories:** US-209
 
 ---
 

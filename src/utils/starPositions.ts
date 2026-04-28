@@ -12,10 +12,18 @@ function hashString(str: string): number {
   return Math.abs(hash)
 }
 
+const STORY_RADIUS_MIN = 3.5
+const STORY_RADIUS_MAX = 9.0
+
 const ALIGNED_RADIUS_MIN = 1.5
 const ALIGNED_RADIUS_MAX = 3.0
 const DEFAULT_RADIUS_MIN = 3.0
 const DEFAULT_RADIUS_MAX = 8.0
+
+// Returns a stable 3D position for a story — derived from story id, not entry id.
+export function getStoryPosition(storyId: string): [number, number, number] {
+  return computePosition(storyId, STORY_RADIUS_MIN, STORY_RADIUS_MAX)
+}
 
 // Returns a deterministic 3D position for an entry — same id always maps to same position.
 export function getStarPosition(entryId: string): [number, number, number] {

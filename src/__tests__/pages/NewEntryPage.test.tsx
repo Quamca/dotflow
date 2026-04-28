@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import NewEntryPage from '../../pages/NewEntryPage'
 import { createEntry } from '../../services/entryService'
 import { generateFollowUpQuestions } from '../../services/aiService'
+import { saveStories } from '../../services/storyService'
 import { useSettings } from '../../hooks/useSettings'
 
 const mockNavigate = vi.fn()
@@ -21,6 +22,11 @@ vi.mock('../../services/entryService', () => ({
 
 vi.mock('../../services/aiService', () => ({
   generateFollowUpQuestions: vi.fn(),
+  extractStories: vi.fn().mockResolvedValue([]),
+}))
+
+vi.mock('../../services/storyService', () => ({
+  saveStories: vi.fn().mockResolvedValue([]),
 }))
 
 vi.mock('../../hooks/useSettings', () => ({
@@ -52,6 +58,7 @@ describe('NewEntryPage', () => {
       saveApiKey: vi.fn(),
       clearApiKey: vi.fn(),
     })
+    vi.mocked(saveStories).mockResolvedValue([])
   })
 
   afterEach(() => {

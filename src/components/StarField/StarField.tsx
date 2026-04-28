@@ -1,9 +1,10 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
-import type { Entry, Connection } from '../../types'
+import { OrbitControls, Line } from '@react-three/drei'
+import type { Entry, Connection, Story } from '../../types'
 import { getStarPosition, getAlignedStarPosition } from '../../utils/starPositions'
 import StarNode from './StarNode'
+import StoryNode from './StoryNode'
 import ConstellationLines from './ConstellationLines'
 import BlackHole from './BlackHole'
 
@@ -14,6 +15,7 @@ const BLACK_HOLE_SCALE_AT = 50
 interface StarFieldProps {
   entries: Entry[]
   connections: Record<string, Connection>
+  stories?: Story[]
   isInteractive: boolean
   insight?: string[] | null
   userValues?: string[]
@@ -21,7 +23,9 @@ interface StarFieldProps {
   onRoundLimitReached?: () => void
 }
 
-export default function StarField({ entries, connections, isInteractive, insight, userValues, apiKey, onRoundLimitReached }: StarFieldProps) {
+export default function StarField({ entries, connections, stories = [], isInteractive, insight, userValues, apiKey, onRoundLimitReached }: StarFieldProps) {
+  const [activeStoryId, setActiveStoryId] = useState<string | null>(null)
+
   const positionMap = useMemo(() => {
     const map = new Map<string, [number, number, number]>()
     entries.forEach((e) => {
@@ -37,6 +41,37 @@ export default function StarField({ entries, connections, isInteractive, insight
     const t = Math.min(entries.length / BLACK_HOLE_SCALE_AT, 1)
     return BLACK_HOLE_MIN_SIZE + t * (BLACK_HOLE_MAX_SIZE - BLACK_HOLE_MIN_SIZE)
   }, [entries.length])
+
+  const storyPositionMap = useMemo(() => {
+    const map = new Map<string, [number, number, number]>()
+    stories.forEach((s) => {
+      if (s.position) {
+        map.set(s.id, s.position)
+      }
+    })
+    return map
+  }, [stories])
+
+  const sessionLines = useMemo(() => {
+    const grouped = new Map<string, Story[]>()
+    stories.forEach((s) => {
+      const group = grouped.get(s.entry_id) ?? []
+      group.push(s)
+      grouped.set(s.entry_id, group)
+    })
+
+    const lines: Array<{ id: string; points: [[number, number, number], [number, number, number]] }> = []
+    grouped.forEach((group) => {
+      for (let i = 0; i < group.length - 1; i++) {
+        const a = storyPositionMap.get(group[i].id)
+        const b = storyPositionMap.get(group[i + 1].id)
+        if (a && b) {
+          lines.push({ id: `${group[i].id}-${group[i + 1].id}`, points: [a, b] })
+        }
+      }
+    })
+    return lines
+  }, [stories, storyPositionMap])
 
   const connectionCount = useMemo(() => {
     const count: Record<string, number> = {}
@@ -59,6 +94,25 @@ export default function StarField({ entries, connections, isInteractive, insight
           position={positionMap.get(entry.id) ?? [0, 0, 0]}
           connectionCount={connectionCount[entry.id] ?? 0}
           isInteractive={isInteractive}
+        />
+      ))}
+      {stories.map((story) => (
+        <StoryNode
+          key={story.id}
+          story={story}
+          position={storyPositionMap.get(story.id) ?? [0, 0, 0]}
+          isActive={activeStoryId === story.id}
+          onActivate={setActiveStoryId}
+        />
+      ))}
+      {sessionLines.map((line) => (
+        <Line
+          key={line.id}
+          points={line.points}
+          color="#A78BFA"
+          lineWidth={0.5}
+          transparent
+          opacity={0.3}
         />
       ))}
       <ConstellationLines connections={connections} positionMap={positionMap} />

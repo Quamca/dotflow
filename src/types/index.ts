@@ -41,3 +41,14 @@ export interface ConnectionResult {
   score: number
   note: string
 }
+
+export interface Story {
+  id: string
+  entry_id: string
+  content: string
+  emotion: string | null
+  emotion_confidence: number | null
+  life_area: string | null
+  position: [number, number, number] | null
+  created_at: string
+}

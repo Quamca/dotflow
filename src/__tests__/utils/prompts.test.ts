@@ -6,6 +6,7 @@ import {
   USER_VALUES_SYSTEM_PROMPT,
   DEEPENING_QUESTION_SYSTEM_PROMPT,
   CLOSING_PHRASE_SYSTEM_PROMPT,
+  STORY_EXTRACTION_SYSTEM_PROMPT,
 } from '../../utils/prompts'
 
 describe('prompts', () => {
@@ -58,6 +59,16 @@ describe('prompts', () => {
 
     it('should include language instruction', () => {
       expect(DEEPENING_QUESTION_SYSTEM_PROMPT).toContain('Respond in the same language as the user')
+    })
+  })
+
+  describe('STORY_EXTRACTION_SYSTEM_PROMPT', () => {
+    it('should instruct AI to return JSON array', () => {
+      expect(STORY_EXTRACTION_SYSTEM_PROMPT).toContain('JSON array')
+    })
+
+    it('should include language instruction', () => {
+      expect(STORY_EXTRACTION_SYSTEM_PROMPT).toContain('Respond in the same language as the journal entry')
     })
   })
 

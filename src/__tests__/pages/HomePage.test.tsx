@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import HomePage from '../../pages/HomePage'
 import { getEntries, getConnectionsForEntry } from '../../services/entryService'
 import { generatePatternSummary, extractUserValues } from '../../services/aiService'
+import { getAllStories } from '../../services/storyService'
 
 vi.mock('../../services/entryService', () => ({
   getEntries: vi.fn(),
@@ -14,6 +15,10 @@ vi.mock('../../services/entryService', () => ({
 vi.mock('../../services/aiService', () => ({
   generatePatternSummary: vi.fn(),
   extractUserValues: vi.fn(),
+}))
+
+vi.mock('../../services/storyService', () => ({
+  getAllStories: vi.fn().mockResolvedValue([]),
 }))
 
 const STORAGE_KEY = 'dotflow_openai_api_key'
@@ -51,6 +56,7 @@ describe('HomePage', () => {
     vi.mocked(getConnectionsForEntry).mockResolvedValue([])
     vi.mocked(generatePatternSummary).mockResolvedValue([])
     vi.mocked(extractUserValues).mockResolvedValue([])
+    vi.mocked(getAllStories).mockResolvedValue([])
   })
 
   afterEach(() => {

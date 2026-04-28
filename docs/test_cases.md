@@ -2206,6 +2206,272 @@ export const mockEntry = {
 
 ---
 
+## 3.10 FEATURE: Story Extraction (US-206)
+
+### TC-116: extractStories returns array of story strings when API succeeds
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-117: extractStories returns fallback [content] when API returns non-ok response
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-118: extractStories returns fallback [content] when response JSON is malformed
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-119: extractStories returns fallback [content] when fetch throws
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-120: extractStories returns fallback [content] when AI returns empty array
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-121: extractStories caps stories at 5
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-122: extractStories filters out stories shorter than 10 characters
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-123: getStoryPosition returns tuple of 3 numbers
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-124: getStoryPosition returns same position for same story id
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-125: getStoryPosition returns different positions for different story ids
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-126: getStoryPosition returns position within story radius range (3.5 to 9.0)
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-127: getStoryPosition returns different position from entry star with same id string
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-128: saveStories returns empty array when given empty content array
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-129: saveStories calls Supabase insert with correct entry_id and content
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-130: saveStories returns saved stories array when Supabase insert succeeds
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-131: saveStories throws when Supabase returns error
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-132: getStoriesForEntry returns stories array when query succeeds
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-133: getStoriesForEntry returns empty array when no stories found
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-134: getStoriesForEntry throws when Supabase returns error
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-135: getAllStories returns all stories ordered by created_at
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-136: addElaboration appends elaboration text to existing story content
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-137: addElaboration throws when Supabase fetch returns error
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-138: STORY_EXTRACTION_SYSTEM_PROMPT instructs AI to return JSON array
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-139: STORY_EXTRACTION_SYSTEM_PROMPT includes language instruction
+
+**Related US:** US-206
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
 ## 4. Test Data
 
 ### 4.1 Mock Data Sets

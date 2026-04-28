@@ -21,6 +21,20 @@ Rules:
 
 Respond with only the question — no preamble, no explanation.`
 
+export const STORY_EXTRACTION_SYSTEM_PROMPT = `You are analyzing a personal journal entry to extract distinct scenes, situations, or events described in the text. Each story should be a self-contained moment — a specific thing that happened, was felt, or was reflected on.
+
+Rules:
+- Extract between 1 and 5 stories depending on how many distinct scenes exist
+- Each story must be a faithful excerpt or paraphrase of what the user wrote — never invent details
+- If the entry describes only one situation, return exactly one story
+- Minimum story length: 10 words; maximum: 150 words
+- Do not label stories with titles or numbers
+- Do not add interpretation, emotion labels, or psychological analysis
+- Respond in the same language as the journal entry
+- Respond only with a JSON array of story strings, no other text
+
+Example: ["Rano spieszyłem się do pracy i zapomniałem kluczy.", "Wieczorem poszłem na spacer i poczułem spokój."]`
+
 export const CLOSING_PHRASE_SYSTEM_PROMPT = `You are a reflection assistant ending a brief dialogue with a journal user. The user has pushed back on an insight twice. Your role is to write a single closing sentence that redirects them toward writing a new journal entry.
 
 Rules:

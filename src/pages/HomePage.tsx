@@ -3,13 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useSettings } from '../hooks/useSettings'
 import { useUserValues } from '../hooks/useUserValues'
 import { getEntries, getConnectionsForEntry } from '../services/entryService'
+import { getAllStories } from '../services/storyService'
 import { generatePatternSummary, extractUserValues } from '../services/aiService'
 import EntryCard from '../components/EntryCard/EntryCard'
 import ConnectionBadge from '../components/ConnectionBadge/ConnectionBadge'
 import PatternSummary from '../components/PatternSummary/PatternSummary'
 import StarField from '../components/StarField/StarField'
 import ValuesModal from '../components/ValuesModal/ValuesModal'
-import type { Entry, Connection } from '../types'
+import type { Entry, Connection, Story } from '../types'
 
 const INSIGHTS_MIN_ENTRIES = 10
 const VALUES_MIN_ENTRIES = 5
@@ -20,6 +21,7 @@ export default function HomePage() {
   const { confirmedValues, hasConfirmed, proposalDismissed, confirmValues, dismissProposal } = useUserValues()
   const [entries, setEntries] = useState<Entry[]>([])
   const [connections, setConnections] = useState<Record<string, Connection>>({})
+  const [stories, setStories] = useState<Story[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [observations, setObservations] = useState<string[]>([])
@@ -76,6 +78,9 @@ export default function HomePage() {
         const loadedEntries = await getEntries()
         setEntries(loadedEntries)
 
+        // Load stories in background — failures don't affect entry display
+        void getAllStories().then(setStories).catch(() => {})
+
         // Load connections in background — failures don't affect entry display
         void Promise.allSettled(
           loadedEntries.map((e) => Promise.resolve().then(() => getConnectionsForEntry(e.id)))
@@ -131,6 +136,7 @@ export default function HomePage() {
           <StarField
             entries={entries}
             connections={connections}
+            stories={stories}
             isInteractive={isStarFieldActive}
             insight={observations.length > 0 ? observations : null}
             userValues={confirmedValues}

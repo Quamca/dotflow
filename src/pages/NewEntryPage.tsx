@@ -1,10 +1,20 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createEntry, saveFollowUps, getEntries, saveConnection } from '../services/entryService'
-import { generateFollowUpQuestions, findConnection } from '../services/aiService'
+import { generateFollowUpQuestions, findConnection, extractStories } from '../services/aiService'
+import { saveStories } from '../services/storyService'
 import { useSettings } from '../hooks/useSettings'
 import FollowUpDialog from '../components/FollowUpDialog/FollowUpDialog'
 import type { Entry, FollowUpInput } from '../types'
+
+async function extractAndSaveStories(entryId: string, content: string, apiKey: string): Promise<void> {
+  try {
+    const stories = await extractStories(content, apiKey)
+    await saveStories(entryId, stories)
+  } catch {
+    // silently ignore — story extraction is best-effort
+  }
+}
 
 async function detectAndSaveConnection(newEntry: Entry, apiKey: string): Promise<void> {
   try {
@@ -49,6 +59,7 @@ export default function NewEntryPage() {
 
     if (apiKey) {
       void detectAndSaveConnection(entry, apiKey)
+      void extractAndSaveStories(entry.id, content.trim(), apiKey)
     }
 
     if (!apiKey) {
