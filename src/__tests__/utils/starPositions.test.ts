@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getStarPosition, getAlignedStarPosition } from '../../utils/starPositions'
+import { getStarPosition, getAlignedStarPosition, getStoryPosition } from '../../utils/starPositions'
 
 describe('getStarPosition', () => {
   it('should return a tuple of 3 numbers for a given entry id', () => {
@@ -68,5 +68,43 @@ describe('getAlignedStarPosition', () => {
     const defaultPos = getStarPosition('uuid-fallback')
 
     expect(aligned).toEqual(defaultPos)
+  })
+})
+
+describe('getStoryPosition', () => {
+  it('should return a tuple of 3 numbers for a given story id', () => {
+    const pos = getStoryPosition('story-uuid-1')
+
+    expect(pos).toHaveLength(3)
+    pos.forEach((coord) => expect(typeof coord).toBe('number'))
+  })
+
+  it('should return the same position for the same story id', () => {
+    const pos1 = getStoryPosition('story-uuid-stable')
+    const pos2 = getStoryPosition('story-uuid-stable')
+
+    expect(pos1).toEqual(pos2)
+  })
+
+  it('should return different positions for different story ids', () => {
+    const pos1 = getStoryPosition('story-uuid-aaa')
+    const pos2 = getStoryPosition('story-uuid-bbb')
+
+    expect(pos1).not.toEqual(pos2)
+  })
+
+  it('should return position within story radius range (3.5 to 9.0)', () => {
+    const [x, y, z] = getStoryPosition('story-uuid-range')
+    const radius = Math.sqrt(x * x + y * y + z * z)
+
+    expect(radius).toBeGreaterThanOrEqual(3.5)
+    expect(radius).toBeLessThanOrEqual(9.0)
+  })
+
+  it('should return different position from entry star with same id string', () => {
+    const storyPos = getStoryPosition('shared-id')
+    const entryPos = getStarPosition('shared-id')
+
+    expect(storyPos).not.toEqual(entryPos)
   })
 })

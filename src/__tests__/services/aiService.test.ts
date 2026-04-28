@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback } from '../../services/aiService'
+import { generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback, extractStories } from '../../services/aiService'
 import { DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT } from '../../utils/prompts'
 import type { Entry } from '../../types'
 
@@ -435,6 +435,135 @@ describe('aiService', () => {
 
       // Assert
       expect(result).toHaveLength(5)
+    })
+  })
+
+  describe('extractStories', () => {
+    const sampleContent = 'Rano miałem spotkanie. Wieczorem poszedłem na spacer.'
+
+    it('should return array of story strings when OpenAI responds successfully', async () => {
+      // Arrange
+      const mockStories = ['Rano miałem spotkanie.', 'Wieczorem poszedłem na spacer.']
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: JSON.stringify(mockStories) } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await extractStories(sampleContent, 'sk-test')
+
+      // Assert
+      expect(result).toEqual(mockStories)
+      result.forEach((s) => expect(typeof s).toBe('string'))
+    })
+
+    it('should return fallback [content] when OpenAI returns non-ok response', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({ ok: false, status: 401 })
+      )
+
+      // Act
+      const result = await extractStories(sampleContent, 'sk-invalid')
+
+      // Assert
+      expect(result).toEqual([sampleContent])
+    })
+
+    it('should return fallback [content] when response JSON is malformed', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: 'not valid json' } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await extractStories(sampleContent, 'sk-test')
+
+      // Assert
+      expect(result).toEqual([sampleContent])
+    })
+
+    it('should return fallback [content] when fetch throws', async () => {
+      // Arrange
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')))
+
+      // Act
+      const result = await extractStories(sampleContent, 'sk-test')
+
+      // Assert
+      expect(result).toEqual([sampleContent])
+    })
+
+    it('should return fallback [content] when AI returns empty array', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: '[]' } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await extractStories(sampleContent, 'sk-test')
+
+      // Assert
+      expect(result).toEqual([sampleContent])
+    })
+
+    it('should cap stories at 5 when AI returns more than 5', async () => {
+      // Arrange
+      const tooMany = ['S1 long enough story text here.', 'S2 long enough story text here.', 'S3 long enough story text here.', 'S4 long enough story text here.', 'S5 long enough story text here.', 'S6 long enough story text here.']
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: JSON.stringify(tooMany) } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await extractStories(sampleContent, 'sk-test')
+
+      // Assert
+      expect(result).toHaveLength(5)
+    })
+
+    it('should filter out stories shorter than 10 characters', async () => {
+      // Arrange
+      const withShort = ['Hi.', 'This story is long enough to pass the filter.']
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: JSON.stringify(withShort) } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await extractStories(sampleContent, 'sk-test')
+
+      // Assert
+      expect(result).toHaveLength(1)
+      expect(result[0]).toBe('This story is long enough to pass the filter.')
     })
   })
 })

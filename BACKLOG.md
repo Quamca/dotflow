@@ -2,9 +2,17 @@
 
 **Project:** Dotflow
 **Version:** 1.2
-**Last Updated:** 2026-04-27 (US-203: Dialectical Insight Response completed)
+**Last Updated:** 2026-04-28 (US-206: Story Extraction completed)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
+
+---
+
+## 🐛 Known Bugs
+
+| ID | Description | Priority | Reported in |
+|----|-------------|----------|-------------|
+| BUG-001 | StarField tooltips (StoryNode + StarNode) are too narrow — content gets clipped, width needs increase | Low | US-206 manual verification |
 
 ---
 
