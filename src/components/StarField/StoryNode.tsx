@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Html } from '@react-three/drei'
 import type { Story } from '../../types'
 import { addElaboration } from '../../services/storyService'
@@ -9,15 +9,32 @@ interface StoryNodeProps {
 }
 
 const STORY_STAR_SIZE = 0.06
+const HIDE_DELAY_MS = 3000
 
 export default function StoryNode({ story, position }: StoryNodeProps) {
-  const [isHovered, setIsHovered] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
   const [isElaborating, setIsElaborating] = useState(false)
   const [elaborationText, setElaborationText] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const preview = story.content.length > 80 ? `${story.content.slice(0, 80)}…` : story.content
+
+  function clearHideTimer() {
+    if (hideTimer.current) {
+      clearTimeout(hideTimer.current)
+      hideTimer.current = null
+    }
+  }
+
+  function scheduleHide() {
+    clearHideTimer()
+    hideTimer.current = setTimeout(() => {
+      setIsVisible(false)
+      setIsElaborating(false)
+    }, HIDE_DELAY_MS)
+  }
 
   async function handleElaborationSubmit() {
     if (!elaborationText.trim() || isSaving) return
@@ -35,18 +52,20 @@ export default function StoryNode({ story, position }: StoryNodeProps) {
   return (
     <group position={position}>
       <mesh
-        onPointerEnter={() => setIsHovered(true)}
-        onPointerLeave={() => {
-          setIsHovered(false)
-          setIsElaborating(false)
+        onPointerEnter={() => {
+          clearHideTimer()
+          setIsVisible(true)
         }}
+        onPointerLeave={scheduleHide}
       >
         <sphereGeometry args={[STORY_STAR_SIZE, 8, 8]} />
         <meshBasicMaterial color={saved ? '#A8A29E' : '#C4B5A5'} />
       </mesh>
-      {isHovered && (
+      {isVisible && (
         <Html style={{ pointerEvents: 'auto' }}>
           <div
+            onMouseEnter={clearHideTimer}
+            onMouseLeave={scheduleHide}
             style={{
               background: 'rgba(28, 25, 23, 0.95)',
               color: '#FAFAF9',
