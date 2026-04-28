@@ -1,76 +1,63 @@
-# Current Task — US-203: Dialectical Insight Response
+# Current Task — US-206: Story Extraction — One Entry, Many Stars
 
-**Branch:** 203-dialectical-insight-response
-**Created:** 2026-04-27
+**Branch:** 206-story-extraction
+**Created:** 2026-04-28
 **Status:** 🔄 In Progress
 
 ## Context
-Adding the ability for the user to push back on holistic insights shown on black hole hover. The AI responds with a single deepening question (never updates the insight). Max 2 rounds of dialogue — after round 2 the AI paraphrases the user's words in a closing phrase and the Write Entry button becomes visually primary. The round limit is never communicated to the user.
-
-UX refinements from /consult:
-- Button label: "To nie brzmi jak ja" (not "I disagree" — avoids adversarial framing)
-- Input placeholder: "Co sprawia, że ten wgląd nie pasuje?"
-- Closing phrase: AI paraphrases user content (not a fixed template)
-- Write Entry highlight: secondary → primary style (Amber fill), no pulsing
+Architectural pivot: the star in the 3D sky is no longer an entry — it is a story. When the user saves an entry, AI automatically extracts N distinct stories (scenes, situations, events). Each story becomes a separate star in StarField. Stories from the same entry are connected by a thin session line. Each star has a "Dopowiedz" (Elaborate) button — never deletes, only adds context. AI re-classifies on elaboration.
 
 ## Files to Read First
-- `src/components/StarField/BlackHole.tsx` — insight tooltip lives here; add disagree button
-- `src/services/aiService.ts` — add respondToInsightFeedback()
-- `src/utils/prompts.ts` — add DEEPENING_QUESTION_SYSTEM_PROMPT
-- `docs/ai_communication_principles.md` — prompt rules (safe/forbidden openers, max 15 words, observational language)
-- `src/components/StarField/StarField.tsx` — Write Entry button location (for highlight logic)
-- `src/pages/HomePage.tsx` — Write Entry button rendered here; needs highlight prop
+- `src/services/aiService.ts` — add `extractStories()`
+- `src/components/StarField/StarField.tsx` — integrate StoryNode + session lines
+- `src/components/StarField/StarNode.tsx` — reference for StoryNode structure
+- `src/utils/starPositions.ts` — extend to derive position from story id
+- `src/types/index.ts` — add Story type
+- `src/pages/NewEntryPage.tsx` — trigger extractStories after entry save
 
 ## Tasks
-1. [ ] **TASK-203.1:** Add "To nie brzmi jak ja" button to BlackHole insight tooltip (visible only in interactive mode, only when insight exists) - 20min
-2. [ ] **TASK-203.2:** Add disagree input field + submit flow inside BlackHole tooltip with round counter state (max 2, hidden from user) - 30min
-3. [ ] **TASK-203.3:** Implement `aiService.respondToInsightFeedback(insight, userFeedback, round, apiKey)` — single deepening question on round 1, paraphrased closing phrase on round 2 - 60min
-4. [ ] **TASK-203.4:** Create `DEEPENING_QUESTION_SYSTEM_PROMPT` in `src/utils/prompts.ts` per `docs/ai_communication_principles.md` rules - 45min
-5. [ ] **TASK-203.5:** On round 2 completion — render closing phrase + emit `onRoundLimitReached` prop upward (BlackHole → StarField → HomePage) to trigger Write Entry highlight (secondary → primary, Amber fill, no pulsing) - 20min
-6. [ ] **TASK-203.6:** Write tests (/qa) - 60min
-7. [ ] **TASK-203.7:** Manual verification - 20min
+1. [ ] **TASK-206.1:** Create `stories` table in Supabase — id, entry_id, content, emotion, emotion_confidence, life_area, position, created_at (run SQL in Supabase dashboard)
+2. [ ] **TASK-206.2:** Add `Story` type to `src/types/index.ts`
+3. [ ] **TASK-206.3:** Implement `aiService.extractStories(content, apiKey)` — returns `string[]` of story segments; add `STORY_EXTRACTION_SYSTEM_PROMPT` to `src/utils/prompts.ts`
+4. [ ] **TASK-206.4:** Create `src/services/storyService.ts` — `saveStories(entryId, stories)`, `getStoriesForEntry(entryId)`
+5. [ ] **TASK-206.5:** Extend `src/utils/starPositions.ts` — `getStoryPosition(storyId)` derives stable [x,y,z] from story UUID hash
+6. [ ] **TASK-206.6:** Create `src/components/StarField/StoryNode.tsx` — star mesh + Html tooltip (story content snippet) + "Dopowiedz" button + elaboration textarea + submit
+7. [ ] **TASK-206.7:** Add session lines in `StarField.tsx` — thin lines connecting stories from the same entry (distinct from constellation lines)
+8. [ ] **TASK-206.8:** Integrate story extraction into `NewEntryPage.tsx` — after entry save, call `extractStories()` fire-and-forget, save to `storyService`
+9. [ ] **TASK-206.9:** Write tests (/qa)
+10. [ ] **TASK-206.10:** Manual verification
 
 ## Constraints
-- "To nie brzmi jak ja" button only visible in interactive mode (isInteractive prop) and when insight is not null
-- AI NEVER updates the insight text — only responds with a question or closing phrase
-- Round counter is internal state — never displayed or communicated to user
-- Max 2 rounds — round 1: deepening question; round 2: paraphrased closing phrase
-- Closing phrase must incorporate user's own words (not a fixed template)
-- Write Entry highlight: style change only (secondary → primary), NO pulsing animation
-- All OpenAI calls go through aiService.ts — never call fetch directly from component
-- Prompt must follow docs/ai_communication_principles.md:
-  - Safe openers: "Co sprawia, że...", "Skąd pochodzi to poczucie, że...", "Jak rozumiesz...", "Co w tym jest dla Ciebie ważne..."
-  - Forbidden: "Dlaczego...", "Ale...", any reference to insight text
-  - Max 15 words, neutral-curious tone
-  - Observational language in closing phrase ("W Twoich słowach..." not "Ty uważasz...")
-- generateHolisticInsight() prompt must use observational language ("W Twoich wpisach pojawia się wzorzec...") not identity-prescribing ("Masz tendencję do...")
+- Story extraction runs fire-and-forget after entry save — never blocks UI or delays navigation
+- `extractStories()` never throws — returns `['[full entry content]']` fallback on any error (1 story = 1 star)
+- Entry with 0 detectable stories → treated as 1 story (full entry content as the story)
+- Session lines must be visually distinct from constellation connection lines (different color/opacity)
+- "Dopowiedz" elaboration: saves elaboration text, triggers re-classification — original story content preserved
+- No emotion classification in this US — `emotion` and `emotion_confidence` fields left null (handled in US-207)
+- No life area classification in this US — `life_area` field left null (handled in US-208)
+- Story positions derived from story id, not entry id — must be stable across re-renders
+- All OpenAI calls go through `src/services/aiService.ts` — never call API directly from components
 
 ## Acceptance Criteria
-- [ ] "To nie brzmi jak ja" button visible below insight text (interactive mode only)
-- [ ] Clicking opens text input with placeholder: "Co sprawia, że ten wgląd nie pasuje?"
-- [ ] On submit: AI responds with one deepening question (max 15 words, neutral-curious, observational language)
-- [ ] Insight text never changes as a result of user pushback
-- [ ] Round 2: AI paraphrases user's content in closing phrase (not fixed template)
-- [ ] After round 2: Write Entry button changes from secondary to primary style (Amber fill, no pulsing)
-- [ ] Round limit is invisible to user — never communicated explicitly
-- [ ] AI response never confronts contradictions in user's entries
-- [ ] Loading state during AI response
-- [ ] generateHolisticInsight() prompt uses observational language
+- [ ] On entry save, `aiService.extractStories(content, apiKey)` called — returns array of story strings
+- [ ] Each story saved to `stories` table linked to the entry
+- [ ] Each story rendered as a separate `<StoryNode>` in StarField
+- [ ] Stories from same entry connected by a thin session line (distinct from constellation connection lines)
+- [ ] "Dopowiedz" button on each StoryNode tooltip — opens elaboration textarea
+- [ ] On submit of elaboration: original story content preserved, re-classification triggered (emotion/life_area updated)
+- [ ] Story positions are stable (derived from story id, not entry id)
+- [ ] Entry with 0 detectable stories → treated as 1 story
 
 ## After Implementation
 - [ ] Run: `npm run lint`
 - [ ] Run: `npm test`
 - [ ] Manual verification steps (po polsku):
-  1. Otwórz aplikację, upewnij się że masz ustawiony klucz API i min. 5 wpisów z wygenerowanym pattern summary
-  2. Kliknij logo Dotflow aby wejść w tryb 3D
-  3. Najedź na czarną dziurę — powinna pojawić się tooltip z wglądem
-  4. Sprawdź: pod wglądem widoczny przycisk "To nie brzmi jak ja"
-  5. Kliknij przycisk — powinno pojawić się pole z placeholderem "Co sprawia, że ten wgląd nie pasuje?"
-  6. Wpisz dowolny tekst i zatwierdź (runda 1)
-  7. Sprawdź: AI odpowiada jednym pytaniem (max 15 słów, neutralny ton) — wgląd NIE zmienił się
-  8. Wpisz kolejną odpowiedź i zatwierdź (runda 2)
-  9. Sprawdź: AI odpowiada frazą zamykającą która nawiązuje do Twoich słów
-  10. Sprawdź: przycisk Write Entry zmienił styl na primary (bursztynowe tło, bez pulsowania)
-  11. Sprawdź: nigdzie nie pojawia się komunikat o limicie rund
-  12. Sprawdź: wgląd na czarnej dziurze nadal pokazuje oryginalny tekst (nie zmienił się)
+  1. Napisz wpis zawierający 2-3 wyraźnie różne sceny/sytuacje (np. rano praca, wieczór spacer)
+  2. Zapisz wpis
+  3. Przejdź do widoku 3D — sprawdź czy pojawiło się kilka gwiazdek (nie jedna)
+  4. Sprawdź czy gwiazdki z tego samego wpisu są połączone cienką linią sesji
+  5. Najedź na gwiazdkę — sprawdź czy tooltip pokazuje treść tej konkretnej sceny
+  6. Kliknij "Dopowiedz" na jednej gwiazdce — wpisz dodatkowy kontekst i wyślij
+  7. Sprawdź w Supabase czy tabela `stories` zawiera zapisane rekordy
+  8. Napisz bardzo krótki wpis (1 zdanie) — sprawdź czy pojawia się 1 gwiazdka
 - [ ] Potwierdź weryfikację wpisując 1 → agent automatycznie uruchomi /qa
