@@ -1,7 +1,7 @@
 # Dotflow - Product Backlog
 
 **Project:** Dotflow
-**Version:** 1.2
+**Version:** 1.3
 **Last Updated:** 2026-04-28 (US-206: Story Extraction completed)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
@@ -1009,7 +1009,7 @@ One long entry can contain multiple emotionally distinct events. Treating the en
 - **Excludes:** Emotion classification (US-207), life area clustering (US-208)
 
 **Priority:** P0
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
 ---
 
@@ -1022,30 +1022,30 @@ After the user saves an entry, AI automatically segments it into N distinct stor
 **I want** my entry automatically split into individual story stars
 **So that** each distinct moment in my life has its own visual presence in the sky
 
-**Status:** 📋 Planned
+**Status:** ✅ COMPLETED
 **Story Points:** 13
 **Priority:** P0
 
 **Acceptance Criteria:**
-- [ ] On entry save, `aiService.extractStories(content, apiKey)` called — returns array of story strings
-- [ ] Each story saved to `stories` table linked to the entry
-- [ ] Each story rendered as a separate `<StoryNode>` in StarField
-- [ ] Stories from same entry connected by a thin session line (distinct from constellation connection lines)
-- [ ] "Dopowiedz" button on each StoryNode tooltip — opens elaboration textarea
-- [ ] On submit of elaboration: original story content preserved, AI re-classifies based on combined text
-- [ ] Story positions are stable (derived from story id, not entry id)
-- [ ] Entry with 0 detectable stories (e.g., single-word entry) → treated as 1 story
+- [x] On entry save, `aiService.extractStories(content, apiKey)` called — returns array of story strings
+- [x] Each story saved to `stories` table linked to the entry
+- [x] Each story rendered as a separate `<StoryNode>` in StarField
+- [x] Stories from same entry connected by a thin session line (distinct from constellation connection lines)
+- [x] "Dopowiedz" button on each StoryNode tooltip — opens elaboration textarea
+- [x] On submit of elaboration: original story content preserved, AI re-classifies based on combined text
+- [x] Story positions are stable (derived from story id, not entry id)
+- [x] Entry with 0 detectable stories (e.g., single-word entry) → treated as 1 story
 
 **Tasks:**
-- [ ] **TASK-206.1:** Create `stories` table in Supabase — id, entry_id, content, emotion, emotion_confidence, life_area, position, created_at - 20min
-- [ ] **TASK-206.2:** Implement `aiService.extractStories(content, apiKey)` with story segmentation prompt - 60min
-- [ ] **TASK-206.3:** Implement `storyService.saveStories(entryId, stories)` and `storyService.getStoriesForEntry(entryId)` - 30min
-- [ ] **TASK-206.4:** Create `src/components/StoryNode/StoryNode.tsx` — star mesh + tooltip + "Dopowiedz" button - 60min
-- [ ] **TASK-206.5:** Add session lines between stories from same entry in StarField - 30min
-- [ ] **TASK-206.6:** Implement "Dopowiedz" elaboration flow — save elaboration, call re-classification - 45min
-- [ ] **TASK-206.7:** Update `starPositions.ts` to derive stable position from story id - 20min
-- [ ] **TASK-206.8:** Write tests (/qa) - 60min
-- [ ] **TASK-206.9:** Manual verification - 20min
+- [x] **TASK-206.1:** Create `stories` table in Supabase — id, entry_id, content, emotion, emotion_confidence, life_area, position, created_at - 20min
+- [x] **TASK-206.2:** Implement `aiService.extractStories(content, apiKey)` with story segmentation prompt - 60min
+- [x] **TASK-206.3:** Implement `storyService.saveStories(entryId, stories)` and `storyService.getStoriesForEntry(entryId)` - 30min
+- [x] **TASK-206.4:** Create `src/components/StarField/StoryNode.tsx` — star mesh + tooltip + "Dopowiedz" button - 60min
+- [x] **TASK-206.5:** Add session lines between stories from same entry in StarField - 30min
+- [x] **TASK-206.6:** Implement "Dopowiedz" elaboration flow — save elaboration, call re-classification - 45min
+- [x] **TASK-206.7:** Update `starPositions.ts` to derive stable position from story id - 20min
+- [x] **TASK-206.8:** Write tests (/qa) — 23 tests across aiService, storyService, starPositions, prompts - 60min
+- [x] **TASK-206.9:** Manual verification - 20min
 
 ---
 

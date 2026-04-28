@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 2.3
-**Date:** 2026-04-27
+**Version:** 2.4
+**Date:** 2026-04-28
 **Author:** Solution Architect
-**Status:** Updated after US-203
+**Status:** Updated after US-206
 
 ---
 
@@ -162,7 +162,7 @@ dotflow/
 │   │       └── ValuesModal.tsx      # AI-proposed themes: edit/remove/restore, add input, "Żadna z tych" escape hatch
 │   ├── pages/               # Route-level components
 │   │   ├── HomePage.tsx     # Home screen: entry list, loading skeleton, empty state, warning banner, connection badges, pattern summary, values flow, Write Entry CTA highlight on round limit (US-004, US-005, US-007, US-101, US-102, US-202, US-203)
-│   │   ├── NewEntryPage.tsx # Entry writing, AI follow-up dialog orchestration, fire-and-forget connection detection (US-005, US-006, US-101)
+│   │   ├── NewEntryPage.tsx # Entry writing, AI follow-up dialog orchestration, fire-and-forget connection detection + story extraction (US-005, US-006, US-101, US-206)
 │   │   ├── EntryDetailPage.tsx # Full entry view with follow-up Q&A (US-007)
 │   │   └── SettingsPage.tsx # API key management screen (US-004)
 │   ├── hooks/               # Custom React hooks
@@ -180,7 +180,7 @@ dotflow/
 │   │   ├── entryService.ts  # Supabase CRUD: createEntry, getEntries, getEntryById, saveFollowUps, saveConnection, getConnectionsForEntry (US-002, US-006, US-101)
 │   │   └── storyService.ts  # Supabase CRUD for stories: saveStories, getStoriesForEntry, updateStoryEmotion, updateStoryLifeArea (US-206, US-207, US-208)
 │   ├── types/               # TypeScript type definitions
-│   │   └── index.ts         # Entry, FollowUp, Connection, EntryWithFollowUps, UserValuesState (US-002, US-202)
+│   │   └── index.ts         # Entry, FollowUp, Connection, EntryWithFollowUps, UserValuesState, Story (US-002, US-202, US-206)
 │   ├── utils/               # Pure utility functions
 │   │   ├── prompts.ts       # AI prompt templates: FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT, STORY_EXTRACTION_SYSTEM_PROMPT, EMOTION_DETECTION_SYSTEM_PROMPT, LIFE_AREA_SYSTEM_PROMPT, CONNECTION_TYPE_SYSTEM_PROMPT (US-006, US-101, US-102, US-202, US-203, US-206, US-207, US-208, US-209)
 │   │   ├── starPositions.ts # Deterministic 3D position from entry/story UUID; getAlignedStarPosition() for value-aligned positioning (US-201, US-202, US-206)
@@ -209,12 +209,13 @@ dotflow/
 │   │   │   ├── NewEntryPage.test.tsx # TC-003–009, TC-025–026, TC-034 (US-005, US-006)
 │   │   │   └── SettingsPage.test.tsx # TC-001, TC-023 (US-004)
 │   │   ├── services/
-│   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043, TC-051–054, TC-099–102, TC-107–112 (US-006, US-101, US-102, US-202, US-203)
-│   │   │   └── entryService.test.ts  # TC-012–018, TC-044–047 (US-002, US-006, US-101)
+│   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043, TC-051–054, TC-099–102, TC-107–112, TC-116–122 (US-006, US-101, US-102, US-202, US-203, US-206)
+│   │   │   ├── entryService.test.ts  # TC-012–018, TC-044–047 (US-002, US-006, US-101)
+│   │   │   └── storyService.test.ts  # TC-123–133: saveStories, getStoriesForEntry, getAllStories, addElaboration (US-206)
 │   │   └── utils/
 │   │       ├── testHelpers.tsx       # renderWithRouter helper
-│   │       ├── prompts.test.ts       # TC-063–064, TC-113–115: prompt contract tests (US-103, US-203)
-│   │       └── starPositions.test.ts # TC-065–068, TC-103–106: deterministic position, radius range, aligned positioning (US-201, US-202)
+│   │       ├── prompts.test.ts       # TC-063–064, TC-113–115, TC-134–135: prompt contract tests (US-103, US-203, US-206)
+│   │       └── starPositions.test.ts # TC-065–068, TC-103–106, TC-136–139: deterministic position, radius range, aligned positioning, story position (US-201, US-202, US-206)
 │   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004, US-005, US-007)
 │   ├── index.css            # Tailwind directives
 │   ├── main.tsx
@@ -604,7 +605,7 @@ graph LR
 - [x] **US-203:** Dialectical insight feedback loop — `respondToInsightFeedback()`, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT, disagree flow in BlackHole, Amber Write CTA on round limit — M2.5 ✅ Completed
 - [ ] User onboarding & instructions — M2.5 P2 (FEATURE-013, US-204) — after story model stabilizes
 - [ ] **US-205:** Depth accumulator adaptive insights — `useDepthAccumulator` hook, `insightConfig.ts` (configurable weights/threshold), `aiService.generateHolisticInsight()`, two insight types (connection inline + holistic on black hole hover), heartbeat pulse per entry save proportional to depth score; black hole insight behavior by context (repeated topic / contradicting / short entry pattern) — M2.5
-- [ ] **US-206:** Story Extraction — P0 architectural pivot — `stories` Supabase table, `aiService.extractStories()`, `storyService`, `StoryNode.tsx`, session lines, "Dopowiedz" elaboration flow — M2.5
+- [x] **US-206:** Story Extraction — P0 architectural pivot — `stories` Supabase table, `aiService.extractStories()`, `storyService`, `StoryNode.tsx`, session lines, "Dopowiedz" elaboration flow — M2.5 ✅ Completed
 - [ ] **US-207:** Emotion Intelligence per Story — P1 — `aiService.detectEmotionConfidence()`, `emotionColors.ts`, star color mapping, silent assignment (no emotion wheel ever), post-hoc correction via "Dopowiedz" — M2.5
 - [ ] **US-210:** Contextual Follow-Up Between Lines — P1 — updated `generateFollowUpQuestions()` with story context, long entry threshold >300 words → "Pięknie." acknowledgment — M2.5
 - [ ] **US-208:** Life Area Zones — P1 — `aiService.classifyLifeArea()`, `useLifeAreaZones`, emergent cluster glows in StarField, hover-only labels, user-renameable, no default zones — M2.5
