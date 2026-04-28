@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { saveStories, getStoriesForEntry, getAllStories, addElaboration } from '../../services/storyService'
+import { saveStories, getStoriesForEntry, getAllStories, addElaboration, updateStoryEmotion } from '../../services/storyService'
 import { supabase } from '../../lib/supabase'
 import type { Story } from '../../types'
 
@@ -187,6 +187,36 @@ describe('storyService', () => {
       await expect(
         addElaboration('story-uuid-1', 'elaboration text here')
       ).rejects.toThrow('Not found')
+    })
+  })
+
+  describe('updateStoryEmotion', () => {
+    it('should call Supabase update with correct emotion and confidence', async () => {
+      const updateMock = vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ error: null }),
+      })
+      vi.mocked(supabase.from).mockReturnValue({
+        update: updateMock,
+      } as ReturnType<typeof supabase.from>)
+
+      await updateStoryEmotion('story-uuid-1', 'joy', 0.88)
+
+      expect(supabase.from).toHaveBeenCalledWith('stories')
+      const updateArg = updateMock.mock.calls[0][0] as { emotion: string; emotion_confidence: number }
+      expect(updateArg.emotion).toBe('joy')
+      expect(updateArg.emotion_confidence).toBe(0.88)
+    })
+
+    it('should throw when Supabase update returns error', async () => {
+      vi.mocked(supabase.from).mockReturnValue({
+        update: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ error: { message: 'Update failed' } }),
+        }),
+      } as ReturnType<typeof supabase.from>)
+
+      await expect(
+        updateStoryEmotion('story-uuid-1', 'fear', 0.75)
+      ).rejects.toThrow('Update failed')
     })
   })
 })

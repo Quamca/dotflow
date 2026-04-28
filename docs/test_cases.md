@@ -2472,6 +2472,285 @@ export const mockEntry = {
 
 ---
 
+## 3.11 FEATURE: Emotion Intelligence per Story (US-207)
+
+### TC-140: detectEmotionConfidence returns emotion and confidence when API responds with valid JSON
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return `{ emotion: 'calm', confidence: 0.92 }`
+
+**Test Steps:**
+1. Call `detectEmotionConfidence('story content', 'sk-test')`
+
+**Expected Result:**
+- Returns `{ emotion: 'calm', confidence: 0.92 }`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-141: detectEmotionConfidence returns fallback {emotion:mixed, confidence:0} when API returns non-ok response
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return `{ ok: false, status: 401 }`
+
+**Test Steps:**
+1. Call `detectEmotionConfidence('story content', 'sk-invalid')`
+
+**Expected Result:**
+- Returns `{ emotion: 'mixed', confidence: 0 }` — never throws
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-142: detectEmotionConfidence returns fallback when response JSON is malformed
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return `content: 'not valid json'`
+
+**Test Steps:**
+1. Call `detectEmotionConfidence('story content', 'sk-test')`
+
+**Expected Result:**
+- Returns `{ emotion: 'mixed', confidence: 0 }`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-143: detectEmotionConfidence returns fallback when fetch throws a network error
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to reject with Error('Network error')
+
+**Test Steps:**
+1. Call `detectEmotionConfidence('story content', 'sk-test')`
+
+**Expected Result:**
+- Returns `{ emotion: 'mixed', confidence: 0 }` — never throws
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-144: getEmotionColor returns amber color for joy
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** Critical
+
+**Test Steps:**
+1. Call `getEmotionColor('joy')`
+
+**Expected Result:**
+- Returns `'#F59E0B'`
+
+**File:** `src/__tests__/utils/emotionColors.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-145: getEmotionColor returns blue color for sadness
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/utils/emotionColors.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-146: getEmotionColor returns red color for anger
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/utils/emotionColors.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-147: getEmotionColor returns purple color for fear
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/utils/emotionColors.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-148: getEmotionColor returns teal color for calm
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/utils/emotionColors.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-149: getEmotionColor returns default stone color when emotion is null
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** Critical
+
+**Test Steps:**
+1. Call `getEmotionColor(null)`
+
+**Expected Result:**
+- Returns `'#78716C'`
+
+**File:** `src/__tests__/utils/emotionColors.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-150: getEmotionColor returns default stone color when emotion is undefined
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/utils/emotionColors.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-151: getEmotionColor returns default stone color for unknown emotion string
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** High
+
+**Test Steps:**
+1. Call `getEmotionColor('mixed')` (not in map)
+
+**Expected Result:**
+- Returns `'#78716C'`
+
+**File:** `src/__tests__/utils/emotionColors.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-152: updateStoryEmotion calls Supabase update with correct emotion and confidence
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- Supabase mock returns `{ error: null }`
+
+**Test Steps:**
+1. Call `updateStoryEmotion('story-uuid-1', 'joy', 0.88)`
+
+**Expected Result:**
+- `supabase.from('stories').update({ emotion: 'joy', emotion_confidence: 0.88 })` called
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-153: updateStoryEmotion throws when Supabase update returns error
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- Supabase mock returns `{ error: { message: 'Update failed' } }`
+
+**Test Steps:**
+1. Call `updateStoryEmotion('story-uuid-1', 'fear', 0.75)`
+
+**Expected Result:**
+- Throws error with message `'Update failed'`
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-154: EMOTION_DETECTION_SYSTEM_PROMPT instructs AI to return JSON object
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** Critical
+
+**Test Steps:**
+1. Check prompt contains `'JSON object'`
+
+**Expected Result:**
+- Prompt contains `JSON object`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-155: EMOTION_DETECTION_SYSTEM_PROMPT includes all six emotion categories
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** Critical
+
+**Test Steps:**
+1. Check prompt contains each of: `"joy"`, `"sadness"`, `"anger"`, `"fear"`, `"calm"`, `"mixed"`
+
+**Expected Result:**
+- All six emotion labels present in prompt
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-156: EMOTION_DETECTION_SYSTEM_PROMPT includes confidence field in example format
+
+**Related US:** US-207
+**Type:** Unit
+**Priority:** High
+
+**Test Steps:**
+1. Check prompt contains `'"confidence"'`
+
+**Expected Result:**
+- Prompt contains `"confidence"` in JSON format example
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
 ## 4. Test Data
 
 ### 4.1 Mock Data Sets

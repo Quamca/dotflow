@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback, extractStories } from '../../services/aiService'
+import { generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback, extractStories, detectEmotionConfidence } from '../../services/aiService'
 import { DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT } from '../../utils/prompts'
 import type { Entry } from '../../types'
 
@@ -564,6 +564,74 @@ describe('aiService', () => {
       // Assert
       expect(result).toHaveLength(1)
       expect(result[0]).toBe('This story is long enough to pass the filter.')
+    })
+  })
+
+  describe('detectEmotionConfidence', () => {
+    const storyContent = 'Dzisiaj byłem na spacerze i poczułem wielki spokój.'
+
+    it('should return emotion and confidence when API responds with valid JSON', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: JSON.stringify({ emotion: 'calm', confidence: 0.92 }) } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await detectEmotionConfidence(storyContent, 'sk-test')
+
+      // Assert
+      expect(result.emotion).toBe('calm')
+      expect(result.confidence).toBe(0.92)
+    })
+
+    it('should return fallback {emotion:mixed, confidence:0} when API returns non-ok response', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({ ok: false, status: 401 })
+      )
+
+      // Act
+      const result = await detectEmotionConfidence(storyContent, 'sk-invalid')
+
+      // Assert
+      expect(result).toEqual({ emotion: 'mixed', confidence: 0 })
+    })
+
+    it('should return fallback when response JSON is malformed', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: 'not valid json' } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await detectEmotionConfidence(storyContent, 'sk-test')
+
+      // Assert
+      expect(result).toEqual({ emotion: 'mixed', confidence: 0 })
+    })
+
+    it('should return fallback when fetch throws a network error', async () => {
+      // Arrange
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')))
+
+      // Act
+      const result = await detectEmotionConfidence(storyContent, 'sk-test')
+
+      // Assert
+      expect(result).toEqual({ emotion: 'mixed', confidence: 0 })
     })
   })
 })
