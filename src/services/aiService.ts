@@ -1,4 +1,4 @@
-import { FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_DETECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT, STORY_EXTRACTION_SYSTEM_PROMPT, EMOTION_DETECTION_SYSTEM_PROMPT } from '../utils/prompts'
+import { FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_DETECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT, STORY_EXTRACTION_SYSTEM_PROMPT, EMOTION_DETECTION_SYSTEM_PROMPT, HOLISTIC_INSIGHT_SYSTEM_PROMPT } from '../utils/prompts'
 import type { Entry, ConnectionResult } from '../types'
 
 export async function generateFollowUpQuestions(
@@ -266,6 +266,41 @@ export async function detectEmotionConfidence(
   } catch {
     return fallback
   }
+}
+
+export async function generateHolisticInsight(
+  entries: Entry[],
+  apiKey: string
+): Promise<string> {
+  const userMessage = JSON.stringify(
+    entries.slice(0, 20).map((e) => ({
+      content: e.content,
+      created_at: e.created_at,
+    }))
+  )
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: HOLISTIC_INSIGHT_SYSTEM_PROMPT },
+        { role: 'user', content: userMessage },
+      ],
+      temperature: 0.6,
+    }),
+  })
+
+  if (!response.ok) throw new Error(`OpenAI API error: ${response.status}`)
+
+  const data = (await response.json()) as {
+    choices: Array<{ message: { content: string } }>
+  }
+  return data.choices[0]?.message?.content?.trim() ?? ''
 }
 
 export async function findConnection(

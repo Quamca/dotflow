@@ -3,13 +3,19 @@ import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import type { Mesh } from 'three'
 import { respondToInsightFeedback } from '../../services/aiService'
+import { DEPTH_SCORE_CONFIG } from '../../utils/insightConfig'
 
 interface BlackHoleProps {
   size: number
   insight: string[] | null
+  holisticInsight: string | null
+  hasUnreadInsight: boolean
+  depthScore: number
+  storyContextMessage: string | null
   isInteractive: boolean
   apiKey: string
   onRoundLimitReached?: () => void
+  onInsightRead?: () => void
 }
 
 interface DisagreeState {
@@ -23,25 +29,34 @@ interface DisagreeState {
 const MIN_SIZE = 0.3
 const PULSE_SPEED = 0.8
 const TOOLTIP_HIDE_DELAY = 300
+const MIN_PULSE_AMPLITUDE = 0.02
+const MAX_PULSE_AMPLITUDE = 0.10
 
-export default function BlackHole({ size, insight, isInteractive, apiKey, onRoundLimitReached }: BlackHoleProps) {
+export default function BlackHole({
+  size, insight, holisticInsight, hasUnreadInsight, depthScore, storyContextMessage,
+  isInteractive, apiKey, onRoundLimitReached, onInsightRead,
+}: BlackHoleProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [disagree, setDisagree] = useState<DisagreeState>({
-    isActive: false,
-    round: 0,
-    feedbackInput: '',
-    aiResponse: null,
-    isLoading: false,
+    isActive: false, round: 0, feedbackInput: '', aiResponse: null, isLoading: false,
   })
   const meshRef = useRef<Mesh>(null)
   const glowRef = useRef<Mesh>(null)
+  const unreadGlowRef = useRef<Mesh>(null)
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasReadRef = useRef(false)
 
   useFrame((_, delta) => {
     if (glowRef.current) {
       const t = Date.now() * 0.001 * PULSE_SPEED
-      const scale = 1 + Math.sin(t) * 0.04
+      const amplitude = MIN_PULSE_AMPLITUDE + (depthScore / DEPTH_SCORE_CONFIG.MAX_SCORE_PER_ENTRY) * (MAX_PULSE_AMPLITUDE - MIN_PULSE_AMPLITUDE)
+      const scale = 1 + Math.sin(t) * amplitude
       glowRef.current.scale.setScalar(scale)
+    }
+    if (unreadGlowRef.current) {
+      const t = Date.now() * 0.001 * PULSE_SPEED * 1.8
+      const scale = 1 + Math.sin(t) * 0.14
+      unreadGlowRef.current.scale.setScalar(scale)
     }
     if (meshRef.current && isHovered) {
       meshRef.current.rotation.y += delta * 0.3
@@ -56,15 +71,25 @@ export default function BlackHole({ size, insight, isInteractive, apiKey, onRoun
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
   }
 
+  function handlePointerEnter() {
+    cancelHide()
+    setIsHovered(true)
+    if (hasUnreadInsight && !hasReadRef.current) {
+      hasReadRef.current = true
+      onInsightRead?.()
+    }
+  }
+
   const clampedSize = Math.max(MIN_SIZE, size)
   const showTooltip = (isHovered && isInteractive) || disagree.isActive
 
   async function handleFeedbackSubmit() {
-    if (!disagree.feedbackInput.trim() || disagree.isLoading || !insight) return
+    const activeInsight = holisticInsight ? [holisticInsight] : insight
+    if (!disagree.feedbackInput.trim() || disagree.isLoading || !activeInsight) return
     const nextRound = (disagree.round + 1) as 1 | 2
     setDisagree((prev) => ({ ...prev, isLoading: true }))
     try {
-      const response = await respondToInsightFeedback(insight, disagree.feedbackInput, nextRound, apiKey)
+      const response = await respondToInsightFeedback(activeInsight, disagree.feedbackInput, nextRound, apiKey)
       setDisagree((prev) => ({ ...prev, aiResponse: response, round: nextRound, feedbackInput: '', isLoading: false }))
       if (nextRound === 2) onRoundLimitReached?.()
     } catch {
@@ -79,9 +104,16 @@ export default function BlackHole({ size, insight, isInteractive, apiKey, onRoun
         <meshBasicMaterial color="#3b2a4a" transparent opacity={0.18} />
       </mesh>
 
+      {hasUnreadInsight && (
+        <mesh ref={unreadGlowRef}>
+          <sphereGeometry args={[clampedSize * 2.2, 16, 16]} />
+          <meshBasicMaterial color="#7c3aed" transparent opacity={0.14} />
+        </mesh>
+      )}
+
       <mesh
         ref={meshRef}
-        onPointerEnter={isInteractive ? () => { cancelHide(); setIsHovered(true) } : undefined}
+        onPointerEnter={isInteractive ? handlePointerEnter : undefined}
         onPointerLeave={isInteractive ? () => scheduleHide() : undefined}
       >
         <sphereGeometry args={[clampedSize, 24, 24]} />
@@ -97,6 +129,8 @@ export default function BlackHole({ size, insight, isInteractive, apiKey, onRoun
           >
             <InsightTooltip
               insight={insight}
+              holisticInsight={holisticInsight}
+              storyContextMessage={storyContextMessage}
               isInteractive={isInteractive}
               disagreeState={disagree}
               onDisagreeClick={() => setDisagree((prev) => ({ ...prev, isActive: true }))}
@@ -112,6 +146,8 @@ export default function BlackHole({ size, insight, isInteractive, apiKey, onRoun
 
 interface InsightTooltipProps {
   insight: string[] | null
+  holisticInsight: string | null
+  storyContextMessage: string | null
   isInteractive: boolean
   disagreeState: DisagreeState
   onDisagreeClick: () => void
@@ -119,10 +155,18 @@ interface InsightTooltipProps {
   onFeedbackSubmit: () => void
 }
 
-function InsightTooltip({ insight, isInteractive, disagreeState, onDisagreeClick, onFeedbackChange, onFeedbackSubmit }: InsightTooltipProps) {
+function InsightTooltip({
+  insight, holisticInsight, storyContextMessage, isInteractive, disagreeState,
+  onDisagreeClick, onFeedbackChange, onFeedbackSubmit,
+}: InsightTooltipProps) {
   const { isActive, round, feedbackInput, aiResponse, isLoading } = disagreeState
 
-  if (!insight || insight.length === 0) {
+  const showHolistic = !!holisticInsight
+  const showPattern = !showHolistic && insight && insight.length > 0
+  const showFallback = !showHolistic && !showPattern
+
+  // Silence: short entry with no story context message and no insight
+  if (showFallback && !storyContextMessage) {
     return (
       <div style={tooltipStyle}>
         <div style={{ color: '#A8A29E', fontSize: '13px' }}>
@@ -134,16 +178,39 @@ function InsightTooltip({ insight, isInteractive, disagreeState, onDisagreeClick
 
   return (
     <div style={{ ...tooltipStyle, maxWidth: '300px' }}>
-      <div style={{ fontWeight: 600, marginBottom: '8px', fontSize: '13px', color: '#FAFAF9' }}>
-        Your entries suggest:
-      </div>
-      <ul style={{ margin: 0, padding: '0 0 0 14px', listStyle: 'disc' }}>
-        {insight.slice(0, 3).map((obs, i) => (
-          <li key={i} style={{ color: '#A8A29E', fontSize: '13px', lineHeight: 1.6, marginBottom: '4px' }}>
-            {obs}
-          </li>
-        ))}
-      </ul>
+      {storyContextMessage && !showHolistic && !showPattern && (
+        <div style={{ color: '#D6D3D1', fontSize: '13px', lineHeight: 1.6 }}>
+          {storyContextMessage}
+        </div>
+      )}
+
+      {showHolistic && (
+        <>
+          {storyContextMessage && (
+            <div style={{ color: '#A8A29E', fontSize: '12px', fontStyle: 'italic', marginBottom: '10px', lineHeight: 1.5 }}>
+              {storyContextMessage}
+            </div>
+          )}
+          <div style={{ color: '#FAFAF9', fontSize: '13px', lineHeight: 1.6 }}>
+            {holisticInsight}
+          </div>
+        </>
+      )}
+
+      {showPattern && (
+        <>
+          <div style={{ fontWeight: 600, marginBottom: '8px', fontSize: '13px', color: '#FAFAF9' }}>
+            Your entries suggest:
+          </div>
+          <ul style={{ margin: 0, padding: '0 0 0 14px', listStyle: 'disc' }}>
+            {insight!.slice(0, 3).map((obs, i) => (
+              <li key={i} style={{ color: '#A8A29E', fontSize: '13px', lineHeight: 1.6, marginBottom: '4px' }}>
+                {obs}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       {aiResponse && (
         <div style={{ marginTop: '10px', color: '#D6D3D1', fontSize: '12px', fontStyle: 'italic', lineHeight: 1.6 }}>
@@ -151,7 +218,7 @@ function InsightTooltip({ insight, isInteractive, disagreeState, onDisagreeClick
         </div>
       )}
 
-      {!isActive && isInteractive && (
+      {!isActive && isInteractive && (showHolistic || showPattern) && (
         <button onClick={onDisagreeClick} style={disagreeButtonStyle}>
           To nie brzmi jak ja
         </button>

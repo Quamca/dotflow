@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSettings } from '../hooks/useSettings'
 import { useUserValues } from '../hooks/useUserValues'
 import { getEntries, getConnectionsForEntry } from '../services/entryService'
 import { getAllStories } from '../services/storyService'
 import { generatePatternSummary, extractUserValues } from '../services/aiService'
+import { STORAGE_KEYS, ACCUMULATOR_CONFIG, DEPTH_SCORE_CONFIG } from '../utils/insightConfig'
 import EntryCard from '../components/EntryCard/EntryCard'
 import ConnectionBadge from '../components/ConnectionBadge/ConnectionBadge'
 import PatternSummary from '../components/PatternSummary/PatternSummary'
@@ -31,6 +32,15 @@ export default function HomePage() {
   const [proposedThemes, setProposedThemes] = useState<string[] | null>(null)
   const [isValuesModalOpen, setIsValuesModalOpen] = useState(false)
   const [writeEntryHighlighted, setWriteEntryHighlighted] = useState(false)
+  const [holisticInsight] = useState<string | null>(
+    () => localStorage.getItem(STORAGE_KEYS.HOLISTIC_INSIGHT)
+  )
+  const [hasUnreadInsight, setHasUnreadInsight] = useState(
+    () => localStorage.getItem(STORAGE_KEYS.HOLISTIC_INSIGHT_UNREAD) === 'true'
+  )
+  const [lastEntryDepthScore] = useState(
+    () => parseFloat(localStorage.getItem(STORAGE_KEYS.LAST_ENTRY_DEPTH) ?? '0') || 0
+  )
 
   const hasEntries = !isLoading && !error && entries.length > 0
   const shouldOfferValues =
@@ -102,6 +112,31 @@ export default function HomePage() {
     void load()
   }, [])
 
+  const storyContextMessage = useMemo((): string | null => {
+    if (entries.length === 0) return null
+    const lastEntry = entries[0]
+    const wordCount = lastEntry.content.trim().split(/\s+/).filter(Boolean).length
+
+    if (wordCount < DEPTH_SCORE_CONFIG.SHORT_ENTRY_WORD_THRESHOLD) {
+      const consecutiveCount =
+        parseInt(localStorage.getItem(STORAGE_KEYS.CONSECUTIVE_SHORT_COUNT) ?? '0', 10) || 0
+      return consecutiveCount >= ACCUMULATOR_CONFIG.CONSECUTIVE_SHORT_THRESHOLD
+        ? 'Czy nie chcesz dziś pisać, czy jest coś co sprawia Ci trudność w opowiedzeniu?'
+        : null
+    }
+
+    if (entries.length < 2) return null
+
+    return connections[lastEntry.id]
+      ? 'Ten temat pojawia się kolejny raz — coś w nim jest ważnego.'
+      : 'Tym razem inaczej — coś się zdaje zmieniać.'
+  }, [entries, connections])
+
+  function handleInsightRead() {
+    localStorage.removeItem(STORAGE_KEYS.HOLISTIC_INSIGHT_UNREAD)
+    setHasUnreadInsight(false)
+  }
+
   function handleLogoClick() {
     if (hasEntries) setIsStarFieldActive((v) => !v)
   }
@@ -139,9 +174,14 @@ export default function HomePage() {
             stories={stories}
             isInteractive={isStarFieldActive}
             insight={observations.length > 0 ? observations : null}
+            holisticInsight={holisticInsight}
+            hasUnreadInsight={hasUnreadInsight}
+            depthScore={lastEntryDepthScore}
+            storyContextMessage={storyContextMessage}
             userValues={confirmedValues}
             apiKey={apiKey ?? undefined}
             onRoundLimitReached={() => setWriteEntryHighlighted(true)}
+            onInsightRead={handleInsightRead}
           />
         </div>
       )}
@@ -250,6 +290,7 @@ export default function HomePage() {
                         <ConnectionBadge
                           targetId={targetEntry.id}
                           targetDate={targetEntry.created_at}
+                          connectionInsight={conn.connection_note}
                         />
                       )}
                     </div>

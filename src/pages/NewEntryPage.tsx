@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createEntry, saveFollowUps, getEntries, saveConnection } from '../services/entryService'
-import { generateFollowUpQuestions, findConnection, extractStories, detectEmotionConfidence } from '../services/aiService'
+import { generateFollowUpQuestions, findConnection, extractStories, detectEmotionConfidence, generateHolisticInsight } from '../services/aiService'
 import { saveStories, updateStoryEmotion, getRecentStories } from '../services/storyService'
 import { useSettings } from '../hooks/useSettings'
+import { useDepthAccumulator, computeDepthScore } from '../hooks/useDepthAccumulator'
+import { STORAGE_KEYS } from '../utils/insightConfig'
 import FollowUpDialog from '../components/FollowUpDialog/FollowUpDialog'
 import type { Entry, FollowUpInput } from '../types'
 
@@ -39,11 +41,13 @@ async function detectAndSaveConnection(newEntry: Entry, apiKey: string): Promise
 export default function NewEntryPage() {
   const navigate = useNavigate()
   const { apiKey } = useSettings()
+  const accumulator = useDepthAccumulator()
   const [content, setContent] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [loadingPhase, setLoadingPhase] = useState<'saving' | 'thinking'>('saving')
   const [error, setError] = useState<string | null>(null)
   const [savedEntry, setSavedEntry] = useState<Entry | null>(null)
+  const [savedWordCount, setSavedWordCount] = useState(0)
   const [questions, setQuestions] = useState<string[]>([])
   const [showDialog, setShowDialog] = useState(false)
   const [isSavingFollowUps, setIsSavingFollowUps] = useState(false)
@@ -52,11 +56,34 @@ export default function NewEntryPage() {
 
   const WORD_COUNT_GATE = 300
 
+  async function handleDepthAccumulation(wordCount: number, answeredFollowUpCount: number): Promise<void> {
+    const score = computeDepthScore(wordCount, answeredFollowUpCount)
+    accumulator.trackEntryLength(wordCount)
+    const { thresholdCrossed } = accumulator.addScore(score)
+
+    if (!thresholdCrossed || !apiKey) return
+
+    accumulator.reset()
+    try {
+      const allEntries = await getEntries()
+      const insight = await generateHolisticInsight(allEntries, apiKey)
+      if (insight) {
+        localStorage.setItem(STORAGE_KEYS.HOLISTIC_INSIGHT, insight)
+        localStorage.setItem(STORAGE_KEYS.HOLISTIC_INSIGHT_UNREAD, 'true')
+      }
+    } catch {
+      // best-effort — insight generation does not block navigation
+    }
+  }
+
   async function handleSubmit() {
     if (!content.trim()) return
     setIsLoading(true)
     setLoadingPhase('saving')
     setError(null)
+
+    const wordCount = content.trim().split(/\s+/).filter(Boolean).length
+    setSavedWordCount(wordCount)
 
     let entry: Entry
     try {
@@ -73,12 +100,13 @@ export default function NewEntryPage() {
     }
 
     if (!apiKey) {
+      void handleDepthAccumulation(wordCount, 0)
       navigate('/')
       return
     }
 
-    const wordCount = content.trim().split(/\s+/).filter(Boolean).length
     if (wordCount > WORD_COUNT_GATE) {
+      void handleDepthAccumulation(wordCount, 0)
       setShowPiknie(true)
       setIsLoading(false)
       return
@@ -114,6 +142,7 @@ export default function NewEntryPage() {
       return
     }
 
+    void handleDepthAccumulation(wordCount, 0)
     navigate('/')
   }
 
@@ -125,6 +154,8 @@ export default function NewEntryPage() {
     } catch {
       // followups failed — entry already saved, navigate anyway
     }
+    const answeredCount = followups.filter((fu) => fu.answer !== null && fu.answer.trim() !== '').length
+    void handleDepthAccumulation(savedWordCount, answeredCount)
     navigate('/')
   }
 

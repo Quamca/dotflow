@@ -18,12 +18,17 @@ interface StarFieldProps {
   stories?: Story[]
   isInteractive: boolean
   insight?: string[] | null
+  holisticInsight?: string | null
+  hasUnreadInsight?: boolean
+  depthScore?: number
+  storyContextMessage?: string | null
   userValues?: string[]
   apiKey?: string
   onRoundLimitReached?: () => void
+  onInsightRead?: () => void
 }
 
-export default function StarField({ entries, connections, stories = [], isInteractive, insight, userValues, apiKey, onRoundLimitReached }: StarFieldProps) {
+export default function StarField({ entries, connections, stories = [], isInteractive, insight, holisticInsight, hasUnreadInsight, depthScore, storyContextMessage, userValues, apiKey, onRoundLimitReached, onInsightRead }: StarFieldProps) {
   const [activeStoryId, setActiveStoryId] = useState<string | null>(null)
 
   const positionMap = useMemo(() => {
@@ -117,7 +122,18 @@ export default function StarField({ entries, connections, stories = [], isIntera
         />
       ))}
       <ConstellationLines connections={connections} positionMap={positionMap} />
-      <BlackHole size={blackHoleSize} insight={insight ?? null} isInteractive={isInteractive} apiKey={apiKey ?? ''} onRoundLimitReached={onRoundLimitReached} />
+      <BlackHole
+        size={blackHoleSize}
+        insight={insight ?? null}
+        holisticInsight={holisticInsight ?? null}
+        hasUnreadInsight={hasUnreadInsight ?? false}
+        depthScore={depthScore ?? 0}
+        storyContextMessage={storyContextMessage ?? null}
+        isInteractive={isInteractive}
+        apiKey={apiKey ?? ''}
+        onRoundLimitReached={onRoundLimitReached}
+        onInsightRead={onInsightRead}
+      />
       {isInteractive && <OrbitControls enablePan enableZoom enableRotate makeDefault />}
     </Canvas>
   )
