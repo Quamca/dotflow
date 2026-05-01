@@ -1,8 +1,8 @@
 # Dotflow - Product Backlog
 
 **Project:** Dotflow
-**Version:** 1.3
-**Last Updated:** 2026-05-01 (US-207: Emotion Intelligence per Story completed)
+**Version:** 1.5
+**Last Updated:** 2026-05-01 (US-210: Contextual Follow-Up Questions Between Lines completed)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -14,6 +14,8 @@
 |----|-------------|----------|-------------|
 | BUG-001 | StarField tooltips (StoryNode + StarNode) are too narrow — content gets clipped, width needs increase | Low | US-206 manual verification |
 | BUG-002 | StoryNode tooltip does not close when clicking outside — requires hovering another star or waiting 3s | Medium | US-207 manual verification |
+| BUG-003 | Follow-up questions use storyContext from past entries but user has no visibility into this — questions about "rodzina" or "góry" feel like hallucinations when user doesn't realize the AI read prior stories | Medium | US-210 manual verification |
+| BUG-004 | New entries are not visually distinguished from older entries in the 3D sky — user cannot easily find the most recent star; feature request: most recently added star should blink/pulse | Low | US-210 manual verification |
 
 ---
 
@@ -55,7 +57,7 @@ EPIC-002b: Dotflow M2.5 — Experience Depth (pre-M3)
 ├── FEATURE-015: Security & Privacy Messaging           [deferred to M3]
 ├── FEATURE-016: Story Extraction                       [P0 — architectural pivot]
 ├── FEATURE-017: Emotion Intelligence per Story         [P1]
-├── FEATURE-018: Contextual Follow-Up Questions         [P1]
+├── FEATURE-018: Contextual Follow-Up Questions         [P1] ✅ Completed
 ├── FEATURE-019: Life Area Zones                        [P1]
 └── FEATURE-020: Typed Connection Visualization         [P2]
 
@@ -1132,7 +1134,7 @@ Questions that ask about what's already written feel redundant and surveillance-
 - **Excludes:** Emotion wheel (removed in US-207)
 
 **Priority:** P1
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
 ---
 
@@ -1145,25 +1147,25 @@ Rewrite follow-up question generation so AI avoids restating what was already wr
 **I want** follow-up questions that ask about what I didn't write
 **So that** the questions feel like real insight, not a form to fill
 
-**Status:** 📋 Planned
+**Status:** ✅ COMPLETED
 **Story Points:** 5
 **Priority:** P1
 
 **Acceptance Criteria:**
-- [ ] If entry word count >300: no follow-up dialog shown; AI responds with *"Pięknie."* acknowledgment text; user navigates to home/sky
-- [ ] If entry word count ≤300: follow-up dialog shown with updated questions
-- [ ] Updated `generateFollowUpQuestions()` prompt includes: current entry stories + last 3 entry stories as context
-- [ ] Prompt explicitly instructs AI to avoid restating emotions/facts already written in the entry
-- [ ] Prompt focuses on: hidden context, people mentioned briefly, life areas the user doesn't address
-- [ ] "Pięknie." text shown inline on NewEntryPage before navigation (not a separate screen)
+- [x] If entry word count >300: no follow-up dialog shown; AI responds with *"Pięknie."* acknowledgment text; user navigates to home/sky
+- [x] If entry word count ≤300: follow-up dialog shown with updated questions
+- [x] Updated `generateFollowUpQuestions()` prompt includes: current entry stories + last 3 entry stories as context
+- [x] Prompt explicitly instructs AI to avoid restating emotions/facts already written in the entry
+- [x] Prompt focuses on: hidden context, people mentioned briefly, life areas the user doesn't address
+- [x] "Pięknie." text shown inline on NewEntryPage before navigation (not a separate screen)
 
 **Tasks:**
-- [ ] **TASK-210.1:** Add word count check in NewEntryPage — branch to "Pięknie." path if >300 words - 15min
-- [ ] **TASK-210.2:** Add "Pięknie." UI state in NewEntryPage (text + navigate to home button) - 20min
-- [ ] **TASK-210.3:** Update `generateFollowUpQuestions()` signature and prompt to include story context - 45min
-- [ ] **TASK-210.4:** Update prompt in `src/utils/prompts.ts` with between-the-lines instruction - 30min
-- [ ] **TASK-210.5:** Write tests (/qa) - 45min
-- [ ] **TASK-210.6:** Manual verification - 15min
+- [x] **TASK-210.1:** Add word count check in NewEntryPage — branch to "Pięknie." path if >300 words - 15min
+- [x] **TASK-210.2:** Add "Pięknie." UI state in NewEntryPage (text + navigate to home button) - 20min
+- [x] **TASK-210.3:** Update `generateFollowUpQuestions()` signature and prompt to include story context - 45min
+- [x] **TASK-210.4:** Update prompt in `src/utils/prompts.ts` with between-the-lines instruction - 30min
+- [x] **TASK-210.5:** Write tests (/qa) - 45min
+- [x] **TASK-210.6:** Manual verification - 15min
 
 ---
 
