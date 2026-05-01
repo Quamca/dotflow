@@ -88,12 +88,12 @@ Depth score per entry — range 0–20 pts (based on Pennebaker Expressive Writi
 
 | Signal | Points |
 |---|---|
-| Each follow-up answer | 3 pts / answer (max 15) |
+| Each follow-up answer | 3 pts / answer (max 15) — always counted |
 | Word count 50–150 | +1 pt |
 | Word count 150–300 | +2 pts |
 | Word count 300+ | +3 pts (capped) |
 | Connection detected | +2 pts bonus |
-| Entry < 30 words | 0 pts flat |
+| Entry < 30 words | no word count bonus (follow-up points still apply) |
 
 - When accumulated score ≥ threshold → generate + persist holistic insight, reset accumulator
 - Threshold is a configurable constant (not hardcoded), calibrated experimentally

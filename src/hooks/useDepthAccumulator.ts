@@ -1,12 +1,18 @@
 import { DEPTH_SCORE_CONFIG, ACCUMULATOR_CONFIG, STORAGE_KEYS } from '../utils/insightConfig'
 
 export function computeDepthScore(wordCount: number, answeredFollowUpCount: number): number {
-  if (wordCount < DEPTH_SCORE_CONFIG.SHORT_ENTRY_WORD_THRESHOLD) return 0
-
-  let score = Math.min(
+  // Follow-up answers always contribute — independent of entry length
+  const followUpPoints = Math.min(
     answeredFollowUpCount * DEPTH_SCORE_CONFIG.FOLLOW_UP_ANSWER_POINTS,
     DEPTH_SCORE_CONFIG.MAX_FOLLOW_UP_POINTS
   )
+
+  // Very short entries: no word count bonus, but follow-up points still apply
+  if (wordCount < DEPTH_SCORE_CONFIG.SHORT_ENTRY_WORD_THRESHOLD) {
+    return followUpPoints
+  }
+
+  let score = followUpPoints
 
   if (wordCount >= DEPTH_SCORE_CONFIG.WORD_COUNT_LONG_MIN) {
     score += DEPTH_SCORE_CONFIG.WORD_COUNT_LONG_POINTS
