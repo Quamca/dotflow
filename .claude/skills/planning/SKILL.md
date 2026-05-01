@@ -17,13 +17,14 @@ git branch --show-current
 ```
 
 2. Przeczytaj:
-- @BACKLOG.md
+- @STATUS.md (bieżący sprint, następny US — czytaj jako pierwsze)
+- @BACKLOG.md (szczegóły aktywnych US)
 - @docs/requirements.md
 - @docs/wireframes.md
 - @docs/architecture.md
 - @CLAUDE.md
 
-3. Na podstawie BACKLOG.md znajdź pierwszy US o statusie 📋 Planned (według kolejności w backlogu) i zaproponuj go:
+3. Na podstawie STATUS.md (sekcja "Next Recommended US") zaproponuj następny US:
    "Planujemy **US-XXX: [tytuł]**?
    1. Tak
    2. Nie — podaj numer US"

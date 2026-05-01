@@ -20,7 +20,8 @@ git branch --show-current
 2. Ask: "Which US was completed? Provide US number."
 
 3. Read:
-- @BACKLOG.md
+- @STATUS.md (current sprint, next US — read first)
+- @BACKLOG.md (active US details)
 - @README.md
 - @docs/architecture.md
 - @docs/requirements.md
@@ -32,7 +33,8 @@ git branch --show-current
 
 ## Always update
 
-- `BACKLOG.md` — mark all tasks complete ✅, US status → ✅ COMPLETED
+- `STATUS.md` — update M2.5 progress table (mark US ✅ Done), update "Next Recommended US", update version/date, add new bugs if found
+- `BACKLOG.md` — mark all tasks complete ✅, US status → ✅ COMPLETED; then move the completed US section to `BACKLOG_DONE.md`
 - `README.md` — update "Latest" section with new version info
 
 ## Update if affected
@@ -55,7 +57,7 @@ For every US:
 - New npm packages? → document in `docs/setup.md` and `docs/architecture.md`
 - New files/folders? → update architecture folder structure
 - New environment variables? → update `docs/setup.md` and `.env.example`
-- Technical debt? → flag in BACKLOG.md
+- Technical debt / new bug? → add to `STATUS.md` Active Bugs table AND `BACKLOG.md` Known Bugs table
 - Project Invariant changed? → alert user immediately
 
 ## CRITICAL: Branch workflow
@@ -85,10 +87,12 @@ List only files actually modified.
 
 ### Step 1 — Commit docs (on US branch)
 ```powershell
+git add STATUS.md
 git add BACKLOG.md
+git add BACKLOG_DONE.md
 git add README.md
 git add docs/[changed files]
-git commit -m "docs: update documentation for US-XXX (BACKLOG, README, [others])"
+git commit -m "docs: update documentation for US-XXX (STATUS, BACKLOG, README, [others])"
 ```
 
 ### Step 2 — Push to branch
@@ -121,7 +125,9 @@ gh pr create --title "feat: US-XXX [short description]" --body "$(cat <<'EOF'
 - [x] Manual verification completed
 
 ## Documentation
+- [x] STATUS.md updated
 - [x] BACKLOG.md updated
+- [x] BACKLOG_DONE.md updated
 - [x] README.md updated
 
 Closes #[issue_number]
@@ -152,7 +158,9 @@ Title: feat: US-XXX [short description]
 - [x] Manual verification completed
 
 ## Documentation
+- [x] STATUS.md updated
 - [x] BACKLOG.md updated
+- [x] BACKLOG_DONE.md updated
 - [x] README.md updated
 
 Closes #[issue_number]
@@ -176,8 +184,8 @@ Potwierdź: "✅ Cleanup zakończony. Jesteś na main."
 
 ### Step 5 — Sugestia następnego US
 
-Po cleanup automatycznie zasugeruj:
-"✅ US-XXX zamknięty. Następny wg backlogu: **US-YYY — [tytuł]** (P0).
+Po cleanup przeczytaj STATUS.md (sekcja "Next Recommended US") i automatycznie zasugeruj:
+"✅ US-XXX zamknięty. Następny wg STATUS.md: **US-YYY — [tytuł]** (P1).
 1. Tak — uruchom /planning"
 
 (Tylko opcja 1 — jeśli użytkownik nie chce kontynuować, po prostu zamknie terminal.)

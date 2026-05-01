@@ -198,6 +198,7 @@ Title: feat: US-XXX [short description]
 - [x] Manual verification completed
 
 ## Documentation
+- [ ] STATUS.md updated
 - [ ] BACKLOG.md updated
 - [ ] README.md updated
 
@@ -207,15 +208,31 @@ Say: "Skopiuj powyższy opis i wklej na GitHub przy tworzeniu PR."
 
 ---
 
+## Backlog Structure
+
+The backlog is split into three files — always read the right one:
+
+| File | Contents | When to read |
+|------|----------|--------------|
+| `STATUS.md` | Current sprint, next US, M3 gate blockers, active bugs | **All agents — read first on startup** |
+| `BACKLOG.md` | Active US details (📋 Planned only) — M2.5 | /planning (to find next US), /docs (to mark done) |
+| `BACKLOG_DONE.md` | Completed ✅ US archive — read-only | /discover (for context), /docs (for reference) |
+| `BACKLOG_FUTURE.md` | M3 and beyond — not current work | /discover only |
+
+**Rule:** When an agent says "read BACKLOG.md", it means: read `STATUS.md` first for orientation, then `BACKLOG.md` for active US details.
+
+---
+
 ## Documentation Sync Rule
 
 If during implementation a discrepancy is found between user expectations and documentation:
 1. **Stop and discuss** the discrepancy with user
 2. **Resolve** what the correct behavior/requirement should be
 3. **Immediately update** affected documentation:
-   - BACKLOG.md (update US, AC, tasks)
-   - docs/requirements.md (update requirements)
-   - docs/architecture.md (if architecture affected)
+   - `STATUS.md` — update progress, next US, bugs
+   - `BACKLOG.md` — update active US, AC, tasks
+   - `docs/requirements.md` — update requirements
+   - `docs/architecture.md` — if architecture affected
 4. **Do NOT wait for /docs agent** — fix documentation NOW
 5. Include doc updates in the commit or a separate docs commit
 
@@ -249,14 +266,14 @@ If during implementation a discrepancy is found between user expectations and do
 - Never commit secrets, API keys, or credentials
 - Never push with failing tests or linting errors
 - Never use `any` type
-- Never skip the workflow (/pm → /planning → /dev → /qa → /docs)
+- Never skip the workflow (/pm → /planning → /dev → manual verify → /qa → /docs)
 
 ---
 
 ## Multi-Agent System
 
 ### Workflow Order
-`/pm → /planning → /dev → manual verify → /qa → [/retro optional] → /docs`
+`/pm → /planning → /dev → manual verify → /qa → /docs`
 
 ### Agent Directory
 
@@ -269,7 +286,6 @@ If during implementation a discrepancy is found between user expectations and do
 | /qa | Tests | English |
 | /debug | Problem solving | Polish |
 | /docs | Documentation update | English |
-| /retro | Retrospective | Polish |
 
 ---
 
