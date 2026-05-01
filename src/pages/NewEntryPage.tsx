@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createEntry, saveFollowUps, getEntries, saveConnection } from '../services/entryService'
+import { createEntry, saveFollowUps, getEntries, getEntriesWithFollowUps, saveConnection } from '../services/entryService'
 import { generateFollowUpQuestions, findConnection, extractStories, detectEmotionConfidence, generateHolisticInsight } from '../services/aiService'
 import { saveStories, updateStoryEmotion, getRecentStories } from '../services/storyService'
 import { useSettings } from '../hooks/useSettings'
@@ -65,11 +65,12 @@ export default function NewEntryPage() {
 
     accumulator.reset()
     try {
-      const allEntries = await getEntries()
+      const allEntries = await getEntriesWithFollowUps()
       const insight = await generateHolisticInsight(allEntries, apiKey)
       if (insight) {
         localStorage.setItem(STORAGE_KEYS.HOLISTIC_INSIGHT, insight)
         localStorage.setItem(STORAGE_KEYS.HOLISTIC_INSIGHT_UNREAD, 'true')
+        window.dispatchEvent(new CustomEvent('dotflow:insight-ready', { detail: insight }))
       }
     } catch {
       // best-effort — insight generation does not block navigation
@@ -89,7 +90,7 @@ export default function NewEntryPage() {
     try {
       entry = await createEntry(content.trim())
     } catch {
-      setError('Failed to save entry. Please try again.')
+      setError('Nie udało się zapisać wpisu. Spróbuj ponownie.')
       setIsLoading(false)
       return
     }
@@ -137,7 +138,7 @@ export default function NewEntryPage() {
       // AI returned empty array — entry saved, go home
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error'
-      setError(`Your entry was saved. AI questions unavailable: ${msg}`)
+      setError(`Wpis zapisany. AI niedostępne: ${msg}`)
       setIsLoading(false)
       return
     }
@@ -168,7 +169,7 @@ export default function NewEntryPage() {
     }
   }
 
-  const loadingLabel = loadingPhase === 'thinking' ? 'Thinking...' : 'Saving...'
+  const loadingLabel = loadingPhase === 'thinking' ? 'Myślę...' : 'Zapisuję...'
 
   return (
     <div className="min-h-screen bg-[#FAFAF9]">
@@ -176,11 +177,11 @@ export default function NewEntryPage() {
         <button
           onClick={() => navigate('/')}
           className="text-[#78716C] hover:text-[#1C1917] transition-colors text-sm"
-          aria-label="Back"
+          aria-label="Wróć"
         >
-          ← Back
+          ← Wróć
         </button>
-        <span className="text-[#1C1917] text-sm font-medium">New Entry</span>
+        <span className="text-[#1C1917] text-sm font-medium">Nowy wpis</span>
         <div className="w-12" />
       </header>
 
@@ -197,11 +198,11 @@ export default function NewEntryPage() {
           </div>
         ) : !showDialog ? (
           <>
-            <p className="text-[#78716C] text-sm mb-4">What&apos;s on your mind?</p>
+            <p className="text-[#78716C] text-sm mb-4">Co Cię dziś zajmuje?</p>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Write freely..."
+              placeholder="Pisz swobodnie..."
               className="w-full min-h-64 p-4 rounded-lg border border-[#E7E5E4] bg-white text-[#1C1917] text-base resize-none focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent placeholder-[#78716C]"
               autoFocus
             />
@@ -219,7 +220,7 @@ export default function NewEntryPage() {
               disabled={!content.trim() || isLoading}
               className="mt-4 w-full py-3 rounded-lg bg-[#1C1917] text-[#FAFAF9] text-sm font-medium transition-opacity disabled:opacity-40 hover:opacity-90"
             >
-              {isLoading ? loadingLabel : 'Save →'}
+              {isLoading ? loadingLabel : 'Zapisz →'}
             </button>
           </>
         ) : (

@@ -82,7 +82,7 @@ describe('EntryDetailPage', () => {
     vi.mocked(getEntryById).mockRejectedValue(new Error('Entry not found'))
     renderDetailPage('non-existent')
 
-    expect(await screen.findByText(/entry not found/i)).toBeInTheDocument()
+    expect(await screen.findByText(/wpis nie istnieje/i)).toBeInTheDocument()
   })
 
   it('should navigate to home when Back button is clicked', async () => {
@@ -91,7 +91,7 @@ describe('EntryDetailPage', () => {
     renderDetailPage()
 
     await screen.findByText('Had a tough day at work.')
-    await user.click(screen.getByRole('button', { name: /back/i }))
+    await user.click(screen.getByRole('button', { name: /wróć/i }))
 
     expect(mockNavigate).toHaveBeenCalledWith('/')
   })

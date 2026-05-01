@@ -1,6 +1,17 @@
 import { supabase } from '../lib/supabase'
 import type { Entry, EntryWithFollowUps, FollowUpInput, Connection } from '../types'
 
+export async function getEntriesWithFollowUps(): Promise<EntryWithFollowUps[]> {
+  const { data, error } = await supabase
+    .from('entries')
+    .select('*, followups(*)')
+    .order('created_at', { ascending: false })
+    .limit(20)
+
+  if (error) throw new Error(error.message)
+  return (data ?? []) as EntryWithFollowUps[]
+}
+
 export async function createEntry(content: string): Promise<Entry> {
   const { data, error } = await supabase
     .from('entries')

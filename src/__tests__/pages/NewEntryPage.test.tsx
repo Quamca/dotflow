@@ -19,6 +19,7 @@ vi.mock('../../services/entryService', () => ({
   createEntry: vi.fn(),
   saveFollowUps: vi.fn().mockResolvedValue(undefined),
   getEntries: vi.fn().mockResolvedValue([]),
+  getEntriesWithFollowUps: vi.fn().mockResolvedValue([]),
   saveConnection: vi.fn().mockResolvedValue(undefined),
 }))
 
@@ -27,6 +28,7 @@ vi.mock('../../services/aiService', () => ({
   extractStories: vi.fn().mockResolvedValue([]),
   findConnection: vi.fn().mockResolvedValue({ connected: false }),
   detectEmotionConfidence: vi.fn().mockResolvedValue({ emotion: 'mixed', confidence: 0 }),
+  generateHolisticInsight: vi.fn().mockResolvedValue(''),
 }))
 
 vi.mock('../../services/storyService', () => ({
@@ -74,7 +76,7 @@ describe('NewEntryPage', () => {
   it('should disable Save button when textarea is empty', () => {
     renderNewEntryPage()
 
-    expect(screen.getByRole('button', { name: /save/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /zapisz/i })).toBeDisabled()
   })
 
   it('should call createEntry with content when Save is clicked', async () => {
@@ -83,7 +85,7 @@ describe('NewEntryPage', () => {
     renderNewEntryPage()
 
     await user.type(screen.getByRole('textbox'), 'Had a tough day')
-    await user.click(screen.getByRole('button', { name: /save/i }))
+    await user.click(screen.getByRole('button', { name: /zapisz/i }))
 
     expect(createEntry).toHaveBeenCalledWith('Had a tough day')
   })
@@ -94,7 +96,7 @@ describe('NewEntryPage', () => {
     renderNewEntryPage()
 
     await user.type(screen.getByRole('textbox'), 'Some content')
-    await user.click(screen.getByRole('button', { name: /save/i }))
+    await user.click(screen.getByRole('button', { name: /zapisz/i }))
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/')
@@ -107,9 +109,9 @@ describe('NewEntryPage', () => {
     renderNewEntryPage()
 
     await user.type(screen.getByRole('textbox'), 'My journal entry')
-    await user.click(screen.getByRole('button', { name: /save/i }))
+    await user.click(screen.getByRole('button', { name: /zapisz/i }))
 
-    expect(await screen.findByText(/failed to save entry/i)).toBeInTheDocument()
+    expect(await screen.findByText(/nie udało się zapisać wpisu/i)).toBeInTheDocument()
     expect(screen.getByRole('textbox')).toHaveValue('My journal entry')
   })
 
@@ -128,7 +130,7 @@ describe('NewEntryPage', () => {
     renderNewEntryPage()
 
     await user.type(screen.getByRole('textbox'), 'My entry content')
-    await user.click(screen.getByRole('button', { name: /save/i }))
+    await user.click(screen.getByRole('button', { name: /zapisz/i }))
 
     expect(await screen.findByText('How did you feel when that happened?')).toBeInTheDocument()
   })
@@ -140,7 +142,7 @@ describe('NewEntryPage', () => {
     renderNewEntryPage()
 
     await user.type(screen.getByRole('textbox'), 'My entry content')
-    await user.click(screen.getByRole('button', { name: /save/i }))
+    await user.click(screen.getByRole('button', { name: /zapisz/i }))
 
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'))
     expect(screen.queryByText(/a quick question/i)).not.toBeInTheDocument()
@@ -158,9 +160,9 @@ describe('NewEntryPage', () => {
     renderNewEntryPage()
 
     await user.type(screen.getByRole('textbox'), 'My entry content')
-    await user.click(screen.getByRole('button', { name: /save/i }))
+    await user.click(screen.getByRole('button', { name: /zapisz/i }))
 
-    expect(await screen.findByText(/AI questions unavailable/i)).toBeInTheDocument()
+    expect(await screen.findByText(/AI niedostępne/i)).toBeInTheDocument()
   })
 
   it('should show "Pięknie." when entry word count exceeds 300', async () => {
@@ -177,7 +179,7 @@ describe('NewEntryPage', () => {
 
     // Act
     fireEvent.change(screen.getByRole('textbox'), { target: { value: longEntry } })
-    await user.click(screen.getByRole('button', { name: /save/i }))
+    await user.click(screen.getByRole('button', { name: /zapisz/i }))
 
     // Assert
     expect(await screen.findByText('Pięknie.')).toBeInTheDocument()
@@ -197,8 +199,8 @@ describe('NewEntryPage', () => {
     renderNewEntryPage()
 
     fireEvent.change(screen.getByRole('textbox'), { target: { value: longEntry } })
-    await user.click(screen.getByRole('button', { name: /save/i }))
-    const backButton = await screen.findByText(/Wróć/i)
+    await user.click(screen.getByRole('button', { name: /zapisz/i }))
+    const backButton = await screen.findByText('Wróć →')
 
     // Act
     await user.click(backButton)
@@ -232,7 +234,7 @@ describe('NewEntryPage', () => {
 
     // Act
     await user.type(screen.getByRole('textbox'), 'Short entry text')
-    await user.click(screen.getByRole('button', { name: /save/i }))
+    await user.click(screen.getByRole('button', { name: /zapisz/i }))
 
     // Assert
     await waitFor(() => {

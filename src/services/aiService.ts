@@ -1,5 +1,5 @@
 import { FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_DETECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT, STORY_EXTRACTION_SYSTEM_PROMPT, EMOTION_DETECTION_SYSTEM_PROMPT, HOLISTIC_INSIGHT_SYSTEM_PROMPT } from '../utils/prompts'
-import type { Entry, ConnectionResult } from '../types'
+import type { Entry, EntryWithFollowUps, ConnectionResult } from '../types'
 
 export async function generateFollowUpQuestions(
   content: string,
@@ -269,13 +269,16 @@ export async function detectEmotionConfidence(
 }
 
 export async function generateHolisticInsight(
-  entries: Entry[],
+  entries: EntryWithFollowUps[],
   apiKey: string
 ): Promise<string> {
   const userMessage = JSON.stringify(
     entries.slice(0, 20).map((e) => ({
       content: e.content,
       created_at: e.created_at,
+      followups: e.followups
+        .filter((fu) => fu.answer !== null)
+        .map((fu) => ({ question: fu.question, answer: fu.answer })),
     }))
   )
 

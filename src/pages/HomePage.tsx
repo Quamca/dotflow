@@ -32,7 +32,7 @@ export default function HomePage() {
   const [proposedThemes, setProposedThemes] = useState<string[] | null>(null)
   const [isValuesModalOpen, setIsValuesModalOpen] = useState(false)
   const [writeEntryHighlighted, setWriteEntryHighlighted] = useState(false)
-  const [holisticInsight] = useState<string | null>(
+  const [holisticInsight, setHolisticInsight] = useState<string | null>(
     () => localStorage.getItem(STORAGE_KEYS.HOLISTIC_INSIGHT)
   )
   const [hasUnreadInsight, setHasUnreadInsight] = useState(
@@ -41,6 +41,16 @@ export default function HomePage() {
   const [lastEntryDepthScore] = useState(
     () => parseFloat(localStorage.getItem(STORAGE_KEYS.LAST_ENTRY_DEPTH) ?? '0') || 0
   )
+
+  useEffect(() => {
+    function handler(e: Event) {
+      const insight = (e as CustomEvent<string>).detail
+      setHolisticInsight(insight)
+      setHasUnreadInsight(true)
+    }
+    window.addEventListener('dotflow:insight-ready', handler)
+    return () => window.removeEventListener('dotflow:insight-ready', handler)
+  }, [])
   const [accumulatorTotal] = useState(
     () => parseFloat(localStorage.getItem(STORAGE_KEYS.DEPTH_ACCUMULATOR) ?? '0') || 0
   )
@@ -51,7 +61,7 @@ export default function HomePage() {
 
   async function handleGenerateInsights() {
     if (!apiKey) {
-      setInsightsError('Set your API key in Settings to use this feature.')
+      setInsightsError('Dodaj klucz API w Ustawieniach, aby używać tej funkcji.')
       return
     }
     setIsInsightsLoading(true)
@@ -61,7 +71,7 @@ export default function HomePage() {
       const result = await generatePatternSummary(entries, apiKey)
       setObservations(result)
     } catch {
-      setInsightsError('Failed to generate insights. Please try again.')
+      setInsightsError('Nie udało się wygenerować wglądów. Spróbuj ponownie.')
     } finally {
       setIsInsightsLoading(false)
     }
@@ -107,7 +117,7 @@ export default function HomePage() {
           setConnections(connectionMap)
         })
       } catch {
-        setError('Failed to load entries. Please refresh.')
+        setError('Nie udało się załadować wpisów. Odśwież stronę.')
       } finally {
         setIsLoading(false)
       }
@@ -215,7 +225,7 @@ export default function HomePage() {
             to="/new"
             className="px-6 py-3 rounded-full text-sm font-medium shadow-lg transition-opacity hover:opacity-90 bg-amber-500 text-white"
           >
-            + Write
+            + Napisz
           </Link>
         </div>
       )}
@@ -247,11 +257,11 @@ export default function HomePage() {
 
           {!apiKey && (
             <div className="mx-6 mt-4 px-4 py-3 rounded-lg bg-[#FEF3C7] border border-[#D97706] text-sm text-[#1C1917]">
-              Add your API key in{' '}
+              Dodaj klucz API w{' '}
               <Link to="/settings" className="font-medium underline text-[#D97706]">
-                Settings
-              </Link>{' '}
-              to enable AI follow-up questions.
+                Ustawieniach
+              </Link>
+              , aby włączyć pytania pogłębiające.
             </div>
           )}
 
@@ -271,7 +281,7 @@ export default function HomePage() {
                   disabled={isInsightsLoading}
                   className="text-sm text-[#78716C] hover:text-[#1C1917] transition-colors underline underline-offset-2 disabled:opacity-50"
                 >
-                  {isInsightsLoading ? 'Generating insights…' : 'Generate insights'}
+                  {isInsightsLoading ? 'Generuję wglądy…' : 'Generuj wglądy'}
                 </button>
                 {insightsError && (
                   <p className="mt-2 text-sm text-red-600">{insightsError}</p>
@@ -316,7 +326,7 @@ export default function HomePage() {
               to="/new"
               className="px-6 py-3 rounded-full bg-[#1C1917] text-[#FAFAF9] text-sm font-medium hover:opacity-90 transition-opacity shadow-lg"
             >
-              + Write
+              + Napisz
             </Link>
           </div>
         </div>
@@ -343,8 +353,8 @@ function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center text-center mt-24 gap-4">
       <div className="text-3xl tracking-widest text-[#E7E5E4] select-none">✦ · ✦</div>
-      <p className="text-[#1C1917] text-lg font-medium">Your story starts here.</p>
-      <p className="text-[#78716C] text-sm">Write your first entry to begin connecting the dots.</p>
+      <p className="text-[#1C1917] text-lg font-medium">Twoja historia zaczyna się tutaj.</p>
+      <p className="text-[#78716C] text-sm">Napisz pierwszy wpis, żeby zacząć łączyć kropki.</p>
     </div>
   )
 }

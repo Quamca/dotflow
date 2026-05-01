@@ -13,7 +13,7 @@ export const DEPTH_SCORE_CONFIG = {
 } as const
 
 export const ACCUMULATOR_CONFIG = {
-  THRESHOLD: 30,
+  THRESHOLD: 5,
   CONSECUTIVE_SHORT_THRESHOLD: 3,
 } as const
 
