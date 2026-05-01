@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 2.4
-**Date:** 2026-04-28
+**Version:** 2.5
+**Date:** 2026-05-01
 **Author:** Solution Architect
-**Status:** Updated after US-206
+**Status:** Updated after US-207
 
 ---
 
@@ -606,7 +606,7 @@ graph LR
 - [ ] User onboarding & instructions — M2.5 P2 (FEATURE-013, US-204) — after story model stabilizes
 - [ ] **US-205:** Depth accumulator adaptive insights — `useDepthAccumulator` hook, `insightConfig.ts` (configurable weights/threshold), `aiService.generateHolisticInsight()`, two insight types (connection inline + holistic on black hole hover), heartbeat pulse per entry save proportional to depth score; black hole insight behavior by context (repeated topic / contradicting / short entry pattern) — M2.5
 - [x] **US-206:** Story Extraction — P0 architectural pivot — `stories` Supabase table, `aiService.extractStories()`, `storyService`, `StoryNode.tsx`, session lines, "Dopowiedz" elaboration flow — M2.5 ✅ Completed
-- [ ] **US-207:** Emotion Intelligence per Story — P1 — `aiService.detectEmotionConfidence()`, `emotionColors.ts`, star color mapping, silent assignment (no emotion wheel ever), post-hoc correction via "Dopowiedz" — M2.5
+- [x] **US-207:** Emotion Intelligence per Story — P1 — `aiService.detectEmotionConfidence()` (never throws, fallback `{emotion:'mixed', confidence:0}`), `EMOTION_DETECTION_SYSTEM_PROMPT`, `emotionColors.ts` (6-emotion hex palette), `storyService.updateStoryEmotion()`, StoryNode uses `meshBasicMaterial` with emotion color, re-classification on "Dopowiedz" with combined content, tooltip timer locked during elaboration — M2.5 ✅ Completed
 - [ ] **US-210:** Contextual Follow-Up Between Lines — P1 — updated `generateFollowUpQuestions()` with story context, long entry threshold >300 words → "Pięknie." acknowledgment — M2.5
 - [ ] **US-208:** Life Area Zones — P1 — `aiService.classifyLifeArea()`, `useLifeAreaZones`, emergent cluster glows in StarField, hover-only labels, user-renameable, no default zones — M2.5
 - [ ] **US-209:** Typed Connection Visualization — P2 — `aiService.classifyConnectionType()`, `connections.type` field, typed line styles (solid/dashed/chain), 3D filter panel, `useConnectionFilter` hook; no Dilts/DISC/MBTI labels visible — M2.5

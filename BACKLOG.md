@@ -2,7 +2,7 @@
 
 **Project:** Dotflow
 **Version:** 1.3
-**Last Updated:** 2026-04-28 (US-206: Story Extraction completed)
+**Last Updated:** 2026-05-01 (US-207: Emotion Intelligence per Story completed)
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -1068,7 +1068,7 @@ Star colors reflect emotional truth. The user trusts the sky more when they can 
 - **Excludes:** Emotion wheel UI (explicitly removed)
 
 **Priority:** P1
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
 ---
 
@@ -1081,7 +1081,7 @@ AI detects emotion and confidence for each story on save. High confidence (>80%)
 **I want** each star to have a color that reflects the emotion of that story
 **So that** the sky gives me an honest emotional picture of my life
 
-**Status:** 📋 Planned
+**Status:** ✅ COMPLETED
 **Story Points:** 8
 **Priority:** P1
 
@@ -1094,23 +1094,23 @@ AI detects emotion and confidence for each story on save. High confidence (>80%)
 - Mixed / unclear → neutral stone (#78716C, default)
 
 **Acceptance Criteria:**
-- [ ] On story save, `aiService.detectEmotionConfidence(storyContent, apiKey)` called — returns `{emotion, confidence}`
-- [ ] Emotion and confidence stored in `stories` table
-- [ ] Star color in StoryNode reflects emotion (color mapping from palette above)
-- [ ] Both high-confidence (>80%) and low-confidence (<80%) results assigned silently — no UI prompt shown either way
-- [ ] No emotion wheel shown at any point in the flow
-- [ ] "Dopowiedz" elaboration triggers re-classification: `aiService.detectEmotionConfidence(originalContent + elaboration, apiKey)` → updates story emotion
-- [ ] Star color updates after re-classification
-- [ ] Default color (stone) shown before emotion is classified
+- [x] On story save, `aiService.detectEmotionConfidence(storyContent, apiKey)` called — returns `{emotion, confidence}`
+- [x] Emotion and confidence stored in `stories` table
+- [x] Star color in StoryNode reflects emotion (color mapping from palette above)
+- [x] Both high-confidence (>80%) and low-confidence (<80%) results assigned silently — no UI prompt shown either way
+- [x] No emotion wheel shown at any point in the flow
+- [x] "Dopowiedz" elaboration triggers re-classification: `aiService.detectEmotionConfidence(originalContent + elaboration, apiKey)` → updates story emotion
+- [x] Star color updates after re-classification
+- [x] Default color (stone) shown before emotion is classified
 
 **Tasks:**
-- [ ] **TASK-207.1:** Implement `aiService.detectEmotionConfidence(storyContent, apiKey)` - 45min
-- [ ] **TASK-207.2:** Add emotion prompt to `src/utils/prompts.ts` - 20min
-- [ ] **TASK-207.3:** Map emotion strings to color hex values in `src/utils/emotionColors.ts` - 20min
-- [ ] **TASK-207.4:** Update StoryNode to apply color from emotion mapping - 20min
-- [ ] **TASK-207.5:** Trigger re-classification on "Dopowiedz" submission - 30min
-- [ ] **TASK-207.6:** Write tests (/qa) - 45min
-- [ ] **TASK-207.7:** Manual verification - 15min
+- [x] **TASK-207.1:** Implement `aiService.detectEmotionConfidence(storyContent, apiKey)` - 45min
+- [x] **TASK-207.2:** Add emotion prompt to `src/utils/prompts.ts` - 20min
+- [x] **TASK-207.3:** Map emotion strings to color hex values in `src/utils/emotionColors.ts` - 20min
+- [x] **TASK-207.4:** Update StoryNode to apply color from emotion mapping - 20min
+- [x] **TASK-207.5:** Trigger re-classification on "Dopowiedz" submission - 30min
+- [x] **TASK-207.6:** Write tests (/qa) - 45min
+- [x] **TASK-207.7:** Manual verification - 15min
 
 ---
 
