@@ -44,6 +44,31 @@ export async function getAllStories(): Promise<Story[]> {
   return (data ?? []) as Story[]
 }
 
+export async function getRecentStories(excludeEntryId: string, limit: number): Promise<Story[]> {
+  const { data, error } = await supabase
+    .from('stories')
+    .select('*')
+    .neq('entry_id', excludeEntryId)
+    .order('created_at', { ascending: false })
+    .limit(limit * 5)
+
+  if (error) throw new Error(error.message)
+
+  const stories = (data ?? []) as Story[]
+  const seenEntries = new Set<string>()
+  const result: Story[] = []
+
+  for (const story of stories) {
+    if (!seenEntries.has(story.entry_id)) {
+      seenEntries.add(story.entry_id)
+      if (seenEntries.size > limit) break
+    }
+    if (seenEntries.size <= limit) result.push(story)
+  }
+
+  return result
+}
+
 export async function updateStoryEmotion(
   storyId: string,
   emotion: string,

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { saveStories, getStoriesForEntry, getAllStories, addElaboration, updateStoryEmotion } from '../../services/storyService'
+import { saveStories, getStoriesForEntry, getAllStories, addElaboration, updateStoryEmotion, getRecentStories } from '../../services/storyService'
 import { supabase } from '../../lib/supabase'
 import type { Story } from '../../types'
 
@@ -187,6 +187,56 @@ describe('storyService', () => {
       await expect(
         addElaboration('story-uuid-1', 'elaboration text here')
       ).rejects.toThrow('Not found')
+    })
+  })
+
+  describe('getRecentStories', () => {
+    it('should return stories from recent entries excluding the given entry id', async () => {
+      const otherStory = { ...mockStory, entry_id: 'entry-uuid-2' }
+      vi.mocked(supabase.from).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          neq: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue({ data: [otherStory], error: null }),
+            }),
+          }),
+        }),
+      } as ReturnType<typeof supabase.from>)
+
+      const result = await getRecentStories('entry-uuid-1', 3)
+
+      expect(supabase.from).toHaveBeenCalledWith('stories')
+      expect(result.every((s) => s.entry_id !== 'entry-uuid-1')).toBe(true)
+    })
+
+    it('should return empty array when no recent stories exist', async () => {
+      vi.mocked(supabase.from).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          neq: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue({ data: null, error: null }),
+            }),
+          }),
+        }),
+      } as ReturnType<typeof supabase.from>)
+
+      const result = await getRecentStories('entry-uuid-1', 3)
+
+      expect(result).toEqual([])
+    })
+
+    it('should throw when Supabase returns error', async () => {
+      vi.mocked(supabase.from).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          neq: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue({ data: null, error: { message: 'Fetch failed' } }),
+            }),
+          }),
+        }),
+      } as ReturnType<typeof supabase.from>)
+
+      await expect(getRecentStories('entry-uuid-1', 3)).rejects.toThrow('Fetch failed')
     })
   })
 

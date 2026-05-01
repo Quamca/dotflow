@@ -3,8 +3,13 @@ import type { Entry, ConnectionResult } from '../types'
 
 export async function generateFollowUpQuestions(
   content: string,
-  apiKey: string
+  apiKey: string,
+  storyContext?: string
 ): Promise<string[]> {
+  const userMessage = storyContext
+    ? `${content}\n\n[Context from past entries]\n${storyContext}`
+    : content
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -15,7 +20,7 @@ export async function generateFollowUpQuestions(
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: FOLLOW_UP_SYSTEM_PROMPT },
-        { role: 'user', content },
+        { role: 'user', content: userMessage },
       ],
       temperature: 0.7,
     }),

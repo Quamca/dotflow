@@ -60,6 +60,51 @@ describe('aiService', () => {
     result.forEach((q) => expect(typeof q).toBe('string'))
   })
 
+  it('should include story context in user message when storyContext is provided', async () => {
+    // Arrange
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({
+        choices: [{ message: { content: '["A question?"]' } }],
+      }),
+    })
+    vi.stubGlobal('fetch', fetchSpy)
+
+    // Act
+    await generateFollowUpQuestions('My entry today', 'sk-test', 'Past story about work')
+
+    // Assert
+    const body = JSON.parse(fetchSpy.mock.calls[0][1].body as string) as {
+      messages: Array<{ role: string; content: string }>
+    }
+    const userMessage = body.messages[1].content
+    expect(userMessage).toContain('My entry today')
+    expect(userMessage).toContain('Past story about work')
+    expect(userMessage).toContain('[Context from past entries]')
+  })
+
+  it('should send only entry content when storyContext is not provided', async () => {
+    // Arrange
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({
+        choices: [{ message: { content: '["A question?"]' } }],
+      }),
+    })
+    vi.stubGlobal('fetch', fetchSpy)
+
+    // Act
+    await generateFollowUpQuestions('My entry today', 'sk-test')
+
+    // Assert
+    const body = JSON.parse(fetchSpy.mock.calls[0][1].body as string) as {
+      messages: Array<{ role: string; content: string }>
+    }
+    const userMessage = body.messages[1].content
+    expect(userMessage).toBe('My entry today')
+    expect(userMessage).not.toContain('[Context from past entries]')
+  })
+
   it('should throw when OpenAI returns non-ok response', async () => {
     // Arrange
     vi.stubGlobal(

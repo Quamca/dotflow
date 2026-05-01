@@ -1,11 +1,11 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import NewEntryPage from '../../pages/NewEntryPage'
 import { createEntry } from '../../services/entryService'
 import { generateFollowUpQuestions } from '../../services/aiService'
-import { saveStories } from '../../services/storyService'
+import { saveStories, getRecentStories } from '../../services/storyService'
 import { useSettings } from '../../hooks/useSettings'
 
 const mockNavigate = vi.fn()
@@ -18,15 +18,21 @@ vi.mock('react-router-dom', async () => {
 vi.mock('../../services/entryService', () => ({
   createEntry: vi.fn(),
   saveFollowUps: vi.fn().mockResolvedValue(undefined),
+  getEntries: vi.fn().mockResolvedValue([]),
+  saveConnection: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('../../services/aiService', () => ({
   generateFollowUpQuestions: vi.fn(),
   extractStories: vi.fn().mockResolvedValue([]),
+  findConnection: vi.fn().mockResolvedValue({ connected: false }),
+  detectEmotionConfidence: vi.fn().mockResolvedValue({ emotion: 'mixed', confidence: 0 }),
 }))
 
 vi.mock('../../services/storyService', () => ({
   saveStories: vi.fn().mockResolvedValue([]),
+  updateStoryEmotion: vi.fn().mockResolvedValue(undefined),
+  getRecentStories: vi.fn().mockResolvedValue([]),
 }))
 
 vi.mock('../../hooks/useSettings', () => ({
@@ -155,5 +161,86 @@ describe('NewEntryPage', () => {
     await user.click(screen.getByRole('button', { name: /save/i }))
 
     expect(await screen.findByText(/AI questions unavailable/i)).toBeInTheDocument()
+  })
+
+  it('should show "Pięknie." when entry word count exceeds 300', async () => {
+    // Arrange
+    vi.mocked(createEntry).mockResolvedValue(mockEntry)
+    vi.mocked(useSettings).mockReturnValue({
+      apiKey: 'sk-testkey',
+      saveApiKey: vi.fn(),
+      clearApiKey: vi.fn(),
+    })
+    const longEntry = Array.from({ length: 301 }, (_, i) => `word${i}`).join(' ')
+    const user = userEvent.setup()
+    renderNewEntryPage()
+
+    // Act
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: longEntry } })
+    await user.click(screen.getByRole('button', { name: /save/i }))
+
+    // Assert
+    expect(await screen.findByText('Pięknie.')).toBeInTheDocument()
+    expect(generateFollowUpQuestions).not.toHaveBeenCalled()
+  })
+
+  it('should navigate home when "Wróć" button is clicked on Pięknie screen', async () => {
+    // Arrange
+    vi.mocked(createEntry).mockResolvedValue(mockEntry)
+    vi.mocked(useSettings).mockReturnValue({
+      apiKey: 'sk-testkey',
+      saveApiKey: vi.fn(),
+      clearApiKey: vi.fn(),
+    })
+    const longEntry = Array.from({ length: 301 }, (_, i) => `word${i}`).join(' ')
+    const user = userEvent.setup()
+    renderNewEntryPage()
+
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: longEntry } })
+    await user.click(screen.getByRole('button', { name: /save/i }))
+    const backButton = await screen.findByText(/Wróć/i)
+
+    // Act
+    await user.click(backButton)
+
+    // Assert
+    expect(mockNavigate).toHaveBeenCalledWith('/')
+  })
+
+  it('should call generateFollowUpQuestions with story context when recent stories exist', async () => {
+    // Arrange
+    const mockStoryForContext = {
+      id: 'story-uuid-ctx',
+      entry_id: 'entry-uuid-2',
+      content: 'Previous story about work pressure',
+      emotion: null,
+      emotion_confidence: null,
+      life_area: null,
+      position: [1, 2, 3] as [number, number, number],
+      created_at: '2026-04-30T10:00:00Z',
+    }
+    vi.mocked(createEntry).mockResolvedValue(mockEntry)
+    vi.mocked(generateFollowUpQuestions).mockResolvedValue(['A contextual question?'])
+    vi.mocked(getRecentStories).mockResolvedValue([mockStoryForContext])
+    vi.mocked(useSettings).mockReturnValue({
+      apiKey: 'sk-testkey',
+      saveApiKey: vi.fn(),
+      clearApiKey: vi.fn(),
+    })
+    const user = userEvent.setup()
+    renderNewEntryPage()
+
+    // Act
+    await user.type(screen.getByRole('textbox'), 'Short entry text')
+    await user.click(screen.getByRole('button', { name: /save/i }))
+
+    // Assert
+    await waitFor(() => {
+      expect(generateFollowUpQuestions).toHaveBeenCalledWith(
+        'Short entry text',
+        'sk-testkey',
+        'Previous story about work pressure'
+      )
+    })
   })
 })

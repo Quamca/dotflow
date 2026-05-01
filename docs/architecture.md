@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 2.5
+**Version:** 2.6
 **Date:** 2026-05-01
 **Author:** Solution Architect
-**Status:** Updated after US-207
+**Status:** Updated after US-210
 
 ---
 
@@ -162,7 +162,7 @@ dotflow/
 │   │       └── ValuesModal.tsx      # AI-proposed themes: edit/remove/restore, add input, "Żadna z tych" escape hatch
 │   ├── pages/               # Route-level components
 │   │   ├── HomePage.tsx     # Home screen: entry list, loading skeleton, empty state, warning banner, connection badges, pattern summary, values flow, Write Entry CTA highlight on round limit (US-004, US-005, US-007, US-101, US-102, US-202, US-203)
-│   │   ├── NewEntryPage.tsx # Entry writing, AI follow-up dialog orchestration, fire-and-forget connection detection + story extraction (US-005, US-006, US-101, US-206)
+│   │   ├── NewEntryPage.tsx # Entry writing, AI follow-up dialog orchestration, word count gate (>300 → "Pięknie."), storyContext fetch, fire-and-forget connection detection + story extraction (US-005, US-006, US-101, US-206, US-210)
 │   │   ├── EntryDetailPage.tsx # Full entry view with follow-up Q&A (US-007)
 │   │   └── SettingsPage.tsx # API key management screen (US-004)
 │   ├── hooks/               # Custom React hooks
@@ -178,7 +178,7 @@ dotflow/
 │   ├── services/            # External API integrations
 │   │   ├── aiService.ts     # OpenAI GPT-4o-mini via native fetch: generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback, extractStories, detectEmotionConfidence, classifyLifeArea, classifyConnectionType (US-006, US-101, US-102, US-202, US-203, US-206, US-207, US-208, US-209)
 │   │   ├── entryService.ts  # Supabase CRUD: createEntry, getEntries, getEntryById, saveFollowUps, saveConnection, getConnectionsForEntry (US-002, US-006, US-101)
-│   │   └── storyService.ts  # Supabase CRUD for stories: saveStories, getStoriesForEntry, updateStoryEmotion, updateStoryLifeArea (US-206, US-207, US-208)
+│   │   └── storyService.ts  # Supabase CRUD for stories: saveStories, getStoriesForEntry, getAllStories, addElaboration, updateStoryEmotion, getRecentStories, updateStoryLifeArea (US-206, US-207, US-210, US-208)
 │   ├── types/               # TypeScript type definitions
 │   │   └── index.ts         # Entry, FollowUp, Connection, EntryWithFollowUps, UserValuesState, Story (US-002, US-202, US-206)
 │   ├── utils/               # Pure utility functions
@@ -206,15 +206,15 @@ dotflow/
 │   │   ├── pages/
 │   │   │   ├── HomePage.test.tsx     # TC-002, TC-005, TC-010–011, TC-024, TC-028, TC-050, TC-057–062, TC-069–071, TC-092–098 (US-004, US-005, US-007, US-101, US-102, US-201, US-202)
 │   │   │   ├── EntryDetailPage.test.tsx # TC-036–039 (US-007)
-│   │   │   ├── NewEntryPage.test.tsx # TC-003–009, TC-025–026, TC-034 (US-005, US-006)
+│   │   │   ├── NewEntryPage.test.tsx # TC-003–009, TC-025–026, TC-034, TC-161–164 (US-005, US-006, US-210)
 │   │   │   └── SettingsPage.test.tsx # TC-001, TC-023 (US-004)
 │   │   ├── services/
 │   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043, TC-051–054, TC-099–102, TC-107–112, TC-116–122 (US-006, US-101, US-102, US-202, US-203, US-206)
 │   │   │   ├── entryService.test.ts  # TC-012–018, TC-044–047 (US-002, US-006, US-101)
-│   │   │   └── storyService.test.ts  # TC-123–133: saveStories, getStoriesForEntry, getAllStories, addElaboration (US-206)
+│   │   │   └── storyService.test.ts  # TC-123–133, TC-158–160: saveStories, getStoriesForEntry, getAllStories, addElaboration, updateStoryEmotion, getRecentStories (US-206, US-207, US-210)
 │   │   └── utils/
 │   │       ├── testHelpers.tsx       # renderWithRouter helper
-│   │       ├── prompts.test.ts       # TC-063–064, TC-113–115, TC-134–135: prompt contract tests (US-103, US-203, US-206)
+│   │       ├── prompts.test.ts       # TC-063–064, TC-113–115, TC-134–135, TC-165–167: prompt contract tests (US-103, US-203, US-206, US-210)
 │   │       └── starPositions.test.ts # TC-065–068, TC-103–106, TC-136–139: deterministic position, radius range, aligned positioning, story position (US-201, US-202, US-206)
 │   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004, US-005, US-007)
 │   ├── index.css            # Tailwind directives
@@ -250,15 +250,17 @@ dotflow/
 
 **Responsibility:** Capture new journal entry text and orchestrate the full entry creation flow (save → AI questions → save follow-ups → background connection detection).
 
-**Flow (US-006 + US-101 entry-first design):**
+**Flow (US-006 + US-101 + US-210):**
 1. User types entry content
 2. User submits — entry saved to Supabase immediately (get `entry.id`)
 3. If no API key → navigate('/') directly
-4. If API key present → call `aiService.generateFollowUpQuestions(content, apiKey)`
-5. On success → render `FollowUpDialog` with questions
-6. On AI failure → show error message (entry already saved)
-7. User answers/skips → `entryService.saveFollowUps(entry.id, followups)` → navigate('/')
-8. **After navigate:** `detectAndSaveConnection()` runs fire-and-forget in background (never blocks UI)
+4. **Word count gate (US-210):** If word count >300 → show "Pięknie." UI state (inline, not a separate screen) + "Wróć →" button that navigates to `/` — no questions shown
+5. If word count ≤300 → fetch recent story context: `getRecentStories(entry.id, 3)` → build `storyContext` string (stories joined by `\n---\n`)
+6. Call `aiService.generateFollowUpQuestions(content, apiKey, storyContext?)` with optional context
+7. On success → render `FollowUpDialog` with questions
+8. On AI failure → show error message (entry already saved)
+9. User answers/skips → `entryService.saveFollowUps(entry.id, followups)` → navigate('/')
+10. **After navigate:** `detectAndSaveConnection()` runs fire-and-forget in background (never blocks UI)
 
 ### 5.2 FollowUpDialog
 
@@ -451,16 +453,30 @@ sequenceDiagram
 
 All prompts are centralized in `src/utils/prompts.ts`.
 
-### Follow-Up Questions Prompt
+### Follow-Up Questions Prompt (US-210 — updated)
 ```
-System: You are a thoughtful journal companion. Your role is to ask 2-3 short, 
-open-ended follow-up questions that help the user reflect more deeply. 
-Focus on what's MISSING: emotions if not mentioned, opinions if not expressed, 
-context if unclear. Never ask more than 3 questions. Respond only with a JSON 
-array of question strings.
+System: You are a thoughtful journal companion. Your role is to ask 2-3 short,
+open-ended follow-up questions that help the user reflect more deeply on what is
+BETWEEN THE LINES of their entry.
+
+Rules:
+- NEVER restate, summarize, or echo what the user already wrote — they know what they wrote
+- Focus on what is absent, implied, or only briefly touched: people mentioned in passing,
+  emotions hinted at but not named, life areas the user seems to avoid, tensions unexplained
+- If story context is provided (past entries), use it to notice patterns the user hasn't
+  acknowledged — recurring themes, contradictions, people who appear repeatedly
+- Ask about what the user left unsaid, not what they said
+- Use neutral, curious language — never interpretive or diagnostic
+- Never ask more than 3 questions
+- Respond in the same language as the user's entry
+- Respond only with a JSON array of question strings, no other text
 
 User: [entry content]
+[optional: Context from past entries — story strings joined by \n---\n]
 ```
+
+**Word count gate (US-210):** If entry word count >300, `generateFollowUpQuestions()` is NOT called. NewEntryPage shows "Pięknie." inline acknowledgment instead.
+**storyContext (US-210):** `getRecentStories(entry.id, 3)` fetches stories from the last 3 distinct past entries (excludes current entry by `entry_id`). Contents joined with `\n---\n` and passed as optional 3rd argument. If no recent stories exist or fetch fails, context is omitted and AI receives only the entry content.
 
 ### Connection Detection Prompt
 ```
@@ -607,7 +623,7 @@ graph LR
 - [ ] **US-205:** Depth accumulator adaptive insights — `useDepthAccumulator` hook, `insightConfig.ts` (configurable weights/threshold), `aiService.generateHolisticInsight()`, two insight types (connection inline + holistic on black hole hover), heartbeat pulse per entry save proportional to depth score; black hole insight behavior by context (repeated topic / contradicting / short entry pattern) — M2.5
 - [x] **US-206:** Story Extraction — P0 architectural pivot — `stories` Supabase table, `aiService.extractStories()`, `storyService`, `StoryNode.tsx`, session lines, "Dopowiedz" elaboration flow — M2.5 ✅ Completed
 - [x] **US-207:** Emotion Intelligence per Story — P1 — `aiService.detectEmotionConfidence()` (never throws, fallback `{emotion:'mixed', confidence:0}`), `EMOTION_DETECTION_SYSTEM_PROMPT`, `emotionColors.ts` (6-emotion hex palette), `storyService.updateStoryEmotion()`, StoryNode uses `meshBasicMaterial` with emotion color, re-classification on "Dopowiedz" with combined content, tooltip timer locked during elaboration — M2.5 ✅ Completed
-- [ ] **US-210:** Contextual Follow-Up Between Lines — P1 — updated `generateFollowUpQuestions()` with story context, long entry threshold >300 words → "Pięknie." acknowledgment — M2.5
+- [x] **US-210:** Contextual Follow-Up Between Lines — P1 — `generateFollowUpQuestions(content, apiKey, storyContext?)` with optional past story context; `getRecentStories(excludeEntryId, limit)` in storyService; word count gate >300 words → "Pięknie." inline acknowledgment + "Wróć →" home; `FOLLOW_UP_SYSTEM_PROMPT` rewritten: BETWEEN THE LINES, NEVER restate, language instruction — M2.5 ✅ Completed
 - [ ] **US-208:** Life Area Zones — P1 — `aiService.classifyLifeArea()`, `useLifeAreaZones`, emergent cluster glows in StarField, hover-only labels, user-renameable, no default zones — M2.5
 - [ ] **US-209:** Typed Connection Visualization — P2 — `aiService.classifyConnectionType()`, `connections.type` field, typed line styles (solid/dashed/chain), 3D filter panel, `useConnectionFilter` hook; no Dilts/DISC/MBTI labels visible — M2.5
 - [ ] **FEATURE-015:** Security & privacy messaging — deferred to M3 (end-user context: registration/login, Dotflow-owned AI)
