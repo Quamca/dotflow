@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createEntry, saveFollowUps, getEntries, saveConnection } from '../services/entryService'
 import { generateFollowUpQuestions, findConnection, extractStories, detectEmotionConfidence } from '../services/aiService'
-import { saveStories, updateStoryEmotion } from '../services/storyService'
+import { saveStories, updateStoryEmotion, getRecentStories } from '../services/storyService'
 import { useSettings } from '../hooks/useSettings'
 import FollowUpDialog from '../components/FollowUpDialog/FollowUpDialog'
 import type { Entry, FollowUpInput } from '../types'
@@ -47,6 +47,10 @@ export default function NewEntryPage() {
   const [questions, setQuestions] = useState<string[]>([])
   const [showDialog, setShowDialog] = useState(false)
   const [isSavingFollowUps, setIsSavingFollowUps] = useState(false)
+  const [showPiknie, setShowPiknie] = useState(false)
+  const [storyContext, setStoryContext] = useState<string | undefined>(undefined)
+
+  const WORD_COUNT_GATE = 300
 
   async function handleSubmit() {
     if (!content.trim()) return
@@ -73,9 +77,28 @@ export default function NewEntryPage() {
       return
     }
 
+    const wordCount = content.trim().split(/\s+/).filter(Boolean).length
+    if (wordCount > WORD_COUNT_GATE) {
+      setShowPiknie(true)
+      setIsLoading(false)
+      return
+    }
+
     setLoadingPhase('thinking')
+
+    let context: string | undefined
     try {
-      const generated = await generateFollowUpQuestions(content.trim(), apiKey)
+      const recentStories = await getRecentStories(entry.id, 3)
+      if (recentStories.length > 0) {
+        context = recentStories.map((s) => s.content).join('\n---\n')
+        setStoryContext(context)
+      }
+    } catch {
+      // best-effort — proceed without context
+    }
+
+    try {
+      const generated = await generateFollowUpQuestions(content.trim(), apiKey, context)
       if (generated.length > 0) {
         setSavedEntry(entry)
         setQuestions(generated)
@@ -108,7 +131,7 @@ export default function NewEntryPage() {
   async function handleRequestMore(): Promise<string[]> {
     if (!apiKey || !content) return []
     try {
-      return await generateFollowUpQuestions(content.trim(), apiKey)
+      return await generateFollowUpQuestions(content.trim(), apiKey, storyContext)
     } catch {
       return []
     }
@@ -131,7 +154,17 @@ export default function NewEntryPage() {
       </header>
 
       <main className="px-6 py-8 max-w-2xl mx-auto">
-        {!showDialog ? (
+        {showPiknie ? (
+          <div className="flex flex-col items-center justify-center min-h-64 gap-6 text-center">
+            <p className="text-2xl text-[#1C1917] font-light">Pięknie.</p>
+            <button
+              onClick={() => navigate('/')}
+              className="text-sm text-[#78716C] hover:text-[#1C1917] transition-colors"
+            >
+              Wróć →
+            </button>
+          </div>
+        ) : !showDialog ? (
           <>
             <p className="text-[#78716C] text-sm mb-4">What&apos;s on your mind?</p>
             <textarea
