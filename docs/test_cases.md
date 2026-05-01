@@ -2751,6 +2751,232 @@ export const mockEntry = {
 
 ---
 
+## 3.12 FEATURE: Contextual Follow-Up Questions Between Lines (US-210)
+
+### TC-157: NewEntryPage shows "Pięknie." when entry word count exceeds 300
+
+**Related US:** US-210
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- API key set
+- `createEntry` mocked to resolve
+- Entry content has 301 words
+
+**Test Steps:**
+1. Render NewEntryPage
+2. Set textarea value to 301-word string via `fireEvent.change`
+3. Click Save
+
+**Expected Result:**
+- "Pięknie." text visible in DOM
+- `generateFollowUpQuestions` not called
+
+**File:** `src/__tests__/pages/NewEntryPage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-158: NewEntryPage navigates home when "Wróć" button clicked on Pięknie screen
+
+**Related US:** US-210
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- Entry >300 words saved — "Pięknie." screen shown
+
+**Test Steps:**
+1. Trigger "Pięknie." screen
+2. Click "Wróć →" button
+
+**Expected Result:**
+- `navigate('/')` called
+
+**File:** `src/__tests__/pages/NewEntryPage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-159: NewEntryPage calls generateFollowUpQuestions with story context when recent stories exist
+
+**Related US:** US-210
+**Type:** Integration
+**Priority:** Critical
+
+**Preconditions:**
+- API key set
+- `createEntry` resolves
+- `getRecentStories` returns one story
+- `generateFollowUpQuestions` resolves with questions
+
+**Test Steps:**
+1. Render NewEntryPage
+2. Type short entry (<300 words)
+3. Click Save
+
+**Expected Result:**
+- `generateFollowUpQuestions` called with `(content, apiKey, storyContent)`
+
+**File:** `src/__tests__/pages/NewEntryPage.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-160: generateFollowUpQuestions includes story context in user message when storyContext provided
+
+**Related US:** US-210
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return valid response
+
+**Test Steps:**
+1. Call `generateFollowUpQuestions('My entry today', 'sk-test', 'Past story about work')`
+2. Inspect fetch body `messages[1].content`
+
+**Expected Result:**
+- User message contains entry content, story context, and `[Context from past entries]` label
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-161: generateFollowUpQuestions sends only entry content when storyContext not provided
+
+**Related US:** US-210
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- `fetch` stubbed to return valid response
+
+**Test Steps:**
+1. Call `generateFollowUpQuestions('My entry today', 'sk-test')` — no storyContext
+2. Inspect fetch body `messages[1].content`
+
+**Expected Result:**
+- User message equals entry content exactly (no context label appended)
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-162: getRecentStories returns stories from recent entries excluding given entry id
+
+**Related US:** US-210
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- Supabase mock returns one story with different entry_id
+
+**Test Steps:**
+1. Call `getRecentStories('entry-uuid-1', 3)`
+
+**Expected Result:**
+- Result contains no stories with `entry_id === 'entry-uuid-1'`
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-163: getRecentStories returns empty array when no recent stories exist
+
+**Related US:** US-210
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- Supabase mock returns `{ data: null, error: null }`
+
+**Test Steps:**
+1. Call `getRecentStories('entry-uuid-1', 3)`
+
+**Expected Result:**
+- Returns `[]`
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-164: getRecentStories throws when Supabase returns error
+
+**Related US:** US-210
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- Supabase mock returns `{ error: { message: 'Fetch failed' } }`
+
+**Test Steps:**
+1. Call `getRecentStories('entry-uuid-1', 3)`
+
+**Expected Result:**
+- Promise rejects with `'Fetch failed'`
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-165: FOLLOW_UP_SYSTEM_PROMPT instructs AI to focus between the lines
+
+**Related US:** US-210
+**Type:** Unit
+**Priority:** Critical
+
+**Test Steps:**
+1. Check prompt contains `'BETWEEN THE LINES'`
+
+**Expected Result:**
+- Prompt contains the between-the-lines instruction
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-166: FOLLOW_UP_SYSTEM_PROMPT forbids AI from restating what is already written
+
+**Related US:** US-210
+**Type:** Unit
+**Priority:** Critical
+
+**Test Steps:**
+1. Check prompt contains `'NEVER restate'`
+
+**Expected Result:**
+- Prompt explicitly forbids restating entry content
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-167: FOLLOW_UP_SYSTEM_PROMPT instructs AI to respond in entry language
+
+**Related US:** US-210
+**Type:** Unit
+**Priority:** High
+
+**Test Steps:**
+1. Check prompt contains `'Respond in the same language as the user'`
+
+**Expected Result:**
+- Prompt includes language instruction
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
 ## 4. Test Data
 
 ### 4.1 Mock Data Sets

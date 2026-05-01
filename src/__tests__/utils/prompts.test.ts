@@ -105,4 +105,22 @@ describe('prompts', () => {
       expect(EMOTION_DETECTION_SYSTEM_PROMPT).toContain('"confidence"')
     })
   })
+
+  describe('FOLLOW_UP_SYSTEM_PROMPT', () => {
+    it('should instruct AI to focus on what is between the lines', () => {
+      expect(FOLLOW_UP_SYSTEM_PROMPT).toContain('BETWEEN THE LINES')
+    })
+
+    it('should forbid AI from restating what is already written', () => {
+      expect(FOLLOW_UP_SYSTEM_PROMPT).toContain('NEVER restate')
+    })
+
+    it('should instruct AI to respond in the same language as the entry', () => {
+      expect(FOLLOW_UP_SYSTEM_PROMPT).toContain('Respond in the same language as the user')
+    })
+
+    it('should instruct AI to return JSON array', () => {
+      expect(FOLLOW_UP_SYSTEM_PROMPT).toContain('JSON array')
+    })
+  })
 })
