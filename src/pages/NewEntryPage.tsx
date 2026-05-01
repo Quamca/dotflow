@@ -205,6 +205,14 @@ export default function NewEntryPage() {
               className="w-full min-h-64 p-4 rounded-lg border border-[#E7E5E4] bg-white text-[#1C1917] text-base resize-none focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent placeholder-[#78716C]"
               autoFocus
             />
+            {content.trim().length > 0 && (() => {
+              const wc = content.trim().split(/\s+/).filter(Boolean).length
+              return (
+                <p className={`mt-1 text-xs text-right ${wc >= WORD_COUNT_GATE ? 'text-amber-600' : 'text-[#78716C]'}`}>
+                  {wc} {wc === 1 ? 'słowo' : wc < 5 ? 'słowa' : 'słów'}{wc >= WORD_COUNT_GATE ? ' — długi wpis' : ''}
+                </p>
+              )
+            })()}
             {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
             <button
               onClick={handleSubmit}

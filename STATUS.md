@@ -59,6 +59,7 @@ Run `/planning` → agent will propose US-205.
 | BUG-002 | StoryNode tooltip does not close on outside click | Medium | US-207 |
 | BUG-003 | Follow-up questions using past storyContext feel like hallucinations — user has no transparency into why AI asks about past topics | Medium | US-210 |
 | BUG-004 | New entry star not visually distinguished in 3D sky — feature request: most recent star should blink/pulse | Low | US-210 |
+| BUG-005 | "Ask me more" button disappears before user confirms follow-up answers — may be pre-existing UX issue | Medium | US-205 verification |
 
 ---
 

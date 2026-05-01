@@ -41,6 +41,9 @@ export default function HomePage() {
   const [lastEntryDepthScore] = useState(
     () => parseFloat(localStorage.getItem(STORAGE_KEYS.LAST_ENTRY_DEPTH) ?? '0') || 0
   )
+  const [accumulatorTotal] = useState(
+    () => parseFloat(localStorage.getItem(STORAGE_KEYS.DEPTH_ACCUMULATOR) ?? '0') || 0
+  )
 
   const hasEntries = !isLoading && !error && entries.length > 0
   const shouldOfferValues =
@@ -195,6 +198,14 @@ export default function HomePage() {
         >
           Dotflow
         </button>
+      )}
+
+      {/* DEV: depth accumulator debug overlay */}
+      {isStarFieldActive && (
+        <div className="fixed top-4 right-6 z-30 text-[10px] text-[#78716C]/60 font-mono leading-tight text-right">
+          <div>depth: {lastEntryDepthScore}pt</div>
+          <div>acc: {accumulatorTotal}pt</div>
+        </div>
       )}
 
       {/* Write Entry CTA in 3D mode — promoted to primary after round limit */}

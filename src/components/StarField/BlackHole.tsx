@@ -29,8 +29,8 @@ interface DisagreeState {
 const MIN_SIZE = 0.3
 const PULSE_SPEED = 0.8
 const TOOLTIP_HIDE_DELAY = 300
-const MIN_PULSE_AMPLITUDE = 0.02
-const MAX_PULSE_AMPLITUDE = 0.10
+const MIN_PULSE_AMPLITUDE = 0.04
+const MAX_PULSE_AMPLITUDE = 0.22
 
 export default function BlackHole({
   size, insight, holisticInsight, hasUnreadInsight, depthScore, storyContextMessage,
@@ -106,8 +106,8 @@ export default function BlackHole({
 
       {hasUnreadInsight && (
         <mesh ref={unreadGlowRef}>
-          <sphereGeometry args={[clampedSize * 2.2, 16, 16]} />
-          <meshBasicMaterial color="#7c3aed" transparent opacity={0.14} />
+          <sphereGeometry args={[clampedSize * 2.8, 16, 16]} />
+          <meshBasicMaterial color="#a78bfa" transparent opacity={0.28} />
         </mesh>
       )}
 
@@ -170,7 +170,7 @@ function InsightTooltip({
     return (
       <div style={tooltipStyle}>
         <div style={{ color: '#A8A29E', fontSize: '13px' }}>
-          Keep writing — your center is forming.
+          Pisz dalej — Twoje centrum się kształtuje.
         </div>
       </div>
     )
@@ -200,7 +200,7 @@ function InsightTooltip({
       {showPattern && (
         <>
           <div style={{ fontWeight: 600, marginBottom: '8px', fontSize: '13px', color: '#FAFAF9' }}>
-            Your entries suggest:
+            Twoje zapiski sugerują:
           </div>
           <ul style={{ margin: 0, padding: '0 0 0 14px', listStyle: 'disc' }}>
             {insight!.slice(0, 3).map((obs, i) => (
