@@ -1,4 +1,4 @@
-import { FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_DETECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT, STORY_EXTRACTION_SYSTEM_PROMPT } from '../utils/prompts'
+import { FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_DETECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT, STORY_EXTRACTION_SYSTEM_PROMPT, EMOTION_DETECTION_SYSTEM_PROMPT } from '../utils/prompts'
 import type { Entry, ConnectionResult } from '../types'
 
 export async function generateFollowUpQuestions(
@@ -214,6 +214,52 @@ export async function extractStories(
     return [content]
   } catch {
     return [content]
+  }
+}
+
+export async function detectEmotionConfidence(
+  content: string,
+  apiKey: string
+): Promise<{ emotion: string; confidence: number }> {
+  const fallback = { emotion: 'mixed', confidence: 0 }
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: EMOTION_DETECTION_SYSTEM_PROMPT },
+          { role: 'user', content },
+        ],
+        temperature: 0.3,
+      }),
+    })
+
+    if (!response.ok) return fallback
+
+    const data = (await response.json()) as {
+      choices: Array<{ message: { content: string } }>
+    }
+    const text = data.choices[0]?.message?.content ?? '{}'
+
+    const parsed = JSON.parse(text) as unknown
+    if (
+      parsed !== null &&
+      typeof parsed === 'object' &&
+      'emotion' in parsed &&
+      'confidence' in parsed &&
+      typeof (parsed as { emotion: unknown }).emotion === 'string' &&
+      typeof (parsed as { confidence: unknown }).confidence === 'number'
+    ) {
+      return parsed as { emotion: string; confidence: number }
+    }
+    return fallback
+  } catch {
+    return fallback
   }
 }
 

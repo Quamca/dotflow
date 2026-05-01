@@ -103,6 +103,7 @@ export default function StarField({ entries, connections, stories = [], isIntera
           position={storyPositionMap.get(story.id) ?? [0, 0, 0]}
           isActive={activeStoryId === story.id}
           onActivate={setActiveStoryId}
+          apiKey={apiKey}
         />
       ))}
       {sessionLines.map((line) => (

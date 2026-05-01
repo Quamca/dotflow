@@ -1,26 +1,29 @@
 import { useState, useRef } from 'react'
 import { Html } from '@react-three/drei'
 import type { Story } from '../../types'
-import { addElaboration } from '../../services/storyService'
+import { addElaboration, updateStoryEmotion } from '../../services/storyService'
+import { detectEmotionConfidence } from '../../services/aiService'
+import { getEmotionColor } from '../../utils/emotionColors'
 
 interface StoryNodeProps {
   story: Story
   position: [number, number, number]
   isActive: boolean
   onActivate: (id: string) => void
+  apiKey?: string
 }
 
 const STORY_STAR_SIZE = 0.06
 const HIDE_DELAY_MS = 3000
 const CONFIRMATION_DURATION_MS = 2000
 
-export default function StoryNode({ story, position, isActive, onActivate }: StoryNodeProps) {
+export default function StoryNode({ story, position, isActive, onActivate, apiKey }: StoryNodeProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [isElaborating, setIsElaborating] = useState(false)
   const [elaborationText, setElaborationText] = useState('')
   const [isSaving, setIsSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
+  const [emotion, setEmotion] = useState<string | null>(story.emotion)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const preview = story.content.length > 80 ? `${story.content.slice(0, 80)}…` : story.content
@@ -34,6 +37,7 @@ export default function StoryNode({ story, position, isActive, onActivate }: Sto
   }
 
   function scheduleHide() {
+    if (isElaborating) return
     clearHideTimer()
     hideTimer.current = setTimeout(() => {
       setIsVisible(false)
@@ -44,9 +48,15 @@ export default function StoryNode({ story, position, isActive, onActivate }: Sto
   async function handleElaborationSubmit() {
     if (!elaborationText.trim() || isSaving) return
     setIsSaving(true)
+    const trimmed = elaborationText.trim()
     try {
-      await addElaboration(story.id, elaborationText.trim())
-      setSaved(true)
+      await addElaboration(story.id, trimmed)
+      if (apiKey) {
+        const combinedContent = `${story.content}\n\n[Elaboration]: ${trimmed}`
+        const result = await detectEmotionConfidence(combinedContent, apiKey)
+        await updateStoryEmotion(story.id, result.emotion, result.confidence)
+        setEmotion(result.emotion)
+      }
       setIsElaborating(false)
       setElaborationText('')
       setShowConfirmation(true)
@@ -70,7 +80,7 @@ export default function StoryNode({ story, position, isActive, onActivate }: Sto
         onPointerLeave={scheduleHide}
       >
         <sphereGeometry args={[STORY_STAR_SIZE, 8, 8]} />
-        <meshBasicMaterial color={saved ? '#A8A29E' : '#C4B5A5'} />
+        <meshBasicMaterial color={getEmotionColor(emotion)} />
       </mesh>
       {tooltipVisible && (
         <Html style={{ pointerEvents: 'auto' }}>

@@ -7,6 +7,7 @@ import {
   DEEPENING_QUESTION_SYSTEM_PROMPT,
   CLOSING_PHRASE_SYSTEM_PROMPT,
   STORY_EXTRACTION_SYSTEM_PROMPT,
+  EMOTION_DETECTION_SYSTEM_PROMPT,
 } from '../../utils/prompts'
 
 describe('prompts', () => {
@@ -83,6 +84,25 @@ describe('prompts', () => {
 
     it('should include language instruction', () => {
       expect(CLOSING_PHRASE_SYSTEM_PROMPT).toContain('Respond in the same language as the user')
+    })
+  })
+
+  describe('EMOTION_DETECTION_SYSTEM_PROMPT', () => {
+    it('should instruct AI to return JSON object', () => {
+      expect(EMOTION_DETECTION_SYSTEM_PROMPT).toContain('JSON object')
+    })
+
+    it('should include all six emotion categories', () => {
+      expect(EMOTION_DETECTION_SYSTEM_PROMPT).toContain('"joy"')
+      expect(EMOTION_DETECTION_SYSTEM_PROMPT).toContain('"sadness"')
+      expect(EMOTION_DETECTION_SYSTEM_PROMPT).toContain('"anger"')
+      expect(EMOTION_DETECTION_SYSTEM_PROMPT).toContain('"fear"')
+      expect(EMOTION_DETECTION_SYSTEM_PROMPT).toContain('"calm"')
+      expect(EMOTION_DETECTION_SYSTEM_PROMPT).toContain('"mixed"')
+    })
+
+    it('should include confidence field in example format', () => {
+      expect(EMOTION_DETECTION_SYSTEM_PROMPT).toContain('"confidence"')
     })
   })
 })

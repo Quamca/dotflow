@@ -44,6 +44,19 @@ export async function getAllStories(): Promise<Story[]> {
   return (data ?? []) as Story[]
 }
 
+export async function updateStoryEmotion(
+  storyId: string,
+  emotion: string,
+  confidence: number
+): Promise<void> {
+  const { error } = await supabase
+    .from('stories')
+    .update({ emotion, emotion_confidence: confidence })
+    .eq('id', storyId)
+
+  if (error) throw new Error(error.message)
+}
+
 export async function addElaboration(storyId: string, elaboration: string): Promise<void> {
   const { data: existing, error: fetchError } = await supabase
     .from('stories')
