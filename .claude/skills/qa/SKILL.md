@@ -140,4 +140,4 @@ Tylko:
 - Test only user-facing behavior
 - Follow F.I.R.S.T. and AAA in every test
 - Commit automatically after tests pass
-- After commit — always invoke `flow` skill automatically, never say "Uruchom /flow"
+- After commit — always invoke `docs` skill automatically, never say "Uruchom /docs"
