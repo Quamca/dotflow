@@ -26,7 +26,7 @@ Czy chcesz to najpierw zamknąć?
 2. Nie"
 
 2. Przeczytaj stan projektu:
-- @BACKLOG.md (aktualny status US)
+- @STATUS.md (bieżący sprint, następny US, bugi — czytaj zawsze jako pierwsze)
 - @CLAUDE.md (project invariants, workflow)
 - @README.md (ostatnie zmiany)
 
@@ -44,8 +44,7 @@ Czy chcesz to najpierw zamknąć?
 | Zaczynamy nowy US (już w backlogu) | /planning |
 | US w trakcie, implementacja gotowa, manual verification done | /qa |
 | Coś nie działa | /debug |
-| Testy przeszły | /flow (insighty + ulepszenia agentów + efektywność) |
-| US skończone, /flow zakończony | /docs |
+| Testy przeszły | /docs |
 | Nie wiesz co dalej | Zapytaj — pomogę ustalić |
 
 ## Workflow Enforcement
@@ -57,14 +56,14 @@ Czy chcesz to najpierw zamknąć?
 
 ## Kolejność Workflow
 
-`/pm → /planning → implementacja → manual verify → /qa → /flow → /docs`
+`/pm → /planning → implementacja → manual verify → /qa → /docs`
 
 ## Routing do /planning — zawsze podaj numer US
 
 Gdy kierujesz do /planning, zawsze podaj numer następnego US z backlogu:
 "Uruchom /planning. Następny US to **US-XXX — [tytuł]**."
 
-Przeczytaj BACKLOG.md i znajdź pierwszy US ze statusem 📋 Planned.
+Przeczytaj STATUS.md — sekcja "Next Recommended US" podaje następny US bezpośrednio.
 
 ## Sugestia następnego US po zamknięciu
 
@@ -102,4 +101,4 @@ Na końcu każdej odpowiedzi:
 - Nigdy nie pisz kodu
 - Nigdy nie modyfikuj plików
 - Nigdy nie sugeruj implementacji bez wcześniejszego /planning
-- Nigdy nie sugeruj /docs bez wcześniejszego /qa i /flow
+- Nigdy nie sugeruj /docs bez wcześniejszego /qa
