@@ -22,6 +22,15 @@ interface ElaborationState {
 
 const init: ElaborationState = { status: 'idle', text: null, note: '', noteSaved: false }
 
+function getStoredElab(insightKey: string): string | null {
+  try {
+    const data = JSON.parse(localStorage.getItem('dotflow_elaborated_insight') ?? 'null') as { key: string; text: string } | null
+    return data?.key === insightKey ? data.text : null
+  } catch {
+    return null
+  }
+}
+
 export default function InsightModal({
   insight, holisticInsight, storyContextMessage, apiKey, entries, onClose, onAcknowledge,
 }: InsightModalProps) {
@@ -30,17 +39,27 @@ export default function InsightModal({
   const showHolistic = !!holisticInsight
   const showPattern = !showHolistic && insight && insight.length > 0
   const showFallback = !showHolistic && !showPattern && !storyContextMessage
+  const hasInsightContent = showHolistic || showPattern
 
   const insightKey = holisticInsight ?? insight?.join('\n') ?? ''
   const isAcknowledged = !!insightKey && localStorage.getItem('dotflow_acknowledged_insight') === insightKey
-  const canElaborate = (showHolistic || showPattern) && !!apiKey && !isAcknowledged
+
+  // "To ma sens" only when not yet acknowledged; "Rozwiń" always available while elab is idle
+  const canShowToMaSens = hasInsightContent && !!apiKey && !isAcknowledged
+  const canShowRozwin = hasInsightContent && !!apiKey && elab.status === 'idle'
 
   async function handleElaborate() {
+    const cached = getStoredElab(insightKey)
+    if (cached) {
+      setElab((p) => ({ ...p, status: 'shown', text: cached }))
+      return
+    }
     const activeInsight = holisticInsight ?? insight?.join('. ') ?? null
     if (!activeInsight || !apiKey) return
     setElab((p) => ({ ...p, status: 'loading' }))
     try {
       const text = await elaborateInsight(activeInsight, entries, apiKey)
+      localStorage.setItem('dotflow_elaborated_insight', JSON.stringify({ key: insightKey, text }))
       setElab((p) => ({ ...p, status: 'shown', text }))
     } catch {
       setElab((p) => ({ ...p, status: 'idle' }))
@@ -89,7 +108,7 @@ export default function InsightModal({
       {elab.status === 'shown' && elab.text && (
         <div className="mt-6 pt-6 border-t border-[#E7E5E4] flex flex-col gap-3">
           <p className="text-[#1C1917] text-base leading-relaxed">{elab.text}</p>
-          {!elab.noteSaved ? (
+          {!isAcknowledged && !elab.noteSaved && (
             <>
               <textarea
                 value={elab.note}
@@ -114,26 +133,31 @@ export default function InsightModal({
                 </button>
               </div>
             </>
-          ) : (
+          )}
+          {!isAcknowledged && elab.noteSaved && (
             <p className="text-sm text-[#78716C]">Zapisano ✓</p>
           )}
         </div>
       )}
 
-      {elab.status === 'idle' && canElaborate && (
+      {(canShowToMaSens || canShowRozwin) && (
         <div className="mt-6 flex gap-3 flex-wrap">
-          <button
-            onClick={() => { onAcknowledge?.(); onClose() }}
-            className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] transition-colors"
-          >
-            To ma sens
-          </button>
-          <button
-            onClick={() => void handleElaborate()}
-            className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] transition-colors"
-          >
-            Rozwiń
-          </button>
+          {canShowToMaSens && (
+            <button
+              onClick={() => { onAcknowledge?.(); onClose() }}
+              className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] transition-colors"
+            >
+              To ma sens
+            </button>
+          )}
+          {canShowRozwin && (
+            <button
+              onClick={() => void handleElaborate()}
+              className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] transition-colors"
+            >
+              Rozwiń
+            </button>
+          )}
         </div>
       )}
     </SkyModal>
