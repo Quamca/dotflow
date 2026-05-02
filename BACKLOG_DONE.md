@@ -321,4 +321,55 @@
 
 ---
 
+### US-205: Depth-Driven Adaptive Insights ✅ COMPLETED
+
+**Status:** ✅ Completed | **Story Points:** 8 | **Priority:** P1
+
+**Description:**
+Replace fixed-milestone insight triggers with a continuous reflection depth accumulator. Each entry contributes depth points based on quality signals. When the accumulator threshold is crossed, a holistic insight is generated and delivered via black hole hover. Connection insights appear inline when entries connect. The black hole pulses on every save with proportional growth feedback.
+
+**Acceptance Criteria:**
+- [x] Each entry contributes a depth score to the accumulator on save
+- [x] Depth score follows Pennebaker model: 3 pts/follow-up answer (max 15), word count tier (+1/+2/+3), connection bonus (+2), <30 words = 0 flat; range 0–20
+- [x] Accumulator threshold is a configurable constant (not hardcoded)
+- [x] When threshold crossed: `aiService.generateHolisticInsight()` called, result persisted in localStorage
+- [x] Accumulator resets to zero after holistic insight generated (perpetual cycle)
+- [x] Black hole pulses once (heartbeat) after every entry save — pulse intensity proportional to depth score
+- [x] No numbers, bars, or explicit scores shown to user — feedback is purely visual
+- [x] Black hole glow/pulse when new holistic insight is unread
+- [x] Glow clears after first hover (insight marked as read)
+- [x] Connection insight: appears inline near ConnectionBadge when connection detected — one sentence, specific
+- [x] Before first holistic insight: black hole hover shows: *"Keep writing — your center is forming."*
+- [x] All insight persistence in localStorage; holistic insight does not regenerate on every hover
+- [x] Repeated topic detected → black hole shows: *"Ten temat pojawia się kolejny raz — coś w nim jest ważnego."*
+- [x] Contradicting topic detected → black hole shows: *"Tym razem inaczej — coś się zdaje zmieniać."*
+- [x] Single short entry → silence (no black hole comment)
+- [x] 3 or more consecutive short entries → *"Czy nie chcesz dziś pisać, czy jest coś co sprawia Ci trudność w opowiedzeniu?"*
+
+**Tasks:**
+- [x] **TASK-205.1:** Design and implement `src/hooks/useDepthAccumulator.ts` — score computation + localStorage persistence
+- [x] **TASK-205.2:** Define depth score weights as configurable constants in `src/utils/insightConfig.ts`
+- [x] **TASK-205.3:** Implement `aiService.generateHolisticInsight(entries, apiKey)` with cumulative-pattern prompt
+- [x] **TASK-205.4:** Trigger holistic insight generation when accumulator threshold crossed
+- [x] **TASK-205.5:** Persist generated holistic insight in localStorage; retrieve on hover
+- [x] **TASK-205.6:** Pass depth score of last entry to StarField — trigger proportional heartbeat animation
+- [x] **TASK-205.7:** Add glow/pulse to black hole when unread holistic insight exists
+- [x] **TASK-205.8:** Implement connection insight display inline near ConnectionBadge
+- [x] **TASK-205.9:** Add pre-insight fallback text on black hole hover
+- [x] **TASK-205.10:** Write tests (/qa)
+- [x] **TASK-205.11:** Manual verification
+
+**Implementation notes:**
+- Global single-tooltip system: `activeTooltipId` state in StarField parent — only one tooltip active at a time; 300ms deactivation delay uniform across all nodes
+- BlackHole tooltip stability: `keepOpen` (500ms grace period) + `isTooltipHovered` — prevents flicker when cursor moves from mesh to tooltip div
+- Invisible hit mesh on BlackHole: transparent sphere at `clampedSize * 1.6` radius — larger, stable pointer event target matching visual glow
+- `e.stopPropagation()` on all mesh pointer events — prevents raycast bleed-through to objects behind
+- "To ma sens" → `setAgreed(true)` only (no AI call); "Rozwiń" → `elaborateInsight()` AI call; "Jest OK" dismisses elaboration
+- `generateHolisticInsight(entries, apiKey)` and `elaborateInsight(insight, entryExamples, apiKey)` added to aiService
+- `getEntriesWithFollowUps()` added to entryService (used by depth accumulator)
+- `HOLISTIC_INSIGHT_SYSTEM_PROMPT` and `INSIGHT_ELABORATION_SYSTEM_PROMPT` added to prompts.ts
+- FollowUpDialog "Zmień pytanie" reroll: MAX_REROLLS=2, calls `onRequestMore()`, replaces current question
+
+---
+
 *This file is an archive. For active work see [BACKLOG.md](BACKLOG.md).*

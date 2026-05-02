@@ -1,8 +1,8 @@
 # Dotflow — Active Backlog (M2.5)
 
 **Project:** Dotflow
-**Version:** 1.5
-**Last Updated:** 2026-05-01
+**Version:** 1.6
+**Last Updated:** 2026-05-02
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -16,7 +16,6 @@
 | ID | Description | Priority | Reported in |
 |----|-------------|----------|-------------|
 | BUG-001 | StarField tooltips (StoryNode + StarNode) are too narrow — content gets clipped, width needs increase | Low | US-206 manual verification |
-| BUG-002 | StoryNode tooltip does not close when clicking outside — requires hovering another star or waiting 3s | Medium | US-207 manual verification |
 | BUG-003 | Follow-up questions use storyContext from past entries but user has no visibility into this — questions about past topics feel like hallucinations | Medium | US-210 manual verification |
 | BUG-004 | New entries are not visually distinguished in the 3D sky — feature request: most recently added star should blink/pulse | Low | US-210 manual verification |
 
@@ -28,125 +27,14 @@
 |-----------|------|--------|
 | M1 | Core Journal + AI Follow-Up | ✅ Completed |
 | M2 | Connections + Patterns | ✅ Completed |
-| M2.5 | Experience Depth (pre-M3) | 🔄 In Progress (6/10 done) |
+| M2.5 | Experience Depth (pre-M3) | 🔄 In Progress (7/10 done) |
 | M3 | Multi-User + Mobile | ⏸️ Blocked — M2.5 P0/P1 must complete first |
 
-> **M3 Blockers remaining:** US-205 (Adaptive Insights, P1), US-208 (Life Area Zones, P1). US-204 (P2) and US-209 (P2) are not M3 blockers.
+> **M3 Blockers remaining:** US-208 (Life Area Zones, P1). US-204 (P2) and US-209 (P2) are not M3 blockers.
 
 ---
 
 # 📦 EPIC-002b: Experience Depth — Active Items
-
----
-
-## 🔧 FEATURE-014: Adaptive Pattern Summaries
-
-**Description:**
-Pattern insights are driven by a continuous **reflection depth accumulator** — not fixed entry count milestones. Every entry contributes to the accumulator based on quality signals (follow-up answers answered, word depth, connection detected). When the accumulator crosses a threshold, a new holistic insight is computed. After delivery the accumulator resets and continues building — forever. No "nothing after 50 entries."
-
-Two distinct insight types operate independently:
-1. **Connection Insight** — triggered immediately when a connection between entries is detected. Appears inline, near ConnectionBadge. Specific, contextual.
-2. **Holistic Insight** — triggered by accumulator threshold. Delivered via black hole hover. Cumulative, identity-level.
-
-The black hole pulses once (heartbeat) after every entry save — the size of the pulse is proportional to the entry's depth score. This creates a gardening feedback loop: write deeply → visible growth; write shallowly → barely moves.
-
-**UX Principles (from /consult):**
-- Fixed ratio with visible quality (not variable/casino): every entry always adds something; quality determines how much
-- No numbers, bars, or points — user feels the difference visually, not analytically
-- Accumulator threshold: configurable value, not hardcoded
-- Follow-up answers weight more than word count as quality signal
-
-**Dependencies:**
-- US-202 (black hole mesh and hover interaction)
-- US-101 (connection detection — needed for Connection Insight trigger)
-
-**Scope Boundaries:**
-- **Includes:** Depth accumulator, two insight types (connection + holistic), heartbeat visualization, glow/pulse for unread holistic insight
-- **Excludes:** Push notifications, email delivery, explicit score display to user
-
-**Priority:** P1
-**Status:** 📋 Planned
-
----
-
-### US-205: Depth-Driven Adaptive Insights
-
-**Description:**
-Replace fixed-milestone insight triggers with a continuous reflection depth accumulator. Each entry contributes depth points based on quality signals. When the accumulator threshold is crossed, a holistic insight is generated and delivered via black hole hover. Connection insights appear inline when entries connect. The black hole pulses on every save with proportional growth feedback.
-
-**As a** user
-**I want** the black hole to grow visibly when I write deeply and signal when a new insight is ready
-**So that** I am motivated by reflection quality — not entry quantity — and discover insights at meaningful moments
-
-**Status:** 📋 Planned
-**Story Points:** 8
-**Priority:** P1
-
-**Depth Accumulator Model:**
-
-Depth score per entry — range 0–20 pts (based on Pennebaker Expressive Writing Research):
-
-| Signal | Points |
-|---|---|
-| Each follow-up answer | 3 pts / answer (max 15) — always counted |
-| Word count 50–150 | +1 pt |
-| Word count 150–300 | +2 pts |
-| Word count 300+ | +3 pts (capped) |
-| Connection detected | +2 pts bonus |
-| Entry < 30 words | no word count bonus (follow-up points still apply) |
-
-- When accumulated score ≥ threshold → generate + persist holistic insight, reset accumulator
-- Threshold is a configurable constant (not hardcoded), calibrated experimentally
-- **M2.5 known limitation:** Users without an API key score 0 on the highest-weight signal (no follow-up answers). Acceptable for single-user M2.5; resolved in M3 with Dotflow-owned AI.
-
-**Two Insight Types:**
-
-| | Connection Insight | Holistic Insight |
-|---|---|---|
-| Trigger | Connection detected on entry save | Depth accumulator threshold crossed |
-| Location | Inline, near ConnectionBadge | Black hole hover |
-| Character | Immediate, specific | Cumulative, identity-level |
-| Example | *"This echoes something you felt 3 weeks ago."* | *"You tend to doubt yourself before big decisions."* |
-
-**Black Hole Insight Behavior by Story Context:**
-
-| Incoming story pattern | Black hole response |
-|---|---|
-| Same/repeated topic appears again | *"Ten temat pojawia się kolejny raz — coś w nim jest ważnego."* |
-| Contradicting or different story from previous | *"Tym razem inaczej — coś się zdaje zmieniać."* |
-| Single short entry (<30 words) | Silence — no comment |
-| 3+ consecutive short entries | *"Czy nie chcesz dziś pisać, czy jest coś co sprawia Ci trudność w opowiedzeniu?"* |
-
-**Acceptance Criteria:**
-- [ ] Each entry contributes a depth score to the accumulator on save
-- [ ] Depth score follows Pennebaker model: 3 pts/follow-up answer (max 15), word count tier (+1/+2/+3), connection bonus (+2), <30 words = 0 flat; range 0–20
-- [ ] Accumulator threshold is a configurable constant (not hardcoded)
-- [ ] When threshold crossed: `aiService.generateHolisticInsight()` called, result persisted in localStorage
-- [ ] Accumulator resets to zero after holistic insight generated (perpetual cycle)
-- [ ] Black hole pulses once (heartbeat) after every entry save — pulse intensity proportional to depth score
-- [ ] No numbers, bars, or explicit scores shown to user — feedback is purely visual
-- [ ] Black hole glow/pulse when new holistic insight is unread
-- [ ] Glow clears after first hover (insight marked as read)
-- [ ] Connection insight: appears inline near ConnectionBadge when connection detected — one sentence, specific
-- [ ] Before first holistic insight: black hole hover shows: *"Keep writing — your center is forming."*
-- [ ] All insight persistence in localStorage; holistic insight does not regenerate on every hover
-- [ ] Repeated topic detected → black hole shows: *"Ten temat pojawia się kolejny raz — coś w nim jest ważnego."*
-- [ ] Contradicting topic detected → black hole shows: *"Tym razem inaczej — coś się zdaje zmieniać."*
-- [ ] Single short entry → silence (no black hole comment)
-- [ ] 3 or more consecutive short entries → *"Czy nie chcesz dziś pisać, czy jest coś co sprawia Ci trudność w opowiedzeniu?"*
-
-**Tasks:**
-- [ ] **TASK-205.1:** Design and implement `src/hooks/useDepthAccumulator.ts` — score computation + localStorage persistence - 45min
-- [ ] **TASK-205.2:** Define depth score weights as configurable constants in `src/utils/insightConfig.ts` - 15min
-- [ ] **TASK-205.3:** Implement `aiService.generateHolisticInsight(entries, apiKey)` with cumulative-pattern prompt - 45min
-- [ ] **TASK-205.4:** Trigger holistic insight generation when accumulator threshold crossed - 20min
-- [ ] **TASK-205.5:** Persist generated holistic insight in localStorage; retrieve on hover - 20min
-- [ ] **TASK-205.6:** Pass depth score of last entry to StarField — trigger proportional heartbeat animation - 30min
-- [ ] **TASK-205.7:** Add glow/pulse to black hole when unread holistic insight exists - 20min
-- [ ] **TASK-205.8:** Implement connection insight display inline near ConnectionBadge - 25min
-- [ ] **TASK-205.9:** Add pre-insight fallback text on black hole hover - 10min
-- [ ] **TASK-205.10:** Write tests (/qa) - 60min
-- [ ] **TASK-205.11:** Manual verification - 20min
 
 ---
 
