@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createEntry, getEntries, getEntryById, saveFollowUps, saveConnection, getConnectionsForEntry } from '../../services/entryService'
+import { createEntry, getEntries, getEntryById, saveFollowUps, saveConnection, getConnectionsForEntry, getEntriesWithFollowUps } from '../../services/entryService'
 import { supabase } from '../../lib/supabase'
 import type { Entry, EntryWithFollowUps, Connection } from '../../types'
 
@@ -251,6 +251,57 @@ describe('entryService', () => {
 
       // Assert
       expect(result).toEqual([])
+    })
+  })
+
+  describe('getEntriesWithFollowUps', () => {
+    it('should return entries with followups when query succeeds', async () => {
+      // Arrange
+      vi.mocked(supabase.from).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          order: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue({ data: [mockEntryWithFollowUps], error: null }),
+          }),
+        }),
+      } as unknown as ReturnType<typeof supabase.from>)
+
+      // Act
+      const result = await getEntriesWithFollowUps()
+
+      // Assert
+      expect(result).toHaveLength(1)
+      expect(result[0].followups).toHaveLength(1)
+    })
+
+    it('should return empty array when no entries found', async () => {
+      // Arrange
+      vi.mocked(supabase.from).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          order: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue({ data: null, error: null }),
+          }),
+        }),
+      } as unknown as ReturnType<typeof supabase.from>)
+
+      // Act
+      const result = await getEntriesWithFollowUps()
+
+      // Assert
+      expect(result).toEqual([])
+    })
+
+    it('should throw when Supabase returns an error', async () => {
+      // Arrange
+      vi.mocked(supabase.from).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          order: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue({ data: null, error: { message: 'Fetch failed' } }),
+          }),
+        }),
+      } as unknown as ReturnType<typeof supabase.from>)
+
+      // Act & Assert
+      await expect(getEntriesWithFollowUps()).rejects.toThrow('Fetch failed')
     })
   })
 })

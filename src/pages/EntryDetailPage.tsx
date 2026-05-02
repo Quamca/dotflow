@@ -22,7 +22,7 @@ export default function EntryDetailPage() {
     if (!id) return
     getEntryById(id)
       .then(setEntry)
-      .catch(() => setError('Entry not found.'))
+      .catch(() => setError('Wpis nie istnieje.'))
       .finally(() => setIsLoading(false))
   }, [id])
 
@@ -34,9 +34,9 @@ export default function EntryDetailPage() {
         <button
           onClick={() => navigate('/')}
           className="text-[#78716C] hover:text-[#1C1917] transition-colors text-sm"
-          aria-label="Back"
+          aria-label="Wróć"
         >
-          ← Back
+          ← Wróć
         </button>
         <span className="text-[#1C1917] text-sm font-medium">
           {entry ? formatDate(entry.created_at) : ''}
@@ -79,7 +79,7 @@ export default function EntryDetailPage() {
 
             {answeredFollowUps.length > 0 && (
               <div className="mt-8 border-t border-[#E7E5E4] pt-6">
-                <p className="text-xs text-[#78716C] uppercase tracking-wide mb-4">Follow-up</p>
+                <p className="text-xs text-[#78716C] uppercase tracking-wide mb-4">Pogłębienie</p>
                 <div className="flex flex-col gap-5">
                   {answeredFollowUps.map((fu) => (
                     <div key={fu.id}>

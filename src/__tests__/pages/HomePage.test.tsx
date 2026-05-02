@@ -66,7 +66,7 @@ describe('HomePage', () => {
   it('should show warning banner when no API key is set', () => {
     renderHomePage()
 
-    expect(screen.getByText(/Add your API key in/i)).toBeInTheDocument()
+    expect(screen.getByText(/Dodaj klucz API w/i)).toBeInTheDocument()
   })
 
   it('should not show warning banner when API key is set', () => {
@@ -74,20 +74,20 @@ describe('HomePage', () => {
 
     renderHomePage()
 
-    expect(screen.queryByText(/Add your API key in/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Dodaj klucz API w/i)).not.toBeInTheDocument()
   })
 
   it('should show Write button on Home screen', () => {
     renderHomePage()
 
-    expect(screen.getByRole('link', { name: /write/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /napisz/i })).toBeInTheDocument()
   })
 
   it('should show empty state when no entries exist', async () => {
     vi.mocked(getEntries).mockResolvedValue([])
     renderHomePage()
 
-    expect(await screen.findByText(/your story starts here/i)).toBeInTheDocument()
+    expect(await screen.findByText(/Twoja historia zaczyna się tutaj/i)).toBeInTheDocument()
   })
 
   it('should show entry card content when entries exist', async () => {
@@ -101,7 +101,7 @@ describe('HomePage', () => {
     vi.mocked(getEntries).mockRejectedValue(new Error('Fetch failed'))
     renderHomePage()
 
-    expect(await screen.findByText(/failed to load entries/i)).toBeInTheDocument()
+    expect(await screen.findByText(/nie udało się załadować wpisów/i)).toBeInTheDocument()
   })
 
   it('should show connection badge when entry has a connection to another entry', async () => {
@@ -125,14 +125,14 @@ describe('HomePage', () => {
 
     renderHomePage()
 
-    expect(await screen.findByText(/connected to/i)).toBeInTheDocument()
+    expect(await screen.findByText(/połączono z/i)).toBeInTheDocument()
   })
 
   it('should show Generate insights button when 10 or more entries exist', async () => {
     vi.mocked(getEntries).mockResolvedValue(generateMockEntries(10))
     renderHomePage()
 
-    expect(await screen.findByRole('button', { name: /generate insights/i })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /generuj wglądy/i })).toBeInTheDocument()
   })
 
   it('should not show Generate insights button when fewer than 10 entries exist', async () => {
@@ -141,7 +141,7 @@ describe('HomePage', () => {
 
     await screen.findByText('Entry number 1')
 
-    expect(screen.queryByRole('button', { name: /generate insights/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /generuj wglądy/i })).not.toBeInTheDocument()
   })
 
   it('should show loading state when generating insights', async () => {
@@ -152,10 +152,10 @@ describe('HomePage', () => {
     const user = userEvent.setup()
     renderHomePage()
 
-    await screen.findByRole('button', { name: /generate insights/i })
-    await user.click(screen.getByRole('button', { name: /generate insights/i }))
+    await screen.findByRole('button', { name: /generuj wglądy/i })
+    await user.click(screen.getByRole('button', { name: /generuj wglądy/i }))
 
-    expect(screen.getByText('Generating insights…')).toBeInTheDocument()
+    expect(screen.getByText('Generuję wglądy…')).toBeInTheDocument()
   })
 
   it('should show error message when generatePatternSummary fails', async () => {
@@ -166,10 +166,10 @@ describe('HomePage', () => {
     const user = userEvent.setup()
     renderHomePage()
 
-    await screen.findByRole('button', { name: /generate insights/i })
-    await user.click(screen.getByRole('button', { name: /generate insights/i }))
+    await screen.findByRole('button', { name: /generuj wglądy/i })
+    await user.click(screen.getByRole('button', { name: /generuj wglądy/i }))
 
-    expect(await screen.findByText(/failed to generate insights/i)).toBeInTheDocument()
+    expect(await screen.findByText(/nie udało się wygenerować wglądów/i)).toBeInTheDocument()
   })
 
   it('should show observations when generatePatternSummary succeeds', async () => {
@@ -180,8 +180,8 @@ describe('HomePage', () => {
     const user = userEvent.setup()
     renderHomePage()
 
-    await screen.findByRole('button', { name: /generate insights/i })
-    await user.click(screen.getByRole('button', { name: /generate insights/i }))
+    await screen.findByRole('button', { name: /generuj wglądy/i })
+    await user.click(screen.getByRole('button', { name: /generuj wglądy/i }))
 
     expect(await screen.findByText('You often write about work stress.')).toBeInTheDocument()
   })
@@ -192,10 +192,10 @@ describe('HomePage', () => {
     const user = userEvent.setup()
     renderHomePage()
 
-    await screen.findByRole('button', { name: /generate insights/i })
-    await user.click(screen.getByRole('button', { name: /generate insights/i }))
+    await screen.findByRole('button', { name: /generuj wglądy/i })
+    await user.click(screen.getByRole('button', { name: /generuj wglądy/i }))
 
-    expect(screen.getByText(/set your api key in settings/i)).toBeInTheDocument()
+    expect(screen.getByText(/Dodaj klucz API w Ustawieniach/i)).toBeInTheDocument()
   })
 
   it('should show Dotflow logo as Explore in 3D when entries are loaded', async () => {
@@ -212,7 +212,7 @@ describe('HomePage', () => {
 
     await user.click(await screen.findByRole('button', { name: /explore in 3d/i }))
 
-    expect(screen.queryByRole('link', { name: /write/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /napisz/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /exit 3d view/i })).toBeInTheDocument()
   })
 
@@ -224,7 +224,7 @@ describe('HomePage', () => {
     await user.click(await screen.findByRole('button', { name: /explore in 3d/i }))
     await user.click(screen.getByRole('button', { name: /exit 3d view/i }))
 
-    expect(screen.getByRole('link', { name: /write/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /napisz/i })).toBeInTheDocument()
   })
 
   it('should show ValuesModal when 5 or more entries exist and API key is set and values not confirmed', async () => {
@@ -283,7 +283,7 @@ describe('HomePage', () => {
     await user.click(screen.getByRole('button', { name: /zatwierdź/i }))
 
     expect(screen.queryByText(/W Twoich wpisach te tematy wracają najczęściej/i)).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /write/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /napisz/i })).toBeInTheDocument()
   })
 
   it('should close ValuesModal when Pomiń is clicked', async () => {

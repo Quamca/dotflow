@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback, extractStories, detectEmotionConfidence } from '../../services/aiService'
+import { generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback, extractStories, detectEmotionConfidence, generateHolisticInsight, elaborateInsight } from '../../services/aiService'
 import { DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT } from '../../utils/prompts'
-import type { Entry } from '../../types'
+import type { Entry, EntryWithFollowUps } from '../../types'
 
 const mockNewEntry: Entry = {
   id: 'uuid-new',
@@ -677,6 +677,111 @@ describe('aiService', () => {
 
       // Assert
       expect(result).toEqual({ emotion: 'mixed', confidence: 0 })
+    })
+  })
+
+  describe('generateHolisticInsight', () => {
+    const mockEntriesWithFollowUps: EntryWithFollowUps[] = [
+      {
+        ...mockPastEntry,
+        followups: [{ id: 'fu-1', entry_id: 'uuid-1', question: 'Q?', answer: 'A', order_index: 0, created_at: '2026-04-09T20:01:00Z' }],
+      },
+    ]
+
+    it('should return insight string when API responds successfully', async () => {
+      // Arrange
+      const insightText = 'Across your entries, moments of tension appear before breakthroughs.'
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: insightText } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await generateHolisticInsight(mockEntriesWithFollowUps, 'sk-test')
+
+      // Assert
+      expect(result).toBe(insightText)
+    })
+
+    it('should throw when OpenAI returns non-ok response', async () => {
+      // Arrange
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401 }))
+
+      // Act & Assert
+      await expect(
+        generateHolisticInsight(mockEntriesWithFollowUps, 'sk-invalid')
+      ).rejects.toThrow('OpenAI API error: 401')
+    })
+
+    it('should return empty string when response content is missing', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({ choices: [{ message: { content: null } }] }),
+        })
+      )
+
+      // Act
+      const result = await generateHolisticInsight(mockEntriesWithFollowUps, 'sk-test')
+
+      // Assert
+      expect(result).toBe('')
+    })
+  })
+
+  describe('elaborateInsight', () => {
+    it('should return elaboration string when API responds successfully', async () => {
+      // Arrange
+      const elaborationText = 'W Twoich zapiskach kilka razy pojawił się podobny moment wątpliwości.'
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: elaborationText } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await elaborateInsight('Across your entries...', [mockPastEntry], 'sk-test')
+
+      // Assert
+      expect(result).toBe(elaborationText)
+    })
+
+    it('should throw when OpenAI returns non-ok response', async () => {
+      // Arrange
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500 }))
+
+      // Act & Assert
+      await expect(
+        elaborateInsight('some insight', [mockPastEntry], 'sk-invalid')
+      ).rejects.toThrow('OpenAI API error: 500')
+    })
+
+    it('should return empty string when response content is missing', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({ choices: [{ message: { content: null } }] }),
+        })
+      )
+
+      // Act
+      const result = await elaborateInsight('some insight', [mockPastEntry], 'sk-test')
+
+      // Assert
+      expect(result).toBe('')
     })
   })
 })

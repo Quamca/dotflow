@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 2.6
-**Date:** 2026-05-01
+**Version:** 2.7
+**Date:** 2026-05-02
 **Author:** Solution Architect
-**Status:** Updated after US-210
+**Status:** Updated after US-205
 
 ---
 
@@ -153,10 +153,10 @@ dotflow/
 │   │   ├── PatternSummary/  # Bullet-list display of AI pattern observations (US-102)
 │   │   │   └── PatternSummary.tsx
 │   │   ├── StarField/       # 3D star-field visualization (US-201, US-202, US-206–209)
-│   │   │   ├── StarField.tsx        # Canvas scene: Camera, OrbitControls, lights, story nodes, session lines, constellation lines, black hole, zone glows
+│   │   │   ├── StarField.tsx        # Canvas scene: Camera, OrbitControls, lights, story nodes, session lines, constellation lines, black hole, zone glows; global activeTooltipId tooltip coordinator (US-205)
 │   │   │   ├── StarNode.tsx         # Legacy entry star mesh (pre-US-206); replaced by StoryNode after story pivot
 │   │   │   ├── StoryNode.tsx        # Story star mesh + Html tooltip on hover + "Dopowiedz" elaboration button (US-206)
-│   │   │   ├── BlackHole.tsx        # Black hole at origin: pulsing glow halo, hover insight tooltip, entry-count sizing, disagree flow with 2-round AI dialogue (US-202, US-203)
+│   │   │   ├── BlackHole.tsx        # Black hole at origin: pulsing glow halo, hover insight tooltip, entry-count sizing, disagree flow with 2-round AI dialogue, depth holistic insights with elaboration, keepOpen/isTooltipHovered tooltip stability, invisible hit mesh, stopPropagation (US-202, US-203, US-205)
 │   │   │   └── ConstellationLines.tsx # Line segments between connected story pairs; typed line styles: solid/dashed/chain (US-209)
 │   │   └── ValuesModal/     # Recurring-themes confirmation modal (US-202)
 │   │       └── ValuesModal.tsx      # AI-proposed themes: edit/remove/restore, add input, "Żadna z tych" escape hatch
@@ -176,13 +176,13 @@ dotflow/
 │   ├── lib/                 # Third-party client initializations
 │   │   └── supabase.ts      # Supabase client (US-002)
 │   ├── services/            # External API integrations
-│   │   ├── aiService.ts     # OpenAI GPT-4o-mini via native fetch: generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback, extractStories, detectEmotionConfidence, classifyLifeArea, classifyConnectionType (US-006, US-101, US-102, US-202, US-203, US-206, US-207, US-208, US-209)
-│   │   ├── entryService.ts  # Supabase CRUD: createEntry, getEntries, getEntryById, saveFollowUps, saveConnection, getConnectionsForEntry (US-002, US-006, US-101)
+│   │   ├── aiService.ts     # OpenAI GPT-4o-mini via native fetch: generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback, extractStories, detectEmotionConfidence, generateHolisticInsight, elaborateInsight, classifyLifeArea, classifyConnectionType (US-006, US-101, US-102, US-202, US-203, US-205, US-206, US-207, US-208, US-209)
+│   │   ├── entryService.ts  # Supabase CRUD: createEntry, getEntries, getEntryById, saveFollowUps, saveConnection, getConnectionsForEntry, getEntriesWithFollowUps (US-002, US-006, US-101, US-205)
 │   │   └── storyService.ts  # Supabase CRUD for stories: saveStories, getStoriesForEntry, getAllStories, addElaboration, updateStoryEmotion, getRecentStories, updateStoryLifeArea (US-206, US-207, US-210, US-208)
 │   ├── types/               # TypeScript type definitions
 │   │   └── index.ts         # Entry, FollowUp, Connection, EntryWithFollowUps, UserValuesState, Story (US-002, US-202, US-206)
 │   ├── utils/               # Pure utility functions
-│   │   ├── prompts.ts       # AI prompt templates: FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT, STORY_EXTRACTION_SYSTEM_PROMPT, EMOTION_DETECTION_SYSTEM_PROMPT, LIFE_AREA_SYSTEM_PROMPT, CONNECTION_TYPE_SYSTEM_PROMPT (US-006, US-101, US-102, US-202, US-203, US-206, US-207, US-208, US-209)
+│   │   ├── prompts.ts       # AI prompt templates: FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT, STORY_EXTRACTION_SYSTEM_PROMPT, EMOTION_DETECTION_SYSTEM_PROMPT, HOLISTIC_INSIGHT_SYSTEM_PROMPT, INSIGHT_ELABORATION_SYSTEM_PROMPT, LIFE_AREA_SYSTEM_PROMPT, CONNECTION_TYPE_SYSTEM_PROMPT (US-006, US-101, US-102, US-202, US-203, US-205, US-206, US-207, US-208, US-209)
 │   │   ├── starPositions.ts # Deterministic 3D position from entry/story UUID; getAlignedStarPosition() for value-aligned positioning (US-201, US-202, US-206)
 │   │   ├── emotionColors.ts # Mapping from emotion string to hex color for star rendering (US-207)
 │   │   └── insightConfig.ts # Configurable depth score weights and accumulator threshold (US-205)
@@ -195,7 +195,7 @@ dotflow/
 │   │   │   ├── EntryCard/
 │   │   │   │   └── EntryCard.test.tsx       # TC-035–039 (US-007)
 │   │   │   ├── FollowUpDialog/
-│   │   │   │   └── FollowUpDialog.test.tsx  # TC-029–034 (US-006)
+│   │   │   │   └── FollowUpDialog.test.tsx  # TC-029–034, TC-140–142: Zmień pytanie reroll (US-006, US-205)
 │   │   │   ├── PatternSummary/
 │   │   │   │   └── PatternSummary.test.tsx  # TC-055–056 (US-102)
 │   │   │   └── ValuesModal/
@@ -209,12 +209,12 @@ dotflow/
 │   │   │   ├── NewEntryPage.test.tsx # TC-003–009, TC-025–026, TC-034, TC-161–164 (US-005, US-006, US-210)
 │   │   │   └── SettingsPage.test.tsx # TC-001, TC-023 (US-004)
 │   │   ├── services/
-│   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043, TC-051–054, TC-099–102, TC-107–112, TC-116–122 (US-006, US-101, US-102, US-202, US-203, US-206)
-│   │   │   ├── entryService.test.ts  # TC-012–018, TC-044–047 (US-002, US-006, US-101)
+│   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043, TC-051–054, TC-099–102, TC-107–112, TC-116–122, TC-168–179 (US-006, US-101, US-102, US-202, US-203, US-205, US-206)
+│   │   │   ├── entryService.test.ts  # TC-012–018, TC-044–047, TC-180–182: getEntriesWithFollowUps (US-002, US-006, US-101, US-205)
 │   │   │   └── storyService.test.ts  # TC-123–133, TC-158–160: saveStories, getStoriesForEntry, getAllStories, addElaboration, updateStoryEmotion, getRecentStories (US-206, US-207, US-210)
 │   │   └── utils/
 │   │       ├── testHelpers.tsx       # renderWithRouter helper
-│   │       ├── prompts.test.ts       # TC-063–064, TC-113–115, TC-134–135, TC-165–167: prompt contract tests (US-103, US-203, US-206, US-210)
+│   │       ├── prompts.test.ts       # TC-063–064, TC-113–115, TC-134–135, TC-165–167, TC-183–188: HOLISTIC_INSIGHT_SYSTEM_PROMPT, INSIGHT_ELABORATION_SYSTEM_PROMPT (US-103, US-203, US-205, US-206, US-210)
 │   │       └── starPositions.test.ts # TC-065–068, TC-103–106, TC-136–139: deterministic position, radius range, aligned positioning, story position (US-201, US-202, US-206)
 │   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004, US-005, US-007)
 │   ├── index.css            # Tailwind directives
@@ -317,14 +317,14 @@ dotflow/
 - Each entry's `connections[entry.id]` lookup resolves to a `Connection` record
 - If found, `targetEntry` is located in the loaded entries array and `ConnectionBadge` is rendered
 
-### 5.7 StarField (US-201, US-202)
+### 5.7 StarField (US-201, US-202, US-205)
 
 **Responsibility:** Render a 3D visualization of journal entries as stars in space, with constellation lines between connected entries, and a black hole at the center. Lives as a fixed CSS layer on the Home screen; toggled between blurred background mode and interactive 3D mode by clicking the Dotflow logo.
 
 **Components:**
-- `StarField.tsx` — Canvas root (`@react-three/fiber`). Sets up Camera (PerspectiveCamera, FOV 60), OrbitControls, ambient light. Renders `<StarNode>` per entry (using aligned positions if values confirmed), `<ConstellationLines>`, and `<BlackHole>`.
-- `StarNode.tsx` — `<mesh>` with `sphereGeometry` + `meshBasicMaterial`. On hover: renders `<Html>` overlay showing entry date + 80-char content snippet.
-- `BlackHole.tsx` — Sphere mesh at origin `[0, 0, 0]`. Two meshes: pulsing glow halo (`#3b2a4a`, 18% opacity) and core (`#0a0a0f`, metalness 0.8). Size is clamped `max(0.3, entryCount * scale)`. On hover (interactive mode only): shows insight tooltip with up to 3 pattern observations or fallback "Keep writing — your center is forming."
+- `StarField.tsx` — Canvas root (`@react-three/fiber`). Sets up Camera (PerspectiveCamera, FOV 60), OrbitControls, ambient light. Renders `<StarNode>` per entry, `<StoryNode>` per story, `<ConstellationLines>`, and `<BlackHole>`. **Global tooltip coordinator (US-205):** `activeTooltipId` state with `activateTooltip(id)` / `deactivateTooltip()` — only one tooltip can be active at a time; 300ms deactivation delay; passed as `isActive`, `onActivate`, `onDeactivate` props to all node components.
+- `StarNode.tsx` — `<mesh>` with `sphereGeometry` + `meshBasicMaterial`. On hover: renders `<Html>` overlay showing entry date + 80-char content snippet. Uses parent-controlled `isActive` prop; `e.stopPropagation()` on pointer events.
+- `BlackHole.tsx` — Sphere mesh at origin `[0, 0, 0]`. Two meshes: pulsing glow halo (`#3b2a4a`, 18% opacity) and core (`#0a0a0f`, metalness 0.8). Size is clamped `max(0.3, entryCount * scale)`. On hover (interactive mode only): shows insight tooltip with holistic insight or fallback "Keep writing — your center is forming." See section 5.8 for full behavior.
 - `ConstellationLines.tsx` — `<Line>` from `@react-three/drei` for each connection pair. Color `#D6D3D1`, opacity 0.5.
 
 **Key design decisions:**
@@ -333,13 +333,20 @@ dotflow/
 - **Z-layering:** `StarField` is `position: fixed, z-0` (background). Entry list content is `relative, z-10`. Exit 3D button is `z-30`. Logo toggle is `z-20`.
 - **jsdom compatibility:** `ResizeObserver` global mock in `src/__tests__/setup.ts`; `StarField` component is fully mocked with `vi.mock` in all page-level tests to avoid WebGL Canvas dependency.
 
-### 5.8 BlackHole (US-202, US-203)
+### 5.8 BlackHole (US-202, US-203, US-205)
 
-**Responsibility:** Render the user's psychological center at the origin of the 3D scene. Scales with entry count. Shows the current holistic insight on hover (in interactive mode only). Hosts the dialectical insight feedback loop — user can push back on insights, AI responds with a deepening question (max 2 rounds).
+**Responsibility:** Render the user's psychological center at the origin of the 3D scene. Scales with entry count. Shows the current holistic insight on hover (in interactive mode only). Hosts the dialectical insight feedback loop and depth-driven holistic insight elaboration.
 
-**Props:** `size: number` (pre-computed from entry count), `insight: string[] | null` (pattern observations), `isInteractive: boolean`, `apiKey: string`, `onRoundLimitReached?: () => void`
+**Props:** `size: number` (pre-computed from entry count), `insight: string[] | null` (pattern observations), `isInteractive: boolean`, `apiKey: string`, `onRoundLimitReached?: () => void`, `isActive: boolean`, `onActivate: () => void`, `onDeactivate: () => void`
 
-**Animation:** `useFrame` drives a continuous sin-wave pulse on the glow halo (scale ±4%, speed 0.8). Core rotates slowly on hover.
+**Animation:** `useFrame` drives a continuous sin-wave pulse on the glow halo (scale ±4%, speed 0.8). Core rotates slowly on hover. Heartbeat pulse triggered after entry save — intensity proportional to depth score (US-205).
+
+**Tooltip stability (US-205):**
+- `keepOpen` state (500ms timer): set on mesh `onPointerLeave` — keeps tooltip mounted during cursor transit from mesh to tooltip div
+- `isTooltipHovered` state: set when cursor enters the HTML tooltip div — independent anchor so parent deactivation doesn't unmount the tooltip
+- Effective show condition: `(isActive || isTooltipHovered || keepOpen || elaboration.status !== 'idle') && isInteractive`
+- Invisible hit mesh: transparent sphere at `clampedSize * 1.6` — larger, stable pointer target matching visual glow; carries all pointer event handlers
+- `e.stopPropagation()` on all mesh pointer events — prevents raycast bleed-through to objects behind
 
 **Disagree flow (US-203):**
 1. Insight tooltip shows "To nie brzmi jak ja" button (non-adversarial framing — identity expression, not confrontation)
@@ -348,7 +355,10 @@ dotflow/
 4. After round 2: `onRoundLimitReached()` fires → parent highlights Write Entry CTA
 5. Round counter is internal state — never exposed to user
 
-**Tooltip debounce:** 300ms delay on `onPointerLeave` (Three.js mesh) allows user to move mouse from the sphere to the HTML overlay without tooltip disappearing. `cancelHide()` is called on `onMouseEnter` of the HTML wrapper.
+**Insight elaboration flow (US-205):**
+1. "To ma sens" → `setAgreed(true)` only — acknowledgment, no AI call
+2. "Rozwiń" → calls `elaborateInsight(insight, entryExamples, apiKey)` — AI returns 2–4 sentence elaboration with entry-level examples
+3. "Jest OK" → dismisses elaboration, resets `ElaborationState` to idle
 
 ### 5.9 ValuesModal (US-202)
 

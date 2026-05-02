@@ -8,6 +8,8 @@ import {
   CLOSING_PHRASE_SYSTEM_PROMPT,
   STORY_EXTRACTION_SYSTEM_PROMPT,
   EMOTION_DETECTION_SYSTEM_PROMPT,
+  HOLISTIC_INSIGHT_SYSTEM_PROMPT,
+  INSIGHT_ELABORATION_SYSTEM_PROMPT,
 } from '../../utils/prompts'
 
 describe('prompts', () => {
@@ -103,6 +105,46 @@ describe('prompts', () => {
 
     it('should include confidence field in example format', () => {
       expect(EMOTION_DETECTION_SYSTEM_PROMPT).toContain('"confidence"')
+    })
+  })
+
+  describe('HOLISTIC_INSIGHT_SYSTEM_PROMPT', () => {
+    it('should use observational data-based language', () => {
+      expect(HOLISTIC_INSIGHT_SYSTEM_PROMPT).toContain('observational')
+    })
+
+    it('should forbid identity labels like "you are"', () => {
+      expect(HOLISTIC_INSIGHT_SYSTEM_PROMPT).toContain('"you are"')
+    })
+
+    it('should forbid advice or imperatives', () => {
+      expect(HOLISTIC_INSIGHT_SYSTEM_PROMPT).toContain('"you should"')
+    })
+
+    it('should instruct AI to respond in the same language as journal entries', () => {
+      expect(HOLISTIC_INSIGHT_SYSTEM_PROMPT).toContain('Respond in the same language as the journal entries')
+    })
+
+    it('should instruct AI to return one or two sentences maximum', () => {
+      expect(HOLISTIC_INSIGHT_SYSTEM_PROMPT).toContain('two short sentences')
+    })
+  })
+
+  describe('INSIGHT_ELABORATION_SYSTEM_PROMPT', () => {
+    it('should limit response to 2-4 sentences', () => {
+      expect(INSIGHT_ELABORATION_SYSTEM_PROMPT).toContain('2-4 sentences')
+    })
+
+    it('should require observational language only', () => {
+      expect(INSIGHT_ELABORATION_SYSTEM_PROMPT).toContain('Observational language only')
+    })
+
+    it('should instruct AI to respond in the same language as journal entries', () => {
+      expect(INSIGHT_ELABORATION_SYSTEM_PROMPT).toContain('Respond in the same language as the journal entries')
+    })
+
+    it('should forbid identity claims and advice', () => {
+      expect(INSIGHT_ELABORATION_SYSTEM_PROMPT).toContain('Never identity claims')
     })
   })
 

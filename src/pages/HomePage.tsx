@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSettings } from '../hooks/useSettings'
 import { useUserValues } from '../hooks/useUserValues'
 import { getEntries, getConnectionsForEntry } from '../services/entryService'
 import { getAllStories } from '../services/storyService'
 import { generatePatternSummary, extractUserValues } from '../services/aiService'
+import { STORAGE_KEYS, ACCUMULATOR_CONFIG, DEPTH_SCORE_CONFIG } from '../utils/insightConfig'
 import EntryCard from '../components/EntryCard/EntryCard'
 import ConnectionBadge from '../components/ConnectionBadge/ConnectionBadge'
 import PatternSummary from '../components/PatternSummary/PatternSummary'
@@ -31,6 +32,28 @@ export default function HomePage() {
   const [proposedThemes, setProposedThemes] = useState<string[] | null>(null)
   const [isValuesModalOpen, setIsValuesModalOpen] = useState(false)
   const [writeEntryHighlighted, setWriteEntryHighlighted] = useState(false)
+  const [holisticInsight, setHolisticInsight] = useState<string | null>(
+    () => localStorage.getItem(STORAGE_KEYS.HOLISTIC_INSIGHT)
+  )
+  const [hasUnreadInsight, setHasUnreadInsight] = useState(
+    () => localStorage.getItem(STORAGE_KEYS.HOLISTIC_INSIGHT_UNREAD) === 'true'
+  )
+  const [lastEntryDepthScore] = useState(
+    () => parseFloat(localStorage.getItem(STORAGE_KEYS.LAST_ENTRY_DEPTH) ?? '0') || 0
+  )
+
+  useEffect(() => {
+    function handler(e: Event) {
+      const insight = (e as CustomEvent<string>).detail
+      setHolisticInsight(insight)
+      setHasUnreadInsight(true)
+    }
+    window.addEventListener('dotflow:insight-ready', handler)
+    return () => window.removeEventListener('dotflow:insight-ready', handler)
+  }, [])
+  const [accumulatorTotal] = useState(
+    () => parseFloat(localStorage.getItem(STORAGE_KEYS.DEPTH_ACCUMULATOR) ?? '0') || 0
+  )
 
   const hasEntries = !isLoading && !error && entries.length > 0
   const shouldOfferValues =
@@ -38,7 +61,7 @@ export default function HomePage() {
 
   async function handleGenerateInsights() {
     if (!apiKey) {
-      setInsightsError('Set your API key in Settings to use this feature.')
+      setInsightsError('Dodaj klucz API w Ustawieniach, aby używać tej funkcji.')
       return
     }
     setIsInsightsLoading(true)
@@ -48,7 +71,7 @@ export default function HomePage() {
       const result = await generatePatternSummary(entries, apiKey)
       setObservations(result)
     } catch {
-      setInsightsError('Failed to generate insights. Please try again.')
+      setInsightsError('Nie udało się wygenerować wglądów. Spróbuj ponownie.')
     } finally {
       setIsInsightsLoading(false)
     }
@@ -94,13 +117,38 @@ export default function HomePage() {
           setConnections(connectionMap)
         })
       } catch {
-        setError('Failed to load entries. Please refresh.')
+        setError('Nie udało się załadować wpisów. Odśwież stronę.')
       } finally {
         setIsLoading(false)
       }
     }
     void load()
   }, [])
+
+  const storyContextMessage = useMemo((): string | null => {
+    if (entries.length === 0) return null
+    const lastEntry = entries[0]
+    const wordCount = lastEntry.content.trim().split(/\s+/).filter(Boolean).length
+
+    if (wordCount < DEPTH_SCORE_CONFIG.SHORT_ENTRY_WORD_THRESHOLD) {
+      const consecutiveCount =
+        parseInt(localStorage.getItem(STORAGE_KEYS.CONSECUTIVE_SHORT_COUNT) ?? '0', 10) || 0
+      return consecutiveCount >= ACCUMULATOR_CONFIG.CONSECUTIVE_SHORT_THRESHOLD
+        ? 'Czy nie chcesz dziś pisać, czy jest coś co sprawia Ci trudność w opowiedzeniu?'
+        : null
+    }
+
+    if (entries.length < 2) return null
+
+    return connections[lastEntry.id]
+      ? 'Ten temat pojawia się kolejny raz — coś w nim jest ważnego.'
+      : 'Tym razem inaczej — coś się zdaje zmieniać.'
+  }, [entries, connections])
+
+  function handleInsightRead() {
+    localStorage.removeItem(STORAGE_KEYS.HOLISTIC_INSIGHT_UNREAD)
+    setHasUnreadInsight(false)
+  }
 
   function handleLogoClick() {
     if (hasEntries) setIsStarFieldActive((v) => !v)
@@ -139,9 +187,14 @@ export default function HomePage() {
             stories={stories}
             isInteractive={isStarFieldActive}
             insight={observations.length > 0 ? observations : null}
+            holisticInsight={holisticInsight}
+            hasUnreadInsight={hasUnreadInsight}
+            depthScore={lastEntryDepthScore}
+            storyContextMessage={storyContextMessage}
             userValues={confirmedValues}
             apiKey={apiKey ?? undefined}
             onRoundLimitReached={() => setWriteEntryHighlighted(true)}
+            onInsightRead={handleInsightRead}
           />
         </div>
       )}
@@ -157,6 +210,14 @@ export default function HomePage() {
         </button>
       )}
 
+      {/* DEV: depth accumulator debug overlay */}
+      {isStarFieldActive && (
+        <div className="fixed top-4 right-6 z-30 text-[10px] text-[#78716C]/60 font-mono leading-tight text-right">
+          <div>depth: {lastEntryDepthScore}pt</div>
+          <div>acc: {accumulatorTotal}pt</div>
+        </div>
+      )}
+
       {/* Write Entry CTA in 3D mode — promoted to primary after round limit */}
       {isStarFieldActive && writeEntryHighlighted && (
         <div className="fixed bottom-8 left-0 right-0 flex justify-center z-30">
@@ -164,7 +225,7 @@ export default function HomePage() {
             to="/new"
             className="px-6 py-3 rounded-full text-sm font-medium shadow-lg transition-opacity hover:opacity-90 bg-amber-500 text-white"
           >
-            + Write
+            + Napisz
           </Link>
         </div>
       )}
@@ -196,11 +257,11 @@ export default function HomePage() {
 
           {!apiKey && (
             <div className="mx-6 mt-4 px-4 py-3 rounded-lg bg-[#FEF3C7] border border-[#D97706] text-sm text-[#1C1917]">
-              Add your API key in{' '}
+              Dodaj klucz API w{' '}
               <Link to="/settings" className="font-medium underline text-[#D97706]">
-                Settings
-              </Link>{' '}
-              to enable AI follow-up questions.
+                Ustawieniach
+              </Link>
+              , aby włączyć pytania pogłębiające.
             </div>
           )}
 
@@ -220,7 +281,7 @@ export default function HomePage() {
                   disabled={isInsightsLoading}
                   className="text-sm text-[#78716C] hover:text-[#1C1917] transition-colors underline underline-offset-2 disabled:opacity-50"
                 >
-                  {isInsightsLoading ? 'Generating insights…' : 'Generate insights'}
+                  {isInsightsLoading ? 'Generuję wglądy…' : 'Generuj wglądy'}
                 </button>
                 {insightsError && (
                   <p className="mt-2 text-sm text-red-600">{insightsError}</p>
@@ -250,6 +311,7 @@ export default function HomePage() {
                         <ConnectionBadge
                           targetId={targetEntry.id}
                           targetDate={targetEntry.created_at}
+                          connectionInsight={conn.connection_note}
                         />
                       )}
                     </div>
@@ -264,7 +326,7 @@ export default function HomePage() {
               to="/new"
               className="px-6 py-3 rounded-full bg-[#1C1917] text-[#FAFAF9] text-sm font-medium hover:opacity-90 transition-opacity shadow-lg"
             >
-              + Write
+              + Napisz
             </Link>
           </div>
         </div>
@@ -291,8 +353,8 @@ function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center text-center mt-24 gap-4">
       <div className="text-3xl tracking-widest text-[#E7E5E4] select-none">✦ · ✦</div>
-      <p className="text-[#1C1917] text-lg font-medium">Your story starts here.</p>
-      <p className="text-[#78716C] text-sm">Write your first entry to begin connecting the dots.</p>
+      <p className="text-[#1C1917] text-lg font-medium">Twoja historia zaczyna się tutaj.</p>
+      <p className="text-[#78716C] text-sm">Napisz pierwszy wpis, żeby zacząć łączyć kropki.</p>
     </div>
   )
 }

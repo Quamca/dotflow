@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createEntry, saveFollowUps, getEntries, saveConnection } from '../services/entryService'
-import { generateFollowUpQuestions, findConnection, extractStories, detectEmotionConfidence } from '../services/aiService'
+import { createEntry, saveFollowUps, getEntries, getEntriesWithFollowUps, saveConnection } from '../services/entryService'
+import { generateFollowUpQuestions, findConnection, extractStories, detectEmotionConfidence, generateHolisticInsight } from '../services/aiService'
 import { saveStories, updateStoryEmotion, getRecentStories } from '../services/storyService'
 import { useSettings } from '../hooks/useSettings'
+import { useDepthAccumulator, computeDepthScore } from '../hooks/useDepthAccumulator'
+import { STORAGE_KEYS } from '../utils/insightConfig'
 import FollowUpDialog from '../components/FollowUpDialog/FollowUpDialog'
 import type { Entry, FollowUpInput } from '../types'
 
@@ -39,11 +41,13 @@ async function detectAndSaveConnection(newEntry: Entry, apiKey: string): Promise
 export default function NewEntryPage() {
   const navigate = useNavigate()
   const { apiKey } = useSettings()
+  const accumulator = useDepthAccumulator()
   const [content, setContent] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [loadingPhase, setLoadingPhase] = useState<'saving' | 'thinking'>('saving')
   const [error, setError] = useState<string | null>(null)
   const [savedEntry, setSavedEntry] = useState<Entry | null>(null)
+  const [savedWordCount, setSavedWordCount] = useState(0)
   const [questions, setQuestions] = useState<string[]>([])
   const [showDialog, setShowDialog] = useState(false)
   const [isSavingFollowUps, setIsSavingFollowUps] = useState(false)
@@ -52,17 +56,41 @@ export default function NewEntryPage() {
 
   const WORD_COUNT_GATE = 300
 
+  async function handleDepthAccumulation(wordCount: number, answeredFollowUpCount: number): Promise<void> {
+    const score = computeDepthScore(wordCount, answeredFollowUpCount)
+    accumulator.trackEntryLength(wordCount)
+    const { thresholdCrossed } = accumulator.addScore(score)
+
+    if (!thresholdCrossed || !apiKey) return
+
+    accumulator.reset()
+    try {
+      const allEntries = await getEntriesWithFollowUps()
+      const insight = await generateHolisticInsight(allEntries, apiKey)
+      if (insight) {
+        localStorage.setItem(STORAGE_KEYS.HOLISTIC_INSIGHT, insight)
+        localStorage.setItem(STORAGE_KEYS.HOLISTIC_INSIGHT_UNREAD, 'true')
+        window.dispatchEvent(new CustomEvent('dotflow:insight-ready', { detail: insight }))
+      }
+    } catch {
+      // best-effort — insight generation does not block navigation
+    }
+  }
+
   async function handleSubmit() {
     if (!content.trim()) return
     setIsLoading(true)
     setLoadingPhase('saving')
     setError(null)
 
+    const wordCount = content.trim().split(/\s+/).filter(Boolean).length
+    setSavedWordCount(wordCount)
+
     let entry: Entry
     try {
       entry = await createEntry(content.trim())
     } catch {
-      setError('Failed to save entry. Please try again.')
+      setError('Nie udało się zapisać wpisu. Spróbuj ponownie.')
       setIsLoading(false)
       return
     }
@@ -73,12 +101,13 @@ export default function NewEntryPage() {
     }
 
     if (!apiKey) {
+      void handleDepthAccumulation(wordCount, 0)
       navigate('/')
       return
     }
 
-    const wordCount = content.trim().split(/\s+/).filter(Boolean).length
     if (wordCount > WORD_COUNT_GATE) {
+      void handleDepthAccumulation(wordCount, 0)
       setShowPiknie(true)
       setIsLoading(false)
       return
@@ -109,11 +138,12 @@ export default function NewEntryPage() {
       // AI returned empty array — entry saved, go home
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error'
-      setError(`Your entry was saved. AI questions unavailable: ${msg}`)
+      setError(`Wpis zapisany. AI niedostępne: ${msg}`)
       setIsLoading(false)
       return
     }
 
+    void handleDepthAccumulation(wordCount, 0)
     navigate('/')
   }
 
@@ -125,6 +155,8 @@ export default function NewEntryPage() {
     } catch {
       // followups failed — entry already saved, navigate anyway
     }
+    const answeredCount = followups.filter((fu) => fu.answer !== null && fu.answer.trim() !== '').length
+    void handleDepthAccumulation(savedWordCount, answeredCount)
     navigate('/')
   }
 
@@ -137,7 +169,7 @@ export default function NewEntryPage() {
     }
   }
 
-  const loadingLabel = loadingPhase === 'thinking' ? 'Thinking...' : 'Saving...'
+  const loadingLabel = loadingPhase === 'thinking' ? 'Myślę...' : 'Zapisuję...'
 
   return (
     <div className="min-h-screen bg-[#FAFAF9]">
@@ -145,11 +177,11 @@ export default function NewEntryPage() {
         <button
           onClick={() => navigate('/')}
           className="text-[#78716C] hover:text-[#1C1917] transition-colors text-sm"
-          aria-label="Back"
+          aria-label="Wróć"
         >
-          ← Back
+          ← Wróć
         </button>
-        <span className="text-[#1C1917] text-sm font-medium">New Entry</span>
+        <span className="text-[#1C1917] text-sm font-medium">Nowy wpis</span>
         <div className="w-12" />
       </header>
 
@@ -166,21 +198,29 @@ export default function NewEntryPage() {
           </div>
         ) : !showDialog ? (
           <>
-            <p className="text-[#78716C] text-sm mb-4">What&apos;s on your mind?</p>
+            <p className="text-[#78716C] text-sm mb-4">Zacznij od czegokolwiek.</p>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Write freely..."
+              placeholder="Pisz swobodnie..."
               className="w-full min-h-64 p-4 rounded-lg border border-[#E7E5E4] bg-white text-[#1C1917] text-base resize-none focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent placeholder-[#78716C]"
               autoFocus
             />
+            {content.trim().length > 0 && (() => {
+              const wc = content.trim().split(/\s+/).filter(Boolean).length
+              return (
+                <p className={`mt-1 text-xs text-right ${wc >= WORD_COUNT_GATE ? 'text-amber-600' : 'text-[#78716C]'}`}>
+                  {wc} {wc === 1 ? 'słowo' : wc < 5 ? 'słowa' : 'słów'}{wc >= WORD_COUNT_GATE ? ' — długi wpis' : ''}
+                </p>
+              )
+            })()}
             {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
             <button
               onClick={handleSubmit}
               disabled={!content.trim() || isLoading}
               className="mt-4 w-full py-3 rounded-lg bg-[#1C1917] text-[#FAFAF9] text-sm font-medium transition-opacity disabled:opacity-40 hover:opacity-90"
             >
-              {isLoading ? loadingLabel : 'Save →'}
+              {isLoading ? loadingLabel : 'Zapisz →'}
             </button>
           </>
         ) : (

@@ -1,0 +1,26 @@
+export const DEPTH_SCORE_CONFIG = {
+  FOLLOW_UP_ANSWER_POINTS: 3,
+  MAX_FOLLOW_UP_POINTS: 15,
+  WORD_COUNT_SHORT_MIN: 50,
+  WORD_COUNT_MEDIUM_MIN: 150,
+  WORD_COUNT_LONG_MIN: 300,
+  WORD_COUNT_SHORT_POINTS: 1,
+  WORD_COUNT_MEDIUM_POINTS: 2,
+  WORD_COUNT_LONG_POINTS: 3,
+  SHORT_ENTRY_WORD_THRESHOLD: 30,
+  CONNECTION_BONUS_POINTS: 2,
+  MAX_SCORE_PER_ENTRY: 20,
+} as const
+
+export const ACCUMULATOR_CONFIG = {
+  THRESHOLD: 5,
+  CONSECUTIVE_SHORT_THRESHOLD: 3,
+} as const
+
+export const STORAGE_KEYS = {
+  DEPTH_ACCUMULATOR: 'dotflow_depth_accumulator',
+  HOLISTIC_INSIGHT: 'dotflow_holistic_insight',
+  HOLISTIC_INSIGHT_UNREAD: 'dotflow_holistic_insight_unread',
+  CONSECUTIVE_SHORT_COUNT: 'dotflow_consecutive_short_count',
+  LAST_ENTRY_DEPTH: 'dotflow_last_entry_depth',
+} as const

@@ -31,7 +31,7 @@ describe('ConnectionBadge', () => {
   it('should display the formatted connected date', () => {
     renderBadge()
 
-    expect(screen.getByText(/Connected to April 9, 2026/i)).toBeInTheDocument()
+    expect(screen.getByText(/Połączono z/i)).toBeInTheDocument()
   })
 
   it('should navigate to connected entry when clicked', async () => {

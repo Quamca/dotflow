@@ -2751,7 +2751,290 @@ export const mockEntry = {
 
 ---
 
-## 3.12 FEATURE: Contextual Follow-Up Questions Between Lines (US-210)
+## 3.12 FEATURE: Depth-Driven Adaptive Insights (US-205)
+
+### TC-168: generateHolisticInsight returns insight string when API responds successfully
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return non-empty content string
+
+**Test Steps:**
+1. Call `generateHolisticInsight([entryWithFollowUps], 'sk-test')`
+
+**Expected Result:**
+- Returns the insight string
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-169: generateHolisticInsight throws when OpenAI returns non-ok response
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-170: generateHolisticInsight returns empty string when response content is missing
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-171: elaborateInsight returns elaboration string when API responds successfully
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return elaboration text
+
+**Test Steps:**
+1. Call `elaborateInsight('some insight', [entry], 'sk-test')`
+
+**Expected Result:**
+- Returns non-empty elaboration string
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-172: elaborateInsight throws when OpenAI returns non-ok response
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-173: elaborateInsight returns empty string when response content is missing
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-174: getEntriesWithFollowUps returns entries with followups when query succeeds
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- Supabase mock returns entry with followups array
+
+**Test Steps:**
+1. Call `getEntriesWithFollowUps()`
+
+**Expected Result:**
+- Returns array with entries containing `followups` field
+
+**File:** `src/__tests__/services/entryService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-175: getEntriesWithFollowUps returns empty array when no entries found
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/entryService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-176: getEntriesWithFollowUps throws when Supabase returns error
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/services/entryService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-177: HOLISTIC_INSIGHT_SYSTEM_PROMPT uses observational language
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-178: HOLISTIC_INSIGHT_SYSTEM_PROMPT forbids identity labels
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-179: HOLISTIC_INSIGHT_SYSTEM_PROMPT forbids advice and imperatives
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-180: HOLISTIC_INSIGHT_SYSTEM_PROMPT includes language instruction
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-181: HOLISTIC_INSIGHT_SYSTEM_PROMPT limits to one or two sentences
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-182: INSIGHT_ELABORATION_SYSTEM_PROMPT limits response to 2-4 sentences
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-183: INSIGHT_ELABORATION_SYSTEM_PROMPT requires observational language only
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** Critical
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-184: INSIGHT_ELABORATION_SYSTEM_PROMPT includes language instruction
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-185: INSIGHT_ELABORATION_SYSTEM_PROMPT forbids identity claims and advice
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** High
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-186: FollowUpDialog shows Zmień pytanie button when rerolls remain
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- FollowUpDialog rendered with initial questions
+
+**Expected Result:**
+- "Zmień pytanie" button visible on first render
+
+**File:** `src/__tests__/components/FollowUpDialog/FollowUpDialog.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-187: FollowUpDialog replaces current question when Zmień pytanie is clicked
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `onRequestMore` returns a replacement question
+
+**Test Steps:**
+1. Click "Zmień pytanie"
+2. Wait for request to complete
+
+**Expected Result:**
+- New question text replaces the original
+- `onRequestMore` was called
+
+**File:** `src/__tests__/components/FollowUpDialog/FollowUpDialog.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-188: FollowUpDialog hides Zmień pytanie button after 2 rerolls
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Test Steps:**
+1. Click "Zmień pytanie" twice
+
+**Expected Result:**
+- "Zmień pytanie" button is no longer in DOM
+
+**File:** `src/__tests__/components/FollowUpDialog/FollowUpDialog.test.tsx`
+**Status:** ✅ Done
+
+---
+
+## 3.13 FEATURE: Contextual Follow-Up Questions Between Lines (US-210)
 
 ### TC-157: NewEntryPage shows "Pięknie." when entry word count exceeds 300
 

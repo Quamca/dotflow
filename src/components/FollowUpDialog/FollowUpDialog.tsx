@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { FollowUpInput } from '../../types'
 
+const MAX_REROLLS = 2
+
 interface FollowUpDialogProps {
   initialQuestions: string[]
   onRequestMore: () => Promise<string[]>
@@ -22,8 +24,10 @@ export default function FollowUpDialog({
   )
   const [showSave, setShowSave] = useState(false)
   const [isRequestingMore, setIsRequestingMore] = useState(false)
+  const [rerollsUsed, setRerollsUsed] = useState(0)
 
   const canRequestMore = questions.length < 5
+  const canReroll = rerollsUsed < MAX_REROLLS && !isRequestingMore
 
   function recordAndAdvance(answer: string | null) {
     const next = [...savedAnswers]
@@ -46,8 +50,31 @@ export default function FollowUpDialog({
       const slots = 5 - questions.length
       const toAdd = more.slice(0, slots)
       if (toAdd.length > 0) {
+        const nextIndex = questions.length
+        setCurrentIndex(nextIndex)
         setQuestions((prev) => [...prev, ...toAdd])
         setSavedAnswers((prev) => [...prev, ...new Array(toAdd.length).fill(null)])
+        setShowSave(false)
+        setCurrentAnswer('')
+      }
+    } finally {
+      setIsRequestingMore(false)
+    }
+  }
+
+  async function handleReroll() {
+    if (!canReroll) return
+    setIsRequestingMore(true)
+    try {
+      const fresh = await onRequestMore()
+      if (fresh.length > 0) {
+        setQuestions((prev) => {
+          const updated = [...prev]
+          updated[currentIndex] = fresh[0]
+          return updated
+        })
+        setCurrentAnswer('')
+        setRerollsUsed((n) => n + 1)
       }
     } finally {
       setIsRequestingMore(false)
@@ -76,13 +103,22 @@ export default function FollowUpDialog({
   if (showSave) {
     return (
       <div className="flex flex-col gap-4 mt-4">
-        <p className="text-[#78716C] text-sm">Great reflections. Ready to save your entry?</p>
+        <p className="text-[#78716C] text-sm">Dobra. Gotowe do zapisania?</p>
+        {canRequestMore && (
+          <button
+            onClick={handleRequestMore}
+            disabled={isRequestingMore}
+            className="text-[#78716C] text-xs hover:text-[#1C1917] transition-colors disabled:opacity-40 text-left"
+          >
+            {isRequestingMore ? 'Ładuję...' : '+ Zapytaj więcej'}
+          </button>
+        )}
         <button
           onClick={handleSave}
           disabled={isSaving}
           className="w-full py-3 rounded-lg bg-[#1C1917] text-[#FAFAF9] text-sm font-medium transition-opacity disabled:opacity-40 hover:opacity-90"
         >
-          {isSaving ? 'Saving...' : 'Save Entry ✓'}
+          {isSaving ? 'Zapisuję...' : 'Zapisz →'}
         </button>
       </div>
     )
@@ -91,20 +127,31 @@ export default function FollowUpDialog({
   return (
     <div className="flex flex-col gap-4 mt-4">
       <div className="flex items-center justify-between">
-        <span className="text-[#78716C] text-xs">A quick question...</span>
+        <span className="text-[#78716C] text-xs">Jedno pytanie...</span>
         <span className="text-[#78716C] text-xs">
           {currentIndex + 1} / {questions.length}
         </span>
       </div>
 
-      <p className="text-[#1C1917] text-base font-medium leading-snug">
-        {questions[currentIndex]}
-      </p>
+      <div>
+        <p className="text-[#1C1917] text-base font-medium leading-snug">
+          {questions[currentIndex]}
+        </p>
+        {canReroll && (
+          <button
+            onClick={handleReroll}
+            disabled={isRequestingMore}
+            className="mt-1 text-[#78716C] text-xs hover:text-[#1C1917] transition-colors disabled:opacity-40"
+          >
+            {isRequestingMore ? 'Szukam...' : 'Zmień pytanie'}
+          </button>
+        )}
+      </div>
 
       <textarea
         value={currentAnswer}
         onChange={(e) => setCurrentAnswer(e.target.value)}
-        placeholder="Your answer (optional)..."
+        placeholder="Twoja odpowiedź (opcjonalnie)..."
         className="w-full min-h-24 p-4 rounded-lg border border-[#E7E5E4] bg-white text-[#1C1917] text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent placeholder-[#78716C]"
         autoFocus
       />
@@ -114,33 +161,22 @@ export default function FollowUpDialog({
           onClick={() => recordAndAdvance(currentAnswer.trim() || null)}
           className="flex-1 py-2.5 rounded-lg bg-[#1C1917] text-[#FAFAF9] text-sm font-medium hover:opacity-90 transition-opacity"
         >
-          Next →
+          Dalej →
         </button>
         <button
           onClick={() => recordAndAdvance(null)}
           className="px-4 py-2.5 rounded-lg border border-[#E7E5E4] text-[#78716C] text-sm hover:text-[#1C1917] transition-colors"
         >
-          Skip
+          Pomiń
         </button>
       </div>
 
-      <div className="flex items-center justify-between pt-1">
-        {canRequestMore ? (
-          <button
-            onClick={handleRequestMore}
-            disabled={isRequestingMore}
-            className="text-[#78716C] text-xs hover:text-[#1C1917] transition-colors disabled:opacity-40"
-          >
-            {isRequestingMore ? 'Loading...' : 'Ask me more'}
-          </button>
-        ) : (
-          <span />
-        )}
+      <div className="flex justify-end pt-1">
         <button
           onClick={handleDone}
           className="text-[#78716C] text-xs hover:text-[#1C1917] transition-colors"
         >
-          I&apos;m done
+          Wystarczy
         </button>
       </div>
     </div>
