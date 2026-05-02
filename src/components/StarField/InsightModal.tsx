@@ -47,9 +47,10 @@ export default function InsightModal({
   })
   const isAcknowledged = !!insightKey && localStorage.getItem('dotflow_acknowledged_insight') === insightKey
 
-  // "To ma sens" only when not yet acknowledged; "Rozwiń" only when elab not yet loaded
   const canShowToMaSens = hasInsightContent && !!apiKey && !isAcknowledged
   const canShowRozwin = hasInsightContent && !!apiKey && elab.status === 'idle'
+  // "Jest OK" is paired with "Rozwiń" — only visible before elaboration, disappears after acknowledge
+  const canShowJestOK = canShowRozwin && !isAcknowledged
 
   async function handleElaborate() {
     const cached = getStoredElab(insightKey)
@@ -120,13 +121,7 @@ export default function InsightModal({
                 rows={2}
                 className="w-full bg-white border border-[#E7E5E4] rounded-lg text-sm text-[#1C1917] placeholder-[#A8A29E] px-4 py-3 resize-none outline-none focus:border-[#A8A29E]"
               />
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={() => { setElab(init); onAcknowledge?.(); onClose() }}
-                  className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] transition-colors"
-                >
-                  Jest OK
-                </button>
+              <div className="flex justify-end">
                 <button
                   onClick={handleSaveNote}
                   disabled={!elab.note.trim()}
@@ -143,7 +138,7 @@ export default function InsightModal({
         </div>
       )}
 
-      {(canShowToMaSens || canShowRozwin) && (
+      {(canShowToMaSens || canShowRozwin || canShowJestOK) && (
         <div className="mt-6 flex gap-3 flex-wrap">
           {canShowToMaSens && (
             <button
@@ -159,6 +154,14 @@ export default function InsightModal({
               className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] transition-colors"
             >
               Rozwiń
+            </button>
+          )}
+          {canShowJestOK && (
+            <button
+              onClick={() => { onAcknowledge?.(); onClose() }}
+              className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] transition-colors"
+            >
+              Jest OK
             </button>
           )}
         </div>
