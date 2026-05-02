@@ -45,12 +45,30 @@ export default function BlackHole({
 }: BlackHoleProps) {
   const [agreed, setAgreed] = useState(false)
   const [elaboration, setElaboration] = useState<ElaborationState>(initialElaboration)
+  // Local tooltip anchors — independent of parent's isActive to survive cursor transit
+  const [isTooltipHovered, setIsTooltipHovered] = useState(false)
+  const [keepOpen, setKeepOpen] = useState(false)
+  const keepOpenTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const meshRef = useRef<Mesh>(null)
   const glowRef = useRef<Mesh>(null)
   const unreadGlowRef = useRef<Mesh>(null)
   const hasReadRef = useRef(false)
   const glowFadingRef = useRef(false)
   const glowFadeRef = useRef(1.0)
+
+  function startKeepOpen() {
+    if (keepOpenTimerRef.current) clearTimeout(keepOpenTimerRef.current)
+    setKeepOpen(true)
+    keepOpenTimerRef.current = setTimeout(() => {
+      setKeepOpen(false)
+      keepOpenTimerRef.current = null
+    }, 500)
+  }
+
+  function cancelKeepOpen() {
+    if (keepOpenTimerRef.current) { clearTimeout(keepOpenTimerRef.current); keepOpenTimerRef.current = null }
+    setKeepOpen(false)
+  }
 
   useFrame((_, delta) => {
     if (glowRef.current) {
@@ -74,12 +92,13 @@ export default function BlackHole({
         unreadGlowRef.current.scale.setScalar(scale)
       }
     }
-    if (meshRef.current && isActive) {
+    if (meshRef.current && (isActive || isTooltipHovered)) {
       meshRef.current.rotation.y += delta * 0.3
     }
   })
 
   function handlePointerEnter() {
+    cancelKeepOpen()
     onActivate()
     if (hasUnreadInsight && !hasReadRef.current) {
       hasReadRef.current = true
@@ -87,12 +106,28 @@ export default function BlackHole({
     }
   }
 
-  function handleLeave() {
+  function handleMeshLeave() {
+    if (elaboration.status === 'idle') {
+      // Grace period: tooltip stays mounted so cursor can reach it
+      startKeepOpen()
+      onDeactivate()
+    }
+  }
+
+  function handleTooltipMouseEnter() {
+    cancelKeepOpen()
+    setIsTooltipHovered(true)
+    onActivate()
+  }
+
+  function handleTooltipMouseLeave() {
+    setIsTooltipHovered(false)
     if (elaboration.status === 'idle') onDeactivate()
   }
 
   const clampedSize = Math.max(MIN_SIZE, size)
-  const showTooltip = isActive && isInteractive
+  // Tooltip stays visible while: parent active, cursor on tooltip div, grace period, or elaborating
+  const showTooltip = (isActive || isTooltipHovered || keepOpen || elaboration.status !== 'idle') && isInteractive
 
   async function handleElaborateClick() {
     const activeInsight = holisticInsight ?? (insight && insight.length > 0 ? insight.join('. ') : null)
@@ -135,7 +170,7 @@ export default function BlackHole({
       {/* invisible hit area — larger than visual core to match perceived glow size */}
       <mesh
         onPointerEnter={isInteractive ? (e) => { e.stopPropagation(); handlePointerEnter() } : undefined}
-        onPointerLeave={isInteractive ? (e) => { e.stopPropagation(); handleLeave() } : undefined}
+        onPointerLeave={isInteractive ? (e) => { e.stopPropagation(); handleMeshLeave() } : undefined}
       >
         <sphereGeometry args={[clampedSize * 1.6, 16, 16]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
@@ -145,8 +180,8 @@ export default function BlackHole({
         <Html style={{ pointerEvents: 'none' }}>
           <div
             style={{ pointerEvents: 'auto' }}
-            onMouseEnter={onActivate}
-            onMouseLeave={handleLeave}
+            onMouseEnter={handleTooltipMouseEnter}
+            onMouseLeave={handleTooltipMouseLeave}
           >
             <InsightTooltip
               insight={insight}
