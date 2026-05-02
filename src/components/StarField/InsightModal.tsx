@@ -30,7 +30,10 @@ export default function InsightModal({
   const showHolistic = !!holisticInsight
   const showPattern = !showHolistic && insight && insight.length > 0
   const showFallback = !showHolistic && !showPattern && !storyContextMessage
-  const canElaborate = (showHolistic || showPattern) && !!apiKey
+
+  const insightKey = holisticInsight ?? insight?.join('\n') ?? ''
+  const isAcknowledged = !!insightKey && localStorage.getItem('dotflow_acknowledged_insight') === insightKey
+  const canElaborate = (showHolistic || showPattern) && !!apiKey && !isAcknowledged
 
   async function handleElaborate() {
     const activeInsight = holisticInsight ?? insight?.join('. ') ?? null

@@ -38,7 +38,6 @@ export default function HomePage() {
   const [openStory, setOpenStory] = useState<Story | null>(null)
   const [openEntry, setOpenEntry] = useState<Entry | null>(null)
   const [blackHoleModalOpen, setBlackHoleModalOpen] = useState(false)
-  const [insightAcknowledged, setInsightAcknowledged] = useState(false)
   const [holisticInsight, setHolisticInsight] = useState<string | null>(
     () => localStorage.getItem(STORAGE_KEYS.HOLISTIC_INSIGHT)
   )
@@ -54,7 +53,6 @@ export default function HomePage() {
       const insight = (e as CustomEvent<string>).detail
       setHolisticInsight(insight)
       setHasUnreadInsight(true)
-      setInsightAcknowledged(false)
     }
     window.addEventListener('dotflow:insight-ready', handler)
     return () => window.removeEventListener('dotflow:insight-ready', handler)
@@ -200,7 +198,7 @@ export default function HomePage() {
             userValues={confirmedValues}
             onEntryClick={setOpenEntry}
             onStoryClick={setOpenStory}
-            onBlackHoleClick={() => { if (!insightAcknowledged) setBlackHoleModalOpen(true) }}
+            onBlackHoleClick={() => setBlackHoleModalOpen(true)}
             onInsightRead={handleInsightRead}
           />
         </div>
@@ -255,7 +253,10 @@ export default function HomePage() {
           apiKey={apiKey ?? ''}
           entries={entries}
           onClose={() => setBlackHoleModalOpen(false)}
-          onAcknowledge={() => setInsightAcknowledged(true)}
+          onAcknowledge={() => {
+            const key = holisticInsight ?? (observations.length > 0 ? observations.join('\n') : '')
+            if (key) localStorage.setItem('dotflow_acknowledged_insight', key)
+          }}
         />
       )}
 
