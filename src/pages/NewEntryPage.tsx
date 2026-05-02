@@ -66,7 +66,11 @@ export default function NewEntryPage() {
     accumulator.reset()
     try {
       const allEntries = await getEntriesWithFollowUps()
-      const insight = await generateHolisticInsight(allEntries, apiKey)
+      const noteData = (() => {
+        try { return JSON.parse(localStorage.getItem('dotflow_insight_note') ?? 'null') as { key: string; note: string } | null }
+        catch { return null }
+      })()
+      const insight = await generateHolisticInsight(allEntries, apiKey, noteData?.note ?? undefined)
       if (insight) {
         localStorage.setItem(STORAGE_KEYS.HOLISTIC_INSIGHT, insight)
         localStorage.setItem(STORAGE_KEYS.HOLISTIC_INSIGHT_UNREAD, 'true')

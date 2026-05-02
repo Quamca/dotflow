@@ -13,22 +13,20 @@ interface InsightModalProps {
   onAcknowledge?: () => void
 }
 
-interface ElaborationState {
-  status: 'idle' | 'loading' | 'shown'
-  text: string | null
-  note: string
-  noteSaved: boolean
+const NOTE_CONFIRMATION = 'Dobrze. Twoja refleksja zostanie uwzględniona w kolejnym odkryciu.'
+
+function getStoredElab(key: string): string | null {
+  try {
+    const d = JSON.parse(localStorage.getItem('dotflow_elaborated_insight') ?? 'null') as { key: string; text: string } | null
+    return d?.key === key ? d.text : null
+  } catch { return null }
 }
 
-const init: ElaborationState = { status: 'idle', text: null, note: '', noteSaved: false }
-
-function getStoredElab(insightKey: string): string | null {
+function getStoredNote(key: string): string | null {
   try {
-    const data = JSON.parse(localStorage.getItem('dotflow_elaborated_insight') ?? 'null') as { key: string; text: string } | null
-    return data?.key === insightKey ? data.text : null
-  } catch {
-    return null
-  }
+    const d = JSON.parse(localStorage.getItem('dotflow_insight_note') ?? 'null') as { key: string; note: string } | null
+    return d?.key === key ? d.note : null
+  } catch { return null }
 }
 
 export default function InsightModal({
@@ -40,42 +38,46 @@ export default function InsightModal({
   const hasInsightContent = showHolistic || showPattern
 
   const insightKey = holisticInsight ?? insight?.join('\n') ?? ''
-
-  const [elab, setElab] = useState<ElaborationState>(() => {
-    const cached = getStoredElab(insightKey)
-    return cached ? { status: 'shown', text: cached, note: '', noteSaved: false } : init
-  })
   const isAcknowledged = !!insightKey && localStorage.getItem('dotflow_acknowledged_insight') === insightKey
 
-  const canShowToMaSens = hasInsightContent && !!apiKey && !isAcknowledged && elab.status === 'idle'
-  const canShowRozwin = hasInsightContent && !!apiKey && elab.status === 'idle'
-  // "Jest OK" is paired with "Rozwiń" — only visible before elaboration, disappears after acknowledge
-  const canShowJestOK = canShowRozwin && !isAcknowledged
+  const [elabStatus, setElabStatus] = useState<'idle' | 'loading' | 'shown'>(() =>
+    getStoredElab(insightKey) ? 'shown' : 'idle'
+  )
+  const [elabText, setElabText] = useState<string | null>(() => getStoredElab(insightKey))
+  const [noteInput, setNoteInput] = useState('')
+  const [savedNote, setSavedNote] = useState<string | null>(() => getStoredNote(insightKey))
+
+  // Initial state: "Jest OK" + "Rozwiń"
+  // After "Jest OK": acknowledged → only "Rozwiń" remains
+  // After "Rozwiń": elaboration shown → "Jest OK" replaced by "To ma sens", textarea appears
+  // After "To ma sens" or "Zapisz →": acknowledged → no buttons, elaboration (+ note) persisted
+  const showJestOK = hasInsightContent && !!apiKey && !isAcknowledged && elabStatus === 'idle'
+  const showRozwin = hasInsightContent && !!apiKey && elabStatus === 'idle'
+  const showNoteInput = !isAcknowledged && elabStatus === 'shown' && !savedNote
 
   async function handleElaborate() {
     const cached = getStoredElab(insightKey)
-    if (cached) {
-      setElab((p) => ({ ...p, status: 'shown', text: cached }))
-      return
-    }
+    if (cached) { setElabText(cached); setElabStatus('shown'); return }
     const activeInsight = holisticInsight ?? insight?.join('. ') ?? null
     if (!activeInsight || !apiKey) return
-    setElab((p) => ({ ...p, status: 'loading' }))
+    setElabStatus('loading')
     try {
       const text = await elaborateInsight(activeInsight, entries, apiKey)
       localStorage.setItem('dotflow_elaborated_insight', JSON.stringify({ key: insightKey, text }))
-      setElab((p) => ({ ...p, status: 'shown', text }))
+      setElabText(text)
+      setElabStatus('shown')
     } catch {
-      setElab((p) => ({ ...p, status: 'idle' }))
+      setElabStatus('idle')
     }
   }
 
   function handleSaveNote() {
-    const stored = JSON.parse(localStorage.getItem('dotflow_insight_notes') ?? '[]') as Array<{ timestamp: string; insight: string; note: string }>
-    stored.unshift({ timestamp: new Date().toISOString(), insight: holisticInsight ?? '', note: elab.note })
-    localStorage.setItem('dotflow_insight_notes', JSON.stringify(stored.slice(0, 50)))
-    setElab((p) => ({ ...p, noteSaved: true }))
-    setTimeout(() => { onAcknowledge?.(); onClose() }, 1500)
+    const history = JSON.parse(localStorage.getItem('dotflow_insight_notes') ?? '[]') as Array<{ timestamp: string; insight: string; note: string }>
+    history.unshift({ timestamp: new Date().toISOString(), insight: holisticInsight ?? '', note: noteInput })
+    localStorage.setItem('dotflow_insight_notes', JSON.stringify(history.slice(0, 50)))
+    localStorage.setItem('dotflow_insight_note', JSON.stringify({ key: insightKey, note: noteInput }))
+    setSavedNote(noteInput)
+    setTimeout(() => { onAcknowledge?.(); onClose() }, 1800)
   }
 
   return (
@@ -85,38 +87,39 @@ export default function InsightModal({
           Pisz dalej — Twoje centrum się kształtuje.
         </p>
       )}
-
       {storyContextMessage && !showHolistic && !showPattern && (
         <p className="text-[#1C1917] text-base leading-relaxed">{storyContextMessage}</p>
       )}
-
       {showHolistic && (
         <p className="text-[#1C1917] text-base leading-relaxed">{holisticInsight}</p>
       )}
-
       {showPattern && (
         <div className="flex flex-col gap-3">
           <p className="text-sm text-[#78716C] mb-1">Twoje zapiski sugerują:</p>
           {insight!.map((obs, i) => (
-            <p key={i} className="text-[#1C1917] text-base leading-relaxed pl-4 border-l-2 border-[#E7E5E4]">
-              {obs}
-            </p>
+            <p key={i} className="text-[#1C1917] text-base leading-relaxed pl-4 border-l-2 border-[#E7E5E4]">{obs}</p>
           ))}
         </div>
       )}
 
-      {elab.status === 'loading' && (
+      {elabStatus === 'loading' && (
         <p className="mt-6 text-[#A8A29E] text-sm italic">Szukam połączeń…</p>
       )}
 
-      {elab.status === 'shown' && elab.text && (
+      {elabStatus === 'shown' && elabText && (
         <div className="mt-6 pt-6 border-t border-[#E7E5E4] flex flex-col gap-3">
-          <p className="text-[#1C1917] text-base leading-relaxed">{elab.text}</p>
-          {!isAcknowledged && !elab.noteSaved && (
+          <p className="text-[#1C1917] text-base leading-relaxed">{elabText}</p>
+          {savedNote && (
+            <>
+              <p className="text-[#78716C] text-sm leading-relaxed border-l-2 border-[#E7E5E4] pl-3 italic">{savedNote}</p>
+              <p className="text-xs text-[#A8A29E]">{NOTE_CONFIRMATION}</p>
+            </>
+          )}
+          {showNoteInput && (
             <>
               <textarea
-                value={elab.note}
-                onChange={(e) => setElab((p) => ({ ...p, note: e.target.value }))}
+                value={noteInput}
+                onChange={(e) => setNoteInput(e.target.value)}
                 placeholder="Twoje dopowiedzenie..."
                 rows={2}
                 className="w-full bg-white border border-[#E7E5E4] rounded-lg text-sm text-[#1C1917] placeholder-[#A8A29E] px-4 py-3 resize-none outline-none focus:border-[#A8A29E]"
@@ -130,7 +133,7 @@ export default function InsightModal({
                 </button>
                 <button
                   onClick={handleSaveNote}
-                  disabled={!elab.note.trim()}
+                  disabled={!noteInput.trim()}
                   className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] disabled:opacity-40 transition-colors"
                 >
                   Zapisz →
@@ -138,36 +141,25 @@ export default function InsightModal({
               </div>
             </>
           )}
-          {!isAcknowledged && elab.noteSaved && (
-            <p className="text-sm text-[#78716C]">Zapisano ✓</p>
-          )}
         </div>
       )}
 
-      {(canShowToMaSens || canShowRozwin || canShowJestOK) && (
+      {(showJestOK || showRozwin) && (
         <div className="mt-6 flex gap-3 flex-wrap">
-          {canShowToMaSens && (
-            <button
-              onClick={() => { onAcknowledge?.(); onClose() }}
-              className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] transition-colors"
-            >
-              To ma sens
-            </button>
-          )}
-          {canShowRozwin && (
-            <button
-              onClick={() => void handleElaborate()}
-              className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] transition-colors"
-            >
-              Rozwiń
-            </button>
-          )}
-          {canShowJestOK && (
+          {showJestOK && (
             <button
               onClick={() => { onAcknowledge?.(); onClose() }}
               className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] transition-colors"
             >
               Jest OK
+            </button>
+          )}
+          {showRozwin && (
+            <button
+              onClick={() => void handleElaborate()}
+              className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] transition-colors"
+            >
+              Rozwiń
             </button>
           )}
         </div>
