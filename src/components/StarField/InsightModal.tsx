@@ -34,17 +34,20 @@ function getStoredElab(insightKey: string): string | null {
 export default function InsightModal({
   insight, holisticInsight, storyContextMessage, apiKey, entries, onClose, onAcknowledge,
 }: InsightModalProps) {
-  const [elab, setElab] = useState<ElaborationState>(init)
-
   const showHolistic = !!holisticInsight
   const showPattern = !showHolistic && insight && insight.length > 0
   const showFallback = !showHolistic && !showPattern && !storyContextMessage
   const hasInsightContent = showHolistic || showPattern
 
   const insightKey = holisticInsight ?? insight?.join('\n') ?? ''
+
+  const [elab, setElab] = useState<ElaborationState>(() => {
+    const cached = getStoredElab(insightKey)
+    return cached ? { status: 'shown', text: cached, note: '', noteSaved: false } : init
+  })
   const isAcknowledged = !!insightKey && localStorage.getItem('dotflow_acknowledged_insight') === insightKey
 
-  // "To ma sens" only when not yet acknowledged; "Rozwiń" always available while elab is idle
+  // "To ma sens" only when not yet acknowledged; "Rozwiń" only when elab not yet loaded
   const canShowToMaSens = hasInsightContent && !!apiKey && !isAcknowledged
   const canShowRozwin = hasInsightContent && !!apiKey && elab.status === 'idle'
 
