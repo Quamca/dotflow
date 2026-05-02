@@ -10,6 +10,7 @@ interface InsightModalProps {
   apiKey: string
   entries: Entry[]
   onClose: () => void
+  onAcknowledge?: () => void
 }
 
 interface ElaborationState {
@@ -22,15 +23,14 @@ interface ElaborationState {
 const init: ElaborationState = { status: 'idle', text: null, note: '', noteSaved: false }
 
 export default function InsightModal({
-  insight, holisticInsight, storyContextMessage, apiKey, entries, onClose,
+  insight, holisticInsight, storyContextMessage, apiKey, entries, onClose, onAcknowledge,
 }: InsightModalProps) {
-  const [agreed, setAgreed] = useState(false)
   const [elab, setElab] = useState<ElaborationState>(init)
 
   const showHolistic = !!holisticInsight
   const showPattern = !showHolistic && insight && insight.length > 0
   const showFallback = !showHolistic && !showPattern && !storyContextMessage
-  const canElaborate = (showHolistic || showPattern) && !!apiKey && !agreed
+  const canElaborate = (showHolistic || showPattern) && !!apiKey
 
   async function handleElaborate() {
     const activeInsight = holisticInsight ?? insight?.join('. ') ?? null
@@ -49,6 +49,7 @@ export default function InsightModal({
     stored.unshift({ timestamp: new Date().toISOString(), insight: holisticInsight ?? '', note: elab.note })
     localStorage.setItem('dotflow_insight_notes', JSON.stringify(stored.slice(0, 50)))
     setElab((p) => ({ ...p, noteSaved: true }))
+    setTimeout(() => { onAcknowledge?.(); onClose() }, 1500)
   }
 
   return (
@@ -94,30 +95,32 @@ export default function InsightModal({
                 rows={2}
                 className="w-full bg-white border border-[#E7E5E4] rounded-lg text-sm text-[#1C1917] placeholder-[#A8A29E] px-4 py-3 resize-none outline-none focus:border-[#A8A29E]"
               />
-              <button
-                onClick={handleSaveNote}
-                disabled={!elab.note.trim()}
-                className="self-end text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] disabled:opacity-40 transition-colors"
-              >
-                Zapisz →
-              </button>
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => { setElab(init); onAcknowledge?.(); onClose() }}
+                  className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] transition-colors"
+                >
+                  Jest OK
+                </button>
+                <button
+                  onClick={handleSaveNote}
+                  disabled={!elab.note.trim()}
+                  className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] disabled:opacity-40 transition-colors"
+                >
+                  Zapisz →
+                </button>
+              </div>
             </>
           ) : (
             <p className="text-sm text-[#78716C]">Zapisano ✓</p>
           )}
-          <button
-            onClick={() => { setElab(init); setAgreed(true) }}
-            className="self-start text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] transition-colors"
-          >
-            Jest OK
-          </button>
         </div>
       )}
 
       {elab.status === 'idle' && canElaborate && (
         <div className="mt-6 flex gap-3 flex-wrap">
           <button
-            onClick={() => setAgreed(true)}
+            onClick={() => { onAcknowledge?.(); onClose() }}
             className="text-sm text-[#78716C] border border-[#E7E5E4] px-4 py-1.5 rounded-full hover:border-[#A8A29E] transition-colors"
           >
             To ma sens
