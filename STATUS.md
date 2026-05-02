@@ -1,8 +1,8 @@
 # Dotflow — Project Status
 
-**Last updated:** 2026-05-02
+**Last updated:** 2026-05-03
 **Current milestone:** M2.5 — Experience Depth (pre-M3)
-**Version:** 1.6
+**Version:** 1.7
 
 ---
 
