@@ -75,6 +75,51 @@ describe('FollowUpDialog', () => {
     expect(screen.getByRole('button', { name: /zapisz/i })).toBeInTheDocument()
   })
 
+  it('should show Zmień pytanie button when rerolls remain', () => {
+    renderDialog()
+
+    expect(screen.getByRole('button', { name: /zmień pytanie/i })).toBeInTheDocument()
+  })
+
+  it('should replace current question when Zmień pytanie is clicked', async () => {
+    const user = userEvent.setup()
+    const newQuestion = 'What did you really want in that moment?'
+    const mockRequestMore = vi.fn().mockResolvedValue([newQuestion])
+    render(
+      <FollowUpDialog
+        initialQuestions={mockQuestions}
+        onRequestMore={mockRequestMore}
+        onSave={mockOnSave}
+        isSaving={false}
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: /zmień pytanie/i }))
+
+    expect(mockRequestMore).toHaveBeenCalled()
+    expect(await screen.findByText(newQuestion)).toBeInTheDocument()
+  })
+
+  it('should hide Zmień pytanie button after 2 rerolls', async () => {
+    const user = userEvent.setup()
+    const mockRequestMore = vi.fn().mockResolvedValue(['Replacement question text here?'])
+    render(
+      <FollowUpDialog
+        initialQuestions={mockQuestions}
+        onRequestMore={mockRequestMore}
+        onSave={mockOnSave}
+        isSaving={false}
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: /zmień pytanie/i }))
+    await screen.findByText('Replacement question text here?')
+    await user.click(screen.getByRole('button', { name: /zmień pytanie/i }))
+    await screen.findAllByRole('button')
+
+    expect(screen.queryByRole('button', { name: /zmień pytanie/i })).not.toBeInTheDocument()
+  })
+
   it('should call onSave with only answered followups when Zapisz is clicked', async () => {
     const user = userEvent.setup()
     renderDialog()
