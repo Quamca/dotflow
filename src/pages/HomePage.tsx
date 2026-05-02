@@ -10,6 +10,9 @@ import EntryCard from '../components/EntryCard/EntryCard'
 import ConnectionBadge from '../components/ConnectionBadge/ConnectionBadge'
 import PatternSummary from '../components/PatternSummary/PatternSummary'
 import StarField from '../components/StarField/StarField'
+import SkyModal from '../components/StarField/SkyModal'
+import StoryModal from '../components/StarField/StoryModal'
+import InsightModal from '../components/StarField/InsightModal'
 import ValuesModal from '../components/ValuesModal/ValuesModal'
 import type { Entry, Connection, Story } from '../types'
 
@@ -31,7 +34,10 @@ export default function HomePage() {
   const [isStarFieldActive, setIsStarFieldActive] = useState(false)
   const [proposedThemes, setProposedThemes] = useState<string[] | null>(null)
   const [isValuesModalOpen, setIsValuesModalOpen] = useState(false)
-  const [writeEntryHighlighted, setWriteEntryHighlighted] = useState(false)
+  const [writeEntryHighlighted] = useState(false)
+  const [openStory, setOpenStory] = useState<Story | null>(null)
+  const [openEntry, setOpenEntry] = useState<Entry | null>(null)
+  const [blackHoleModalOpen, setBlackHoleModalOpen] = useState(false)
   const [holisticInsight, setHolisticInsight] = useState<string | null>(
     () => localStorage.getItem(STORAGE_KEYS.HOLISTIC_INSIGHT)
   )
@@ -186,14 +192,13 @@ export default function HomePage() {
             connections={connections}
             stories={stories}
             isInteractive={isStarFieldActive}
-            insight={observations.length > 0 ? observations : null}
-            holisticInsight={holisticInsight}
             hasUnreadInsight={hasUnreadInsight}
             depthScore={lastEntryDepthScore}
-            storyContextMessage={storyContextMessage}
+            insightPreview={holisticInsight ?? (observations.length > 0 ? observations[0] : null) ?? storyContextMessage ?? null}
             userValues={confirmedValues}
-            apiKey={apiKey ?? undefined}
-            onRoundLimitReached={() => setWriteEntryHighlighted(true)}
+            onEntryClick={setOpenEntry}
+            onStoryClick={setOpenStory}
+            onBlackHoleClick={() => setBlackHoleModalOpen(true)}
             onInsightRead={handleInsightRead}
           />
         </div>
@@ -216,6 +221,39 @@ export default function HomePage() {
           <div>depth: {lastEntryDepthScore}pt</div>
           <div>acc: {accumulatorTotal}pt</div>
         </div>
+      )}
+
+      {openStory && (
+        <StoryModal
+          story={openStory}
+          onClose={() => setOpenStory(null)}
+          apiKey={apiKey ?? undefined}
+          onElaborationSaved={(storyId, emotion, confidence) => {
+            setStories((prev) => prev.map((s) => s.id === storyId ? { ...s, emotion, emotion_confidence: confidence } : s))
+          }}
+        />
+      )}
+
+      {openEntry && (
+        <SkyModal onClose={() => setOpenEntry(null)}>
+          <p className="text-sm text-[#A8A29E] mb-6">
+            {new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(openEntry.created_at))}
+          </p>
+          <p className="text-[#1C1917] text-base leading-relaxed whitespace-pre-wrap">
+            {openEntry.content}
+          </p>
+        </SkyModal>
+      )}
+
+      {blackHoleModalOpen && (
+        <InsightModal
+          insight={observations.length > 0 ? observations : null}
+          holisticInsight={holisticInsight}
+          storyContextMessage={storyContextMessage}
+          apiKey={apiKey ?? ''}
+          entries={entries}
+          onClose={() => setBlackHoleModalOpen(false)}
+        />
       )}
 
       {/* Write Entry CTA in 3D mode — promoted to primary after round limit */}
