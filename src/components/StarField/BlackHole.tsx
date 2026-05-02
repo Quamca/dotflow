@@ -2,8 +2,9 @@ import { useState, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import type { Mesh, MeshBasicMaterial } from 'three'
-import { respondToInsightFeedback } from '../../services/aiService'
+import { elaborateInsight } from '../../services/aiService'
 import { DEPTH_SCORE_CONFIG } from '../../utils/insightConfig'
+import type { Entry } from '../../types'
 
 interface BlackHoleProps {
   size: number
@@ -14,32 +15,33 @@ interface BlackHoleProps {
   storyContextMessage: string | null
   isInteractive: boolean
   apiKey: string
+  entries: Entry[]
   onRoundLimitReached?: () => void
   onInsightRead?: () => void
 }
 
-interface DisagreeState {
-  isActive: boolean
-  round: 0 | 1 | 2
-  feedbackInput: string
-  aiResponse: string | null
-  isLoading: boolean
+interface ElaborationState {
+  status: 'idle' | 'loading' | 'shown'
+  text: string | null
+  mode: 'agree' | 'elaborate' | null
+  dopowiedz: string
+  dopowiedzSaved: boolean
 }
 
 const MIN_SIZE = 0.3
 const PULSE_SPEED = 0.8
-const TOOLTIP_HIDE_DELAY = 300
+const TOOLTIP_HIDE_DELAY = 600
 const MIN_PULSE_AMPLITUDE = 0.04
 const MAX_PULSE_AMPLITUDE = 0.22
 
 export default function BlackHole({
   size, insight, holisticInsight, hasUnreadInsight, depthScore, storyContextMessage,
-  isInteractive, apiKey, onRoundLimitReached, onInsightRead,
+  isInteractive, apiKey, entries, onInsightRead,
 }: BlackHoleProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const [agreed, setAgreed] = useState(false)
-  const [disagree, setDisagree] = useState<DisagreeState>({
-    isActive: false, round: 0, feedbackInput: '', aiResponse: null, isLoading: false,
+  const [isTooltipHovered, setIsTooltipHovered] = useState(false)
+  const [elaboration, setElaboration] = useState<ElaborationState>({
+    status: 'idle', text: null, mode: null, dopowiedz: '', dopowiedzSaved: false,
   })
   const meshRef = useRef<Mesh>(null)
   const glowRef = useRef<Mesh>(null)
@@ -94,20 +96,37 @@ export default function BlackHole({
   }
 
   const clampedSize = Math.max(MIN_SIZE, size)
-  const showTooltip = (isHovered && isInteractive) || disagree.isActive
+  const showTooltip = (isHovered && isInteractive) || isTooltipHovered || elaboration.status !== 'idle'
 
-  async function handleFeedbackSubmit() {
-    const activeInsight = holisticInsight ? [holisticInsight] : insight
-    if (!disagree.feedbackInput.trim() || disagree.isLoading || !activeInsight) return
-    const nextRound = (disagree.round + 1) as 1 | 2
-    setDisagree((prev) => ({ ...prev, isLoading: true }))
+  async function handleAgreeClick() {
+    const activeInsight = holisticInsight ?? (insight && insight.length > 0 ? insight.join('. ') : null)
+    if (!activeInsight || !apiKey) return
+    setElaboration((prev) => ({ ...prev, status: 'loading', mode: 'agree' }))
     try {
-      const response = await respondToInsightFeedback(activeInsight, disagree.feedbackInput, nextRound, apiKey)
-      setDisagree((prev) => ({ ...prev, aiResponse: response, round: nextRound, feedbackInput: '', isLoading: false }))
-      if (nextRound === 2) onRoundLimitReached?.()
+      const text = await elaborateInsight(activeInsight, entries, apiKey)
+      setElaboration((prev) => ({ ...prev, status: 'shown', text }))
     } catch {
-      setDisagree((prev) => ({ ...prev, isLoading: false }))
+      setElaboration((prev) => ({ ...prev, status: 'idle', mode: null }))
     }
+  }
+
+  async function handleElaborateClick() {
+    const activeInsight = holisticInsight ?? (insight && insight.length > 0 ? insight.join('. ') : null)
+    if (!activeInsight || !apiKey) return
+    setElaboration((prev) => ({ ...prev, status: 'loading', mode: 'elaborate' }))
+    try {
+      const text = await elaborateInsight(activeInsight, entries, apiKey)
+      setElaboration((prev) => ({ ...prev, status: 'shown', text }))
+    } catch {
+      setElaboration((prev) => ({ ...prev, status: 'idle', mode: null }))
+    }
+  }
+
+  function handleSaveDopowiedz() {
+    const existing = JSON.parse(localStorage.getItem('dotflow_insight_notes') ?? '[]') as Array<{ timestamp: string; insight: string; note: string }>
+    existing.unshift({ timestamp: new Date().toISOString(), insight: holisticInsight ?? '', note: elaboration.dopowiedz })
+    localStorage.setItem('dotflow_insight_notes', JSON.stringify(existing.slice(0, 50)))
+    setElaboration((prev) => ({ ...prev, dopowiedzSaved: true }))
   }
 
   return (
@@ -127,7 +146,7 @@ export default function BlackHole({
       <mesh
         ref={meshRef}
         onPointerEnter={isInteractive ? handlePointerEnter : undefined}
-        onPointerLeave={isInteractive ? () => scheduleHide() : undefined}
+        onPointerLeave={isInteractive ? scheduleHide : undefined}
       >
         <sphereGeometry args={[clampedSize, 24, 24]} />
         <meshStandardMaterial color="#0a0a0f" roughness={0.2} metalness={0.8} />
@@ -137,20 +156,19 @@ export default function BlackHole({
         <Html style={{ pointerEvents: 'none' }}>
           <div
             style={{ pointerEvents: 'auto' }}
-            onMouseEnter={cancelHide}
-            onMouseLeave={scheduleHide}
+            onMouseEnter={() => { cancelHide(); setIsTooltipHovered(true) }}
+            onMouseLeave={() => { setIsTooltipHovered(false); scheduleHide() }}
           >
             <InsightTooltip
               insight={insight}
               holisticInsight={holisticInsight}
               storyContextMessage={storyContextMessage}
               isInteractive={isInteractive}
-              agreed={agreed}
-              disagreeState={disagree}
-              onAgreeClick={() => setAgreed(true)}
-              onDisagreeClick={() => setDisagree((prev) => ({ ...prev, isActive: true }))}
-              onFeedbackChange={(val) => setDisagree((prev) => ({ ...prev, feedbackInput: val }))}
-              onFeedbackSubmit={handleFeedbackSubmit}
+              elaboration={elaboration}
+              onAgreeClick={handleAgreeClick}
+              onElaborateClick={handleElaborateClick}
+              onDopowiedzChange={(val) => setElaboration((prev) => ({ ...prev, dopowiedz: val }))}
+              onSaveDopowiedz={handleSaveDopowiedz}
             />
           </div>
         </Html>
@@ -164,25 +182,23 @@ interface InsightTooltipProps {
   holisticInsight: string | null
   storyContextMessage: string | null
   isInteractive: boolean
-  agreed: boolean
-  disagreeState: DisagreeState
+  elaboration: ElaborationState
   onAgreeClick: () => void
-  onDisagreeClick: () => void
-  onFeedbackChange: (val: string) => void
-  onFeedbackSubmit: () => void
+  onElaborateClick: () => void
+  onDopowiedzChange: (val: string) => void
+  onSaveDopowiedz: () => void
 }
 
 function InsightTooltip({
-  insight, holisticInsight, storyContextMessage, isInteractive, agreed, disagreeState,
-  onAgreeClick, onDisagreeClick, onFeedbackChange, onFeedbackSubmit,
+  insight, holisticInsight, storyContextMessage, isInteractive, elaboration,
+  onAgreeClick, onElaborateClick, onDopowiedzChange, onSaveDopowiedz,
 }: InsightTooltipProps) {
-  const { isActive, round, feedbackInput, aiResponse, isLoading } = disagreeState
-
   const showHolistic = !!holisticInsight
   const showPattern = !showHolistic && insight && insight.length > 0
   const showFallback = !showHolistic && !showPattern
+  const canElaborate = (showHolistic || showPattern) && isInteractive
+  const hasElaboration = elaboration.status === 'shown' && elaboration.text
 
-  // Silence: short entry with no story context message and no insight
   if (showFallback && !storyContextMessage) {
     return (
       <div style={tooltipStyle}>
@@ -222,39 +238,50 @@ function InsightTooltip({
         </>
       )}
 
-      {aiResponse && (
-        <div style={{ marginTop: '10px', color: '#D6D3D1', fontSize: '12px', fontStyle: 'italic', lineHeight: 1.6 }}>
-          {aiResponse}
+      {elaboration.status === 'loading' && (
+        <div style={{ marginTop: '10px', color: '#A8A29E', fontSize: '12px', fontStyle: 'italic' }}>
+          Szukam połączeń…
         </div>
       )}
 
-      {!isActive && !agreed && isInteractive && (showHolistic || showPattern) && (
-        <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
-          <button onClick={onAgreeClick} style={feedbackButtonStyle}>
-            To ma sens
-          </button>
-          <button onClick={onDisagreeClick} style={feedbackButtonStyle}>
-            To nie brzmi jak ja
-          </button>
+      {hasElaboration && (
+        <div style={{ marginTop: '10px', color: '#D6D3D1', fontSize: '12px', lineHeight: 1.6, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px' }}>
+          {elaboration.text}
         </div>
       )}
 
-      {isActive && round < 2 && (
-        <div style={{ marginTop: '10px' }}>
+      {hasElaboration && elaboration.mode === 'elaborate' && !elaboration.dopowiedzSaved && (
+        <div style={{ marginTop: '8px' }}>
           <textarea
-            value={feedbackInput}
-            onChange={(e) => onFeedbackChange(e.target.value)}
-            placeholder="Co sprawia, że ten wgląd nie pasuje?"
-            disabled={isLoading}
+            value={elaboration.dopowiedz}
+            onChange={(e) => onDopowiedzChange(e.target.value)}
+            placeholder="Twoje dopowiedzenie..."
             rows={2}
             style={textareaStyle}
           />
           <button
-            onClick={onFeedbackSubmit}
-            disabled={isLoading || !feedbackInput.trim()}
-            style={{ ...submitButtonStyle, opacity: isLoading || !feedbackInput.trim() ? 0.5 : 1 }}
+            onClick={onSaveDopowiedz}
+            disabled={!elaboration.dopowiedz.trim()}
+            style={{ ...submitButtonStyle, opacity: elaboration.dopowiedz.trim() ? 1 : 0.4 }}
           >
-            {isLoading ? '...' : '→'}
+            Zapisz →
+          </button>
+        </div>
+      )}
+
+      {hasElaboration && elaboration.dopowiedzSaved && (
+        <div style={{ marginTop: '6px', color: '#A8A29E', fontSize: '12px' }}>
+          Zapisano ✓
+        </div>
+      )}
+
+      {elaboration.status === 'idle' && canElaborate && (
+        <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+          <button onClick={onAgreeClick} style={feedbackButtonStyle}>
+            To ma sens
+          </button>
+          <button onClick={onElaborateClick} style={feedbackButtonStyle}>
+            Rozwiń
           </button>
         </div>
       )}

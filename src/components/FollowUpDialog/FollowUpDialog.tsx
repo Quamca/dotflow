@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { FollowUpInput } from '../../types'
 
+const MAX_REROLLS = 2
+
 interface FollowUpDialogProps {
   initialQuestions: string[]
   onRequestMore: () => Promise<string[]>
@@ -22,8 +24,10 @@ export default function FollowUpDialog({
   )
   const [showSave, setShowSave] = useState(false)
   const [isRequestingMore, setIsRequestingMore] = useState(false)
+  const [rerollsUsed, setRerollsUsed] = useState(0)
 
   const canRequestMore = questions.length < 5
+  const canReroll = rerollsUsed < MAX_REROLLS && !isRequestingMore
 
   function recordAndAdvance(answer: string | null) {
     const next = [...savedAnswers]
@@ -52,6 +56,25 @@ export default function FollowUpDialog({
         setSavedAnswers((prev) => [...prev, ...new Array(toAdd.length).fill(null)])
         setShowSave(false)
         setCurrentAnswer('')
+      }
+    } finally {
+      setIsRequestingMore(false)
+    }
+  }
+
+  async function handleReroll() {
+    if (!canReroll) return
+    setIsRequestingMore(true)
+    try {
+      const fresh = await onRequestMore()
+      if (fresh.length > 0) {
+        setQuestions((prev) => {
+          const updated = [...prev]
+          updated[currentIndex] = fresh[0]
+          return updated
+        })
+        setCurrentAnswer('')
+        setRerollsUsed((n) => n + 1)
       }
     } finally {
       setIsRequestingMore(false)
@@ -110,9 +133,20 @@ export default function FollowUpDialog({
         </span>
       </div>
 
-      <p className="text-[#1C1917] text-base font-medium leading-snug">
-        {questions[currentIndex]}
-      </p>
+      <div>
+        <p className="text-[#1C1917] text-base font-medium leading-snug">
+          {questions[currentIndex]}
+        </p>
+        {canReroll && (
+          <button
+            onClick={handleReroll}
+            disabled={isRequestingMore}
+            className="mt-1 text-[#78716C] text-xs hover:text-[#1C1917] transition-colors disabled:opacity-40"
+          >
+            {isRequestingMore ? 'Szukam...' : 'Zmień pytanie'}
+          </button>
+        )}
+      </div>
 
       <textarea
         value={currentAnswer}
@@ -137,18 +171,7 @@ export default function FollowUpDialog({
         </button>
       </div>
 
-      <div className="flex items-center justify-between pt-1">
-        {canRequestMore ? (
-          <button
-            onClick={handleRequestMore}
-            disabled={isRequestingMore}
-            className="text-[#78716C] text-xs hover:text-[#1C1917] transition-colors disabled:opacity-40"
-          >
-            {isRequestingMore ? 'Ładuję...' : 'Zapytaj więcej'}
-          </button>
-        ) : (
-          <span />
-        )}
+      <div className="flex justify-end pt-1">
         <button
           onClick={handleDone}
           className="text-[#78716C] text-xs hover:text-[#1C1917] transition-colors"

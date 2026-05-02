@@ -131,6 +131,7 @@ export default function StarField({ entries, connections, stories = [], isIntera
         storyContextMessage={storyContextMessage ?? null}
         isInteractive={isInteractive}
         apiKey={apiKey ?? ''}
+        entries={entries}
         onRoundLimitReached={onRoundLimitReached}
         onInsightRead={onInsightRead}
       />
