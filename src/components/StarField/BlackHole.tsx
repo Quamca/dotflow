@@ -16,6 +16,9 @@ interface BlackHoleProps {
   isInteractive: boolean
   apiKey: string
   entries: Entry[]
+  isActive: boolean
+  onActivate: () => void
+  onDeactivate: () => void
   onRoundLimitReached?: () => void
   onInsightRead?: () => void
 }
@@ -23,30 +26,28 @@ interface BlackHoleProps {
 interface ElaborationState {
   status: 'idle' | 'loading' | 'shown'
   text: string | null
-  mode: 'agree' | 'elaborate' | null
   dopowiedz: string
   dopowiedzSaved: boolean
 }
 
+const initialElaboration: ElaborationState = {
+  status: 'idle', text: null, dopowiedz: '', dopowiedzSaved: false,
+}
+
 const MIN_SIZE = 0.3
 const PULSE_SPEED = 0.8
-const TOOLTIP_HIDE_DELAY = 600
 const MIN_PULSE_AMPLITUDE = 0.04
 const MAX_PULSE_AMPLITUDE = 0.22
 
 export default function BlackHole({
   size, insight, holisticInsight, hasUnreadInsight, depthScore, storyContextMessage,
-  isInteractive, apiKey, entries, onInsightRead,
+  isInteractive, apiKey, entries, isActive, onActivate, onDeactivate, onInsightRead,
 }: BlackHoleProps) {
-  const [isHovered, setIsHovered] = useState(false)
-  const [isTooltipHovered, setIsTooltipHovered] = useState(false)
-  const [elaboration, setElaboration] = useState<ElaborationState>({
-    status: 'idle', text: null, mode: null, dopowiedz: '', dopowiedzSaved: false,
-  })
+  const [agreed, setAgreed] = useState(false)
+  const [elaboration, setElaboration] = useState<ElaborationState>(initialElaboration)
   const meshRef = useRef<Mesh>(null)
   const glowRef = useRef<Mesh>(null)
   const unreadGlowRef = useRef<Mesh>(null)
-  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasReadRef = useRef(false)
   const glowFadingRef = useRef(false)
   const glowFadeRef = useRef(1.0)
@@ -73,52 +74,35 @@ export default function BlackHole({
         unreadGlowRef.current.scale.setScalar(scale)
       }
     }
-    if (meshRef.current && isHovered) {
+    if (meshRef.current && isActive) {
       meshRef.current.rotation.y += delta * 0.3
     }
   })
 
-  function scheduleHide() {
-    hideTimeoutRef.current = setTimeout(() => setIsHovered(false), TOOLTIP_HIDE_DELAY)
-  }
-
-  function cancelHide() {
-    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
-  }
-
   function handlePointerEnter() {
-    cancelHide()
-    setIsHovered(true)
+    onActivate()
     if (hasUnreadInsight && !hasReadRef.current) {
       hasReadRef.current = true
       glowFadingRef.current = true
     }
   }
 
-  const clampedSize = Math.max(MIN_SIZE, size)
-  const showTooltip = (isHovered && isInteractive) || isTooltipHovered || elaboration.status !== 'idle'
-
-  async function handleAgreeClick() {
-    const activeInsight = holisticInsight ?? (insight && insight.length > 0 ? insight.join('. ') : null)
-    if (!activeInsight || !apiKey) return
-    setElaboration((prev) => ({ ...prev, status: 'loading', mode: 'agree' }))
-    try {
-      const text = await elaborateInsight(activeInsight, entries, apiKey)
-      setElaboration((prev) => ({ ...prev, status: 'shown', text }))
-    } catch {
-      setElaboration((prev) => ({ ...prev, status: 'idle', mode: null }))
-    }
+  function handleLeave() {
+    if (elaboration.status === 'idle') onDeactivate()
   }
+
+  const clampedSize = Math.max(MIN_SIZE, size)
+  const showTooltip = isActive && isInteractive
 
   async function handleElaborateClick() {
     const activeInsight = holisticInsight ?? (insight && insight.length > 0 ? insight.join('. ') : null)
     if (!activeInsight || !apiKey) return
-    setElaboration((prev) => ({ ...prev, status: 'loading', mode: 'elaborate' }))
+    setElaboration((prev) => ({ ...prev, status: 'loading' }))
     try {
       const text = await elaborateInsight(activeInsight, entries, apiKey)
       setElaboration((prev) => ({ ...prev, status: 'shown', text }))
     } catch {
-      setElaboration((prev) => ({ ...prev, status: 'idle', mode: null }))
+      setElaboration((prev) => ({ ...prev, status: 'idle' }))
     }
   }
 
@@ -146,7 +130,7 @@ export default function BlackHole({
       <mesh
         ref={meshRef}
         onPointerEnter={isInteractive ? handlePointerEnter : undefined}
-        onPointerLeave={isInteractive ? scheduleHide : undefined}
+        onPointerLeave={isInteractive ? handleLeave : undefined}
       >
         <sphereGeometry args={[clampedSize, 24, 24]} />
         <meshStandardMaterial color="#0a0a0f" roughness={0.2} metalness={0.8} />
@@ -156,8 +140,8 @@ export default function BlackHole({
         <Html style={{ pointerEvents: 'none' }}>
           <div
             style={{ pointerEvents: 'auto' }}
-            onMouseEnter={() => { cancelHide(); setIsTooltipHovered(true) }}
-            onMouseLeave={() => { setIsTooltipHovered(false); scheduleHide() }}
+            onMouseEnter={onActivate}
+            onMouseLeave={handleLeave}
           >
             <InsightTooltip
               insight={insight}
@@ -165,10 +149,12 @@ export default function BlackHole({
               storyContextMessage={storyContextMessage}
               isInteractive={isInteractive}
               elaboration={elaboration}
-              onAgreeClick={handleAgreeClick}
+              agreed={agreed}
+              onAgreeClick={() => setAgreed(true)}
               onElaborateClick={handleElaborateClick}
               onDopowiedzChange={(val) => setElaboration((prev) => ({ ...prev, dopowiedz: val }))}
               onSaveDopowiedz={handleSaveDopowiedz}
+              onDismissElaboration={() => { setElaboration(initialElaboration); setAgreed(true) }}
             />
           </div>
         </Html>
@@ -183,20 +169,22 @@ interface InsightTooltipProps {
   storyContextMessage: string | null
   isInteractive: boolean
   elaboration: ElaborationState
+  agreed: boolean
   onAgreeClick: () => void
   onElaborateClick: () => void
   onDopowiedzChange: (val: string) => void
   onSaveDopowiedz: () => void
+  onDismissElaboration: () => void
 }
 
 function InsightTooltip({
-  insight, holisticInsight, storyContextMessage, isInteractive, elaboration,
-  onAgreeClick, onElaborateClick, onDopowiedzChange, onSaveDopowiedz,
+  insight, holisticInsight, storyContextMessage, isInteractive, elaboration, agreed,
+  onAgreeClick, onElaborateClick, onDopowiedzChange, onSaveDopowiedz, onDismissElaboration,
 }: InsightTooltipProps) {
   const showHolistic = !!holisticInsight
   const showPattern = !showHolistic && insight && insight.length > 0
   const showFallback = !showHolistic && !showPattern
-  const canElaborate = (showHolistic || showPattern) && isInteractive
+  const canElaborate = (showHolistic || showPattern) && isInteractive && !agreed
   const hasElaboration = elaboration.status === 'shown' && elaboration.text
 
   if (showFallback && !storyContextMessage) {
@@ -250,7 +238,7 @@ function InsightTooltip({
         </div>
       )}
 
-      {hasElaboration && elaboration.mode === 'elaborate' && !elaboration.dopowiedzSaved && (
+      {hasElaboration && !elaboration.dopowiedzSaved && (
         <div style={{ marginTop: '8px' }}>
           <textarea
             value={elaboration.dopowiedz}
@@ -272,6 +260,14 @@ function InsightTooltip({
       {hasElaboration && elaboration.dopowiedzSaved && (
         <div style={{ marginTop: '6px', color: '#A8A29E', fontSize: '12px' }}>
           Zapisano ✓
+        </div>
+      )}
+
+      {hasElaboration && (
+        <div style={{ marginTop: '8px' }}>
+          <button onClick={onDismissElaboration} style={feedbackButtonStyle}>
+            Jest OK
+          </button>
         </div>
       )}
 

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Html } from '@react-three/drei'
 import type { Story } from '../../types'
 import { addElaboration, updateStoryEmotion } from '../../services/storyService'
@@ -9,40 +9,25 @@ interface StoryNodeProps {
   story: Story
   position: [number, number, number]
   isActive: boolean
-  onActivate: (id: string) => void
+  onActivate: () => void
+  onDeactivate: () => void
   apiKey?: string
 }
 
 const STORY_STAR_SIZE = 0.06
-const HIDE_DELAY_MS = 3000
 const CONFIRMATION_DURATION_MS = 2000
 
-export default function StoryNode({ story, position, isActive, onActivate, apiKey }: StoryNodeProps) {
-  const [isVisible, setIsVisible] = useState(false)
+export default function StoryNode({ story, position, isActive, onActivate, onDeactivate, apiKey }: StoryNodeProps) {
   const [isElaborating, setIsElaborating] = useState(false)
   const [elaborationText, setElaborationText] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [emotion, setEmotion] = useState<string | null>(story.emotion)
-  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const preview = story.content.length > 80 ? `${story.content.slice(0, 80)}…` : story.content
-  const tooltipVisible = isVisible && isActive
 
-  function clearHideTimer() {
-    if (hideTimer.current) {
-      clearTimeout(hideTimer.current)
-      hideTimer.current = null
-    }
-  }
-
-  function scheduleHide() {
-    if (isElaborating) return
-    clearHideTimer()
-    hideTimer.current = setTimeout(() => {
-      setIsVisible(false)
-      setIsElaborating(false)
-    }, HIDE_DELAY_MS)
+  function handlePointerLeave() {
+    if (!isElaborating) onDeactivate()
   }
 
   async function handleElaborationSubmit() {
@@ -62,7 +47,7 @@ export default function StoryNode({ story, position, isActive, onActivate, apiKe
       setShowConfirmation(true)
       setTimeout(() => {
         setShowConfirmation(false)
-        setIsVisible(false)
+        onDeactivate()
       }, CONFIRMATION_DURATION_MS)
     } finally {
       setIsSaving(false)
@@ -72,21 +57,17 @@ export default function StoryNode({ story, position, isActive, onActivate, apiKe
   return (
     <group position={position}>
       <mesh
-        onPointerEnter={() => {
-          clearHideTimer()
-          setIsVisible(true)
-          onActivate(story.id)
-        }}
-        onPointerLeave={scheduleHide}
+        onPointerEnter={() => onActivate()}
+        onPointerLeave={handlePointerLeave}
       >
         <sphereGeometry args={[STORY_STAR_SIZE, 8, 8]} />
         <meshBasicMaterial color={getEmotionColor(emotion)} />
       </mesh>
-      {tooltipVisible && (
+      {isActive && (
         <Html style={{ pointerEvents: 'auto' }}>
           <div
-            onMouseEnter={() => { clearHideTimer(); onActivate(story.id) }}
-            onMouseLeave={scheduleHide}
+            onMouseEnter={() => onActivate()}
+            onMouseLeave={handlePointerLeave}
             style={{
               background: 'rgba(28, 25, 23, 0.95)',
               color: '#FAFAF9',
