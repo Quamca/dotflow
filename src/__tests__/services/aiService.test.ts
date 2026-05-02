@@ -734,6 +734,43 @@ describe('aiService', () => {
       // Assert
       expect(result).toBe('')
     })
+
+    // TC-207
+    it('should include previousNote in user message when provided', async () => {
+      // Arrange
+      const fetchSpy = vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ choices: [{ message: { content: 'Insight.' } }] }),
+      })
+      vi.stubGlobal('fetch', fetchSpy)
+
+      // Act
+      await generateHolisticInsight(mockEntriesWithFollowUps, 'sk-test', 'Moja refleksja na temat poprzedniego wglądu')
+
+      // Assert
+      const body = JSON.parse((fetchSpy.mock.calls[0][1] as RequestInit).body as string) as { messages: Array<{ role: string; content: string }> }
+      const userMessage = body.messages.find((m) => m.role === 'user')?.content ?? ''
+      expect(userMessage).toContain('Moja refleksja na temat poprzedniego wglądu')
+      expect(userMessage).toContain("User's reflection on the previous insight")
+    })
+
+    // TC-208
+    it('should not include previousNote section in user message when note is undefined', async () => {
+      // Arrange
+      const fetchSpy = vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ choices: [{ message: { content: 'Insight.' } }] }),
+      })
+      vi.stubGlobal('fetch', fetchSpy)
+
+      // Act
+      await generateHolisticInsight(mockEntriesWithFollowUps, 'sk-test')
+
+      // Assert
+      const body = JSON.parse((fetchSpy.mock.calls[0][1] as RequestInit).body as string) as { messages: Array<{ role: string; content: string }> }
+      const userMessage = body.messages.find((m) => m.role === 'user')?.content ?? ''
+      expect(userMessage).not.toContain("User's reflection")
+    })
   })
 
   describe('elaborateInsight', () => {

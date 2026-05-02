@@ -3436,4 +3436,474 @@ For verification after /dev implementation.
 
 ---
 
+## 3.14 FEATURE: InsightModal — Button Flow & Persistence (US-205 extended)
+
+### TC-189: should show Jest OK and Rozwin buttons in initial state when not acknowledged
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- InsightModal rendered with `holisticInsight` set and no localStorage entries
+
+**Expected Result:**
+- "Jest OK" and "Rozwiń" buttons visible
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-190: should not show To ma sens button in initial state before elaboration
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Expected Result:**
+- "To ma sens" not in DOM on initial render
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-191: should call onAcknowledge and onClose when Jest OK clicked
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Test Steps:**
+1. Click "Jest OK"
+
+**Expected Result:**
+- `onAcknowledge` and `onClose` each called once
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-192: should show To ma sens and hide Jest OK and Rozwin after elaboration loads
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `elaborateInsight` mocked to resolve with ELAB_TEXT
+
+**Test Steps:**
+1. Click "Rozwiń"
+2. Wait for ELAB_TEXT to appear
+
+**Expected Result:**
+- "To ma sens" visible
+- "Jest OK" and "Rozwiń" not in DOM
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-193: should show textarea after Rozwin clicked and elaboration loaded
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Expected Result:**
+- Textarea with placeholder "Twoje dopowiedzenie..." visible
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-194: should show only Rozwin when insight is acknowledged — no Jest OK
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `dotflow_acknowledged_insight` set in localStorage to match insight key
+
+**Expected Result:**
+- "Rozwiń" visible
+- "Jest OK" and "To ma sens" not in DOM
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-195: should show cached elaboration without textarea when acknowledged
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- Both `dotflow_acknowledged_insight` and `dotflow_elaborated_insight` set in localStorage
+
+**Expected Result:**
+- ELAB_TEXT visible
+- Textarea not in DOM
+- "Rozwiń" not in DOM
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-196: should restore cached elaboration on mount without requiring Rozwin click
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `dotflow_elaborated_insight` set in localStorage (no acknowledged flag)
+
+**Expected Result:**
+- ELAB_TEXT visible on mount
+- "Rozwiń" not in DOM
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-197: should have Zapisz button disabled when note textarea is empty
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Test Steps:**
+1. Click "Rozwiń", wait for elaboration
+2. Check "Zapisz →" button state
+
+**Expected Result:**
+- "Zapisz →" is disabled
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-198: should enable Zapisz button when note text is typed
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Test Steps:**
+1. Click "Rozwiń", wait for textarea
+2. Type text into textarea
+3. Check "Zapisz →" state
+
+**Expected Result:**
+- "Zapisz →" is enabled
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-199: should save note to dotflow_insight_note in localStorage when Zapisz clicked
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Test Steps:**
+1. Elaborate, type note, click "Zapisz →"
+2. Read `dotflow_insight_note` from localStorage
+
+**Expected Result:**
+- Stored object has `note: 'Moja notatka'` and `key: INSIGHT_TEXT`
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-200: should show confirmation message after note is saved
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Test Steps:**
+1. Elaborate, type note, click "Zapisz →"
+
+**Expected Result:**
+- "Dobrze. Twoja refleksja zostanie uwzględniona w kolejnym odkryciu." visible
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-201: should call onAcknowledge and onClose after delay when note is saved
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Test Steps:**
+1. Elaborate, type note, click "Zapisz →"
+2. Advance timers by 1800ms
+
+**Expected Result:**
+- `onAcknowledge` and `onClose` each called once
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-202: should call onAcknowledge and onClose when To ma sens clicked after elaboration
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Test Steps:**
+1. Click "Rozwiń", wait for "To ma sens"
+2. Click "To ma sens"
+
+**Expected Result:**
+- `onAcknowledge` and `onClose` each called once
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-203: should show saved note and confirmation on mount when note was previously saved
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `dotflow_acknowledged_insight`, `dotflow_elaborated_insight`, and `dotflow_insight_note` all set in localStorage
+
+**Expected Result:**
+- Saved note text visible
+- Confirmation message visible
+- Textarea not in DOM
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-204: should show holistic insight text in the modal
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Expected Result:**
+- `holisticInsight` prop text visible
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-205: should show pattern observations when no holistic insight but insight array provided
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- `holisticInsight=null`, `insight=['Wzorzec A', 'Wzorzec B']`
+
+**Expected Result:**
+- "Wzorzec A" and "Wzorzec B" visible
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-206: should show fallback text when no insight content available
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- `holisticInsight=null`, `insight=null`, `storyContextMessage=null`
+
+**Expected Result:**
+- "Pisz dalej — Twoje centrum się kształtuje." visible
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-207: generateHolisticInsight includes previousNote in fetch body when provided
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return valid insight content
+
+**Test Steps:**
+1. Call `generateHolisticInsight([entry], 'sk-test', 'User note text')`
+2. Inspect fetch body `messages[1].content`
+
+**Expected Result:**
+- User message contains `"User's reflection on the previous insight: \"User note text\""`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-208: generateHolisticInsight does not include reflection text when previousNote not provided
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** High
+
+**Test Steps:**
+1. Call `generateHolisticInsight([entry], 'sk-test')` — no previousNote
+2. Inspect fetch body `messages[1].content`
+
+**Expected Result:**
+- User message does NOT contain `"User's reflection"`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+## 3.15 FEATURE: SkyModal Component (shared)
+
+### TC-209: should render children inside the modal
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Expected Result:**
+- Children content visible in DOM
+
+**File:** `src/__tests__/components/StarField/SkyModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-210: should call onClose when the X button is clicked
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Test Steps:**
+1. Click button with `aria-label="Zamknij"`
+
+**Expected Result:**
+- `onClose` called once
+
+**File:** `src/__tests__/components/StarField/SkyModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-211: should call onClose when the backdrop is clicked
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Test Steps:**
+1. Click the backdrop (container's first child)
+
+**Expected Result:**
+- `onClose` called once
+
+**File:** `src/__tests__/components/StarField/SkyModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-212: should not call onClose when clicking inside the modal content
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Test Steps:**
+1. Click text inside the modal
+
+**Expected Result:**
+- `onClose` NOT called
+
+**File:** `src/__tests__/components/StarField/SkyModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-213: should call onClose when Escape key is pressed
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** Critical
+
+**Test Steps:**
+1. Fire `keyDown` event with `key: 'Escape'` on document
+
+**Expected Result:**
+- `onClose` called once
+
+**File:** `src/__tests__/components/StarField/SkyModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-214: should render footer when provided
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- `footer` prop passed as a button element
+
+**Expected Result:**
+- Footer button text visible
+
+**File:** `src/__tests__/components/StarField/SkyModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-215: should not render footer section when footer prop is not provided
+
+**Related US:** US-205
+**Type:** Component
+**Priority:** High
+
+**Expected Result:**
+- No footer content in DOM
+
+**File:** `src/__tests__/components/StarField/SkyModal.test.tsx`
+**Status:** ✅ Done
+
+---
+
 *This document is owned by /qa agent and updated after each test session.*
