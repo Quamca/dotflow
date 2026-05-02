@@ -125,7 +125,7 @@ describe('HomePage', () => {
 
     renderHomePage()
 
-    expect(await screen.findByText(/connected to/i)).toBeInTheDocument()
+    expect(await screen.findByText(/połączono z/i)).toBeInTheDocument()
   })
 
   it('should show Generate insights button when 10 or more entries exist', async () => {

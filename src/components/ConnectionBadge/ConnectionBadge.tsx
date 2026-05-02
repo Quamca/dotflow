@@ -7,7 +7,7 @@ interface ConnectionBadgeProps {
 }
 
 function formatDate(isoString: string): string {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat('pl-PL', {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
@@ -27,7 +27,7 @@ export default function ConnectionBadge({ targetId, targetDate, connectionInsigh
         onClick={handleClick}
         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E7E5E4] text-[#78716C] text-xs hover:bg-[#D6D3D1] transition-colors"
       >
-        ↔ Connected to {formatDate(targetDate)}
+        ↔ Połączono z {formatDate(targetDate)}
       </button>
       {connectionInsight && connectionInsight.length > 0 && (
         <p className="mt-1 text-xs text-[#78716C] italic leading-relaxed">{connectionInsight}</p>

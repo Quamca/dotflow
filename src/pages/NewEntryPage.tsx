@@ -198,7 +198,7 @@ export default function NewEntryPage() {
           </div>
         ) : !showDialog ? (
           <>
-            <p className="text-[#78716C] text-sm mb-4">Co Cię dziś zajmuje?</p>
+            <p className="text-[#78716C] text-sm mb-4">Zacznij od czegokolwiek.</p>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}

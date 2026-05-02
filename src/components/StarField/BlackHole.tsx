@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import type { Mesh } from 'three'
+import type { Mesh, MeshBasicMaterial } from 'three'
 import { respondToInsightFeedback } from '../../services/aiService'
 import { DEPTH_SCORE_CONFIG } from '../../utils/insightConfig'
 
@@ -37,6 +37,7 @@ export default function BlackHole({
   isInteractive, apiKey, onRoundLimitReached, onInsightRead,
 }: BlackHoleProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const [agreed, setAgreed] = useState(false)
   const [disagree, setDisagree] = useState<DisagreeState>({
     isActive: false, round: 0, feedbackInput: '', aiResponse: null, isLoading: false,
   })
@@ -45,6 +46,8 @@ export default function BlackHole({
   const unreadGlowRef = useRef<Mesh>(null)
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasReadRef = useRef(false)
+  const glowFadingRef = useRef(false)
+  const glowFadeRef = useRef(1.0)
 
   useFrame((_, delta) => {
     if (glowRef.current) {
@@ -53,10 +56,20 @@ export default function BlackHole({
       const scale = 1 + Math.sin(t) * amplitude
       glowRef.current.scale.setScalar(scale)
     }
-    if (unreadGlowRef.current) {
-      const t = Date.now() * 0.001 * PULSE_SPEED * 1.8
-      const scale = 1 + Math.sin(t) * 0.14
-      unreadGlowRef.current.scale.setScalar(scale)
+    if (unreadGlowRef.current && hasUnreadInsight) {
+      const mat = unreadGlowRef.current.material as MeshBasicMaterial
+      if (glowFadingRef.current) {
+        glowFadeRef.current = Math.max(0, glowFadeRef.current - delta * 0.28)
+        mat.opacity = 0.28 * glowFadeRef.current
+        if (glowFadeRef.current === 0) {
+          onInsightRead?.()
+        }
+      } else {
+        mat.opacity = 0.28
+        const t = Date.now() * 0.001 * PULSE_SPEED * 1.8
+        const scale = 1 + Math.sin(t) * 0.14
+        unreadGlowRef.current.scale.setScalar(scale)
+      }
     }
     if (meshRef.current && isHovered) {
       meshRef.current.rotation.y += delta * 0.3
@@ -76,7 +89,7 @@ export default function BlackHole({
     setIsHovered(true)
     if (hasUnreadInsight && !hasReadRef.current) {
       hasReadRef.current = true
-      onInsightRead?.()
+      glowFadingRef.current = true
     }
   }
 
@@ -107,7 +120,7 @@ export default function BlackHole({
       {hasUnreadInsight && (
         <mesh ref={unreadGlowRef}>
           <sphereGeometry args={[clampedSize * 2.8, 16, 16]} />
-          <meshBasicMaterial color="#a78bfa" transparent opacity={0.28} />
+          <meshBasicMaterial color="#a78bfa" transparent />
         </mesh>
       )}
 
@@ -132,7 +145,9 @@ export default function BlackHole({
               holisticInsight={holisticInsight}
               storyContextMessage={storyContextMessage}
               isInteractive={isInteractive}
+              agreed={agreed}
               disagreeState={disagree}
+              onAgreeClick={() => setAgreed(true)}
               onDisagreeClick={() => setDisagree((prev) => ({ ...prev, isActive: true }))}
               onFeedbackChange={(val) => setDisagree((prev) => ({ ...prev, feedbackInput: val }))}
               onFeedbackSubmit={handleFeedbackSubmit}
@@ -149,15 +164,17 @@ interface InsightTooltipProps {
   holisticInsight: string | null
   storyContextMessage: string | null
   isInteractive: boolean
+  agreed: boolean
   disagreeState: DisagreeState
+  onAgreeClick: () => void
   onDisagreeClick: () => void
   onFeedbackChange: (val: string) => void
   onFeedbackSubmit: () => void
 }
 
 function InsightTooltip({
-  insight, holisticInsight, storyContextMessage, isInteractive, disagreeState,
-  onDisagreeClick, onFeedbackChange, onFeedbackSubmit,
+  insight, holisticInsight, storyContextMessage, isInteractive, agreed, disagreeState,
+  onAgreeClick, onDisagreeClick, onFeedbackChange, onFeedbackSubmit,
 }: InsightTooltipProps) {
   const { isActive, round, feedbackInput, aiResponse, isLoading } = disagreeState
 
@@ -185,16 +202,9 @@ function InsightTooltip({
       )}
 
       {showHolistic && (
-        <>
-          {storyContextMessage && (
-            <div style={{ color: '#A8A29E', fontSize: '12px', fontStyle: 'italic', marginBottom: '10px', lineHeight: 1.5 }}>
-              {storyContextMessage}
-            </div>
-          )}
-          <div style={{ color: '#FAFAF9', fontSize: '13px', lineHeight: 1.6 }}>
-            {holisticInsight}
-          </div>
-        </>
+        <div style={{ color: '#FAFAF9', fontSize: '13px', lineHeight: 1.6 }}>
+          {holisticInsight}
+        </div>
       )}
 
       {showPattern && (
@@ -218,10 +228,15 @@ function InsightTooltip({
         </div>
       )}
 
-      {!isActive && isInteractive && (showHolistic || showPattern) && (
-        <button onClick={onDisagreeClick} style={disagreeButtonStyle}>
-          To nie brzmi jak ja
-        </button>
+      {!isActive && !agreed && isInteractive && (showHolistic || showPattern) && (
+        <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+          <button onClick={onAgreeClick} style={feedbackButtonStyle}>
+            To ma sens
+          </button>
+          <button onClick={onDisagreeClick} style={feedbackButtonStyle}>
+            To nie brzmi jak ja
+          </button>
+        </div>
       )}
 
       {isActive && round < 2 && (
@@ -259,17 +274,15 @@ const tooltipStyle: React.CSSProperties = {
   minWidth: '220px',
 }
 
-const disagreeButtonStyle: React.CSSProperties = {
-  marginTop: '10px',
-  display: 'block',
+const feedbackButtonStyle: React.CSSProperties = {
+  flex: 1,
   background: 'transparent',
   border: '1px solid rgba(255,255,255,0.15)',
   color: '#A8A29E',
   fontSize: '12px',
-  padding: '4px 10px',
+  padding: '4px 8px',
   borderRadius: '4px',
   cursor: 'pointer',
-  width: '100%',
 }
 
 const textareaStyle: React.CSSProperties = {
