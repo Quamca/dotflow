@@ -30,8 +30,8 @@ export default function StarNode({ entry, position, connectionCount, isInteracti
   return (
     <group position={position}>
       <mesh
-        onPointerEnter={isInteractive ? onActivate : undefined}
-        onPointerLeave={isInteractive ? onDeactivate : undefined}
+        onPointerEnter={isInteractive ? (e) => { e.stopPropagation(); onActivate() } : undefined}
+        onPointerLeave={isInteractive ? (e) => { e.stopPropagation(); onDeactivate() } : undefined}
       >
         <sphereGeometry args={[starSize, 8, 8]} />
         <meshBasicMaterial color={starColor} />

@@ -57,8 +57,8 @@ export default function StoryNode({ story, position, isActive, onActivate, onDea
   return (
     <group position={position}>
       <mesh
-        onPointerEnter={() => onActivate()}
-        onPointerLeave={handlePointerLeave}
+        onPointerEnter={(e) => { e.stopPropagation(); onActivate() }}
+        onPointerLeave={(e) => { e.stopPropagation(); handlePointerLeave() }}
       >
         <sphereGeometry args={[STORY_STAR_SIZE, 8, 8]} />
         <meshBasicMaterial color={getEmotionColor(emotion)} />

@@ -127,13 +127,18 @@ export default function BlackHole({
         </mesh>
       )}
 
-      <mesh
-        ref={meshRef}
-        onPointerEnter={isInteractive ? handlePointerEnter : undefined}
-        onPointerLeave={isInteractive ? handleLeave : undefined}
-      >
+      <mesh ref={meshRef}>
         <sphereGeometry args={[clampedSize, 24, 24]} />
         <meshStandardMaterial color="#0a0a0f" roughness={0.2} metalness={0.8} />
+      </mesh>
+
+      {/* invisible hit area — larger than visual core to match perceived glow size */}
+      <mesh
+        onPointerEnter={isInteractive ? (e) => { e.stopPropagation(); handlePointerEnter() } : undefined}
+        onPointerLeave={isInteractive ? (e) => { e.stopPropagation(); handleLeave() } : undefined}
+      >
+        <sphereGeometry args={[clampedSize * 1.6, 16, 16]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 
       {showTooltip && (
