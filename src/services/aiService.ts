@@ -270,9 +270,10 @@ export async function detectEmotionConfidence(
 
 export async function generateHolisticInsight(
   entries: EntryWithFollowUps[],
-  apiKey: string
+  apiKey: string,
+  previousNote?: string
 ): Promise<string> {
-  const userMessage = JSON.stringify(
+  const entriesJson = JSON.stringify(
     entries.slice(0, 20).map((e) => ({
       content: e.content,
       created_at: e.created_at,
@@ -281,6 +282,9 @@ export async function generateHolisticInsight(
         .map((fu) => ({ question: fu.question, answer: fu.answer })),
     }))
   )
+  const userMessage = previousNote
+    ? `${entriesJson}\n\nUser's reflection on the previous insight: "${previousNote}"`
+    : entriesJson
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',

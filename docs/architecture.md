@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 2.7
-**Date:** 2026-05-02
+**Version:** 2.8
+**Date:** 2026-05-03
 **Author:** Solution Architect
-**Status:** Updated after US-205
+**Status:** Updated after InsightModal/SkyModal (v1.7)
 
 ---
 
@@ -156,7 +156,9 @@ dotflow/
 │   │   │   ├── StarField.tsx        # Canvas scene: Camera, OrbitControls, lights, story nodes, session lines, constellation lines, black hole, zone glows; global activeTooltipId tooltip coordinator (US-205)
 │   │   │   ├── StarNode.tsx         # Legacy entry star mesh (pre-US-206); replaced by StoryNode after story pivot
 │   │   │   ├── StoryNode.tsx        # Story star mesh + Html tooltip on hover + "Dopowiedz" elaboration button (US-206)
-│   │   │   ├── BlackHole.tsx        # Black hole at origin: pulsing glow halo, hover insight tooltip, entry-count sizing, disagree flow with 2-round AI dialogue, depth holistic insights with elaboration, keepOpen/isTooltipHovered tooltip stability, invisible hit mesh, stopPropagation (US-202, US-203, US-205)
+│   │   │   ├── BlackHole.tsx        # Black hole at origin: pulsing glow halo, hover insight tooltip, entry-count sizing, disagree flow with 2-round AI dialogue, depth holistic insights; click opens InsightModal; keepOpen/isTooltipHovered tooltip stability, invisible hit mesh, stopPropagation (US-202, US-203, US-205)
+│   │   │   ├── SkyModal.tsx         # Reusable backdrop modal wrapper: X button (aria-label "Zamknij"), backdrop click closes, Escape key closes, optional footer prop (v1.7)
+│   │   │   ├── InsightModal.tsx     # Click modal for black hole: Jest OK + Rozwiń (initial) → elaboration + note textarea + To ma sens + Zapisz → ; localStorage persistence for acknowledgment, elaboration cache, note (v1.7)
 │   │   │   └── ConstellationLines.tsx # Line segments between connected story pairs; typed line styles: solid/dashed/chain (US-209)
 │   │   └── ValuesModal/     # Recurring-themes confirmation modal (US-202)
 │   │       └── ValuesModal.tsx      # AI-proposed themes: edit/remove/restore, add input, "Żadna z tych" escape hatch
@@ -198,6 +200,9 @@ dotflow/
 │   │   │   │   └── FollowUpDialog.test.tsx  # TC-029–034, TC-140–142: Zmień pytanie reroll (US-006, US-205)
 │   │   │   ├── PatternSummary/
 │   │   │   │   └── PatternSummary.test.tsx  # TC-055–056 (US-102)
+│   │   │   ├── StarField/
+│   │   │   │   ├── SkyModal.test.tsx        # TC-209–215: backdrop, X button, Escape, footer (v1.7)
+│   │   │   │   └── InsightModal.test.tsx    # TC-189–206: button flow, localStorage, note save, elaboration cache (v1.7)
 │   │   │   └── ValuesModal/
 │   │   │       └── ValuesModal.test.tsx     # TC-072–083: modal render, edit, remove/restore, add theme, escape hatch, confirm (US-202)
 │   │   ├── hooks/
@@ -355,10 +360,42 @@ dotflow/
 4. After round 2: `onRoundLimitReached()` fires → parent highlights Write Entry CTA
 5. Round counter is internal state — never exposed to user
 
-**Insight elaboration flow (US-205):**
-1. "To ma sens" → `setAgreed(true)` only — acknowledgment, no AI call
-2. "Rozwiń" → calls `elaborateInsight(insight, entryExamples, apiKey)` — AI returns 2–4 sentence elaboration with entry-level examples
-3. "Jest OK" → dismisses elaboration, resets `ElaborationState` to idle
+**Insight elaboration flow (US-205, moved to InsightModal in v1.7):**
+In v1.7, clicking the black hole opens `InsightModal` (see section 5.11) — the elaboration/note flow has moved there. The hover tooltip remains for reading the current insight and accessing the disagree flow only.
+
+### 5.10 SkyModal (v1.7)
+
+**Responsibility:** Reusable modal wrapper with backdrop, keyboard handling, and optional footer slot. Used by `InsightModal`.
+
+**Props:** `children: ReactNode`, `onClose: () => void`, `footer?: ReactNode`
+
+**Key behaviors:**
+- X button with `aria-label="Zamknij"` closes the modal
+- Clicking the backdrop (outside the modal card) closes the modal
+- Clicking inside the modal card does NOT close
+- `Escape` key closes the modal (`useEffect` on `keydown`)
+- Optional `footer` prop renders at the bottom of the card — used for action buttons
+
+### 5.11 InsightModal (v1.7)
+
+**Responsibility:** Full-screen modal for engaging with the holistic insight. Opened when the user clicks the black hole mesh. Hosts the elaboration flow, note input, and localStorage persistence.
+
+**Props:** `insight: string`, `apiKey: string`, `entries: Entry[]`, `onAcknowledge: () => void`, `onClose: () => void`
+
+**Button flow:**
+- **Initial state:** "Jest OK" (dismiss) + "Rozwiń" (elaborate)
+- **After "Rozwiń":** `elaborateInsight()` called → elaboration text shown + note textarea (`placeholder="Twoje dopowiedzenie..."`) + "To ma sens" (left, acknowledgment) + "Zapisz →" (right, disabled when textarea empty)
+- **"Jest OK":** calls `onClose()` with no AI side-effect
+- **"To ma sens":** calls `onAcknowledge()` — acknowledgment only, no AI call
+- **"Zapisz →":** saves note to localStorage, calls `onAcknowledge()` + `onClose()` after 1800ms delay
+
+**localStorage keys (all keyed by `insightKey = insight text`):**
+- `dotflow_acknowledged_insight` — acknowledgment flag (prevents re-prompting)
+- `dotflow_elaborated_insight` — elaboration cache (avoids redundant AI call on reopen)
+- `dotflow_insight_note` — most recent note (read by `generateHolisticInsight` as `previousNote`)
+- `dotflow_insight_notes` — note history (last 50 entries, appended on save)
+
+**Integration with `generateHolisticInsight`:** `previousNote` (read from `dotflow_insight_note`) is passed into the next insight generation so the AI can reference the user's last reflection.
 
 ### 5.9 ValuesModal (US-202)
 

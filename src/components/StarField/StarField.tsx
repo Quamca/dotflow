@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Line } from '@react-three/drei'
 import type { Entry, Connection, Story } from '../../types'
@@ -17,20 +17,21 @@ interface StarFieldProps {
   connections: Record<string, Connection>
   stories?: Story[]
   isInteractive: boolean
-  insight?: string[] | null
-  holisticInsight?: string | null
   hasUnreadInsight?: boolean
   depthScore?: number
-  storyContextMessage?: string | null
+  insightPreview?: string | null
   userValues?: string[]
-  apiKey?: string
-  onRoundLimitReached?: () => void
+  onEntryClick?: (entry: Entry) => void
+  onStoryClick?: (story: Story) => void
+  onBlackHoleClick?: () => void
   onInsightRead?: () => void
 }
 
-export default function StarField({ entries, connections, stories = [], isInteractive, insight, holisticInsight, hasUnreadInsight, depthScore, storyContextMessage, userValues, apiKey, onRoundLimitReached, onInsightRead }: StarFieldProps) {
-  const [activeStoryId, setActiveStoryId] = useState<string | null>(null)
-
+export default function StarField({
+  entries, connections, stories = [], isInteractive,
+  hasUnreadInsight, depthScore, insightPreview, userValues,
+  onEntryClick, onStoryClick, onBlackHoleClick, onInsightRead,
+}: StarFieldProps) {
   const positionMap = useMemo(() => {
     const map = new Map<string, [number, number, number]>()
     entries.forEach((e) => {
@@ -49,11 +50,7 @@ export default function StarField({ entries, connections, stories = [], isIntera
 
   const storyPositionMap = useMemo(() => {
     const map = new Map<string, [number, number, number]>()
-    stories.forEach((s) => {
-      if (s.position) {
-        map.set(s.id, s.position)
-      }
-    })
+    stories.forEach((s) => { if (s.position) map.set(s.id, s.position) })
     return map
   }, [stories])
 
@@ -64,15 +61,12 @@ export default function StarField({ entries, connections, stories = [], isIntera
       group.push(s)
       grouped.set(s.entry_id, group)
     })
-
     const lines: Array<{ id: string; points: [[number, number, number], [number, number, number]] }> = []
     grouped.forEach((group) => {
       for (let i = 0; i < group.length - 1; i++) {
         const a = storyPositionMap.get(group[i].id)
         const b = storyPositionMap.get(group[i + 1].id)
-        if (a && b) {
-          lines.push({ id: `${group[i].id}-${group[i + 1].id}`, points: [a, b] })
-        }
+        if (a && b) lines.push({ id: `${group[i].id}-${group[i + 1].id}`, points: [a, b] })
       }
     })
     return lines
@@ -99,6 +93,7 @@ export default function StarField({ entries, connections, stories = [], isIntera
           position={positionMap.get(entry.id) ?? [0, 0, 0]}
           connectionCount={connectionCount[entry.id] ?? 0}
           isInteractive={isInteractive}
+          onOpenModal={isInteractive ? () => onEntryClick?.(entry) : undefined}
         />
       ))}
       {stories.map((story) => (
@@ -106,9 +101,8 @@ export default function StarField({ entries, connections, stories = [], isIntera
           key={story.id}
           story={story}
           position={storyPositionMap.get(story.id) ?? [0, 0, 0]}
-          isActive={activeStoryId === story.id}
-          onActivate={setActiveStoryId}
-          apiKey={apiKey}
+          isInteractive={isInteractive}
+          onOpenModal={isInteractive ? () => onStoryClick?.(story) : undefined}
         />
       ))}
       {sessionLines.map((line) => (
@@ -124,15 +118,11 @@ export default function StarField({ entries, connections, stories = [], isIntera
       <ConstellationLines connections={connections} positionMap={positionMap} />
       <BlackHole
         size={blackHoleSize}
-        insight={insight ?? null}
-        holisticInsight={holisticInsight ?? null}
         hasUnreadInsight={hasUnreadInsight ?? false}
         depthScore={depthScore ?? 0}
-        storyContextMessage={storyContextMessage ?? null}
         isInteractive={isInteractive}
-        apiKey={apiKey ?? ''}
-        entries={entries}
-        onRoundLimitReached={onRoundLimitReached}
+        insightPreview={insightPreview}
+        onOpenModal={isInteractive ? onBlackHoleClick : undefined}
         onInsightRead={onInsightRead}
       />
       {isInteractive && <OrbitControls enablePan enableZoom enableRotate makeDefault />}

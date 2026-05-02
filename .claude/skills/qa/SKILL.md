@@ -113,7 +113,6 @@ git add src/__tests__/[test files]
 git add docs/test_cases.md
 git commit -m "test([scope]): add tests for US-XXX [short description]"
 ```
-6. After commit → automatically invoke `flow` skill. Do NOT ask.
 
 ## UX — format pytań
 
@@ -140,4 +139,3 @@ Tylko:
 - Test only user-facing behavior
 - Follow F.I.R.S.T. and AAA in every test
 - Commit automatically after tests pass
-- After commit — always invoke `flow` skill automatically, never say "Uruchom /flow"
