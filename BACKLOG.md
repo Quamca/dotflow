@@ -100,6 +100,42 @@ After ~15 stories, AI detects thematic clusters and suggests hover-only zone lab
 
 ---
 
+### US-214: Volumetric Nebula Rendering
+
+**Description:**
+Replace the current soft sphere-style zone rendering with layered volumetric nebula clouds. Emotional colors inside a zone should blend organically instead of producing one dominant flat tint. Zones should feel atmospheric, cosmic, and alive — not like transparent geometric regions.
+
+**As a** user  
+**I want** life areas to resemble living cosmic nebulae  
+**So that** the sky feels emotional, organic, and visually immersive instead of system-generated
+
+**Status:** 📋 Planned  
+**Story Points:** 8  
+**Priority:** P2
+
+**Acceptance Criteria:**
+- [ ] Zone visuals use layered volumetric fog/cloud rendering instead of sphere-like overlays
+- [ ] Multiple emotions blend proportionally inside the same nebula
+- [ ] No hard color separation or visible gradient bands
+- [ ] Nebula density varies organically using noise distortion
+- [ ] Ambient movement is subtle and slow (breathing/drifting effect)
+- [ ] Zones remain soft and atmospheric — never become solid objects
+- [ ] Existing hover-only label behavior preserved
+- [ ] Existing zone clustering logic preserved
+- [ ] Performance remains stable with 50+ stories
+
+**Tasks:**
+- [ ] **TASK-214.1:** Replace sphere-style zone material with layered volumetric cloud shader - 90min
+- [ ] **TASK-214.2:** Add multi-emotion color blending system for nebula rendering - 45min
+- [ ] **TASK-214.3:** Add procedural noise distortion for density variation - 45min
+- [ ] **TASK-214.4:** Add subtle ambient drift/breathing animation - 20min
+- [ ] **TASK-214.5:** Tune opacity falloff to avoid visible hard edges - 20min
+- [ ] **TASK-214.6:** Optimize rendering performance for multiple active nebulae - 30min
+- [ ] **TASK-214.7:** Write tests (/qa) - 30min
+- [ ] **TASK-214.8:** Manual verification - 20min
+
+---
+
 ## 🔧 FEATURE-013: Contextual First-Use Onboarding
 
 **Description:**

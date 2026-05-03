@@ -153,7 +153,7 @@ dotflow/
 │   │   ├── PatternSummary/  # Bullet-list display of AI pattern observations (US-102)
 │   │   │   └── PatternSummary.tsx
 │   │   ├── StarField/       # 3D star-field visualization (US-201, US-202, US-206–209)
-│   │   │   ├── StarField.tsx        # Canvas scene: Camera, OrbitControls, lights, story nodes, session lines, constellation lines, black hole, zone glows; global activeTooltipId tooltip coordinator (US-205)
+│   │   │   ├── StarField.tsx        # Canvas scene: Camera, OrbitControls, lights, story nodes, session lines, constellation lines, black hole, volumetric nebula layers; global activeTooltipId tooltip coordinator (US-205)
 │   │   │   ├── StarNode.tsx         # Legacy entry star mesh (pre-US-206); replaced by StoryNode after story pivot
 │   │   │   ├── StoryNode.tsx        # Story star mesh + Html tooltip on hover + "Dopowiedz" elaboration button (US-206)
 │   │   │   ├── BlackHole.tsx        # Black hole at origin: pulsing glow halo, hover insight tooltip, entry-count sizing, disagree flow with 2-round AI dialogue, depth holistic insights; click opens InsightModal; keepOpen/isTooltipHovered tooltip stability, invisible hit mesh, stopPropagation (US-202, US-203, US-205)
@@ -338,6 +338,7 @@ dotflow/
 - **Deterministic positions:** `getStarPosition(entry.id)` generates a stable `[x, y, z]` from sin-based UUID hash, radius 3–8. Value-aligned entries use `getAlignedStarPosition()` (radius 1.5–3, closer to black hole); divergent entries use radius 3–8.
 - **Z-layering:** `StarField` is `position: fixed, z-0` (background). Entry list content is `relative, z-10`. Exit 3D button is `z-30`. Logo toggle is `z-20`.
 - **jsdom compatibility:** `ResizeObserver` global mock in `src/__tests__/setup.ts`; `StarField` component is fully mocked with `vi.mock` in all page-level tests to avoid WebGL Canvas dependency.
+
 
 ### 5.7a Single Active Tooltip — UX Rationale
 
@@ -525,6 +526,7 @@ sequenceDiagram
 - Entire `detectAndSaveConnection()` function is wrapped in try/catch — silently ignored on failure
 - `void` prefix ensures the promise is fire-and-forget, not awaited
 - UI is never blocked or shown an error from connection detection
+- Life area zones use layered volumetric nebula rendering with proportional emotional color blending. Rendering must avoid hard geometry perception, dominant flat tinting, and visible gradient segmentation.
 
 ### 6.3 AI Follow-Up Question Generation
 
@@ -754,7 +756,8 @@ graph LR
 - [x] **US-206:** Story Extraction — P0 architectural pivot — `stories` Supabase table, `aiService.extractStories()`, `storyService`, `StoryNode.tsx`, session lines, "Dopowiedz" elaboration flow — M2.5 ✅ Completed
 - [x] **US-207:** Emotion Intelligence per Story — P1 — `aiService.detectEmotionConfidence()` (never throws, fallback `{emotion:'mixed', confidence:0}`), `EMOTION_DETECTION_SYSTEM_PROMPT`, `emotionColors.ts` (6-emotion hex palette), `storyService.updateStoryEmotion()`, StoryNode uses `meshBasicMaterial` with emotion color, re-classification on "Dopowiedz" with combined content, tooltip timer locked during elaboration — M2.5 ✅ Completed
 - [x] **US-210:** Contextual Follow-Up Between Lines — P1 — `generateFollowUpQuestions(content, apiKey, storyContext?)` with optional past story context; `getRecentStories(excludeEntryId, limit)` in storyService; word count gate >300 words → "Pięknie." inline acknowledgment + "Wróć →" home; `FOLLOW_UP_SYSTEM_PROMPT` rewritten: BETWEEN THE LINES, NEVER restate, language instruction — M2.5 ✅ Completed
-- [ ] **US-208:** Life Area Zones — P1 — `aiService.classifyLifeArea()`, `useLifeAreaZones`, emergent cluster glows in StarField, hover-only labels, user-renameable, no default zones — M2.5
+- [x] **US-208:** Life Area Zones — P1 — `aiService.classifyLifeArea()`, `useLifeAreaZones`, `LifeAreaZone.tsx` (sphere overlay, depth-priority hover, ambient pulse), hover-only labels, user-renameable, no default zones — M2.5 ✅ Completed
+- [ ] US-214: Volumetric Nebula Rendering — layered cloud shader, proportional emotional color blending, procedural density noise, ambient drift motion
 - [ ] **US-209:** Typed Connection Visualization — P2 — `aiService.classifyConnectionType()`, `connections.type` field, typed line styles (solid/dashed/chain), 3D filter panel, `useConnectionFilter` hook; no Dilts/DISC/MBTI labels visible — M2.5
 - [ ] **FEATURE-015:** Security & privacy messaging — deferred to M3 (end-user context: registration/login, Dotflow-owned AI)
 - [ ] AI communication principles document (`docs/ai_communication_principles.md`) — M2.5 prereq

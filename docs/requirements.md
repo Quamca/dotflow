@@ -374,7 +374,9 @@ Life area zones emerge organically from accumulated stories. No default zones (n
 **Visual treatment (Ambient Reflection Principle):**
 - Stories from the same emergent area are spatially clustered in 3D space
 - Clusters render as nebula/cloud-style overlays: very low opacity, soft gradients, gentle ambient motion
+- Nebula colors blend proportionally from emotional composition of stories inside the cluster
 - No sharp boundaries, no legends, no percentages, no always-visible labels
+- Forbidden: dominant single-color fog when multiple emotional tones are present in the same cluster
 - Zone labels appear only on hover
 - Zones breathe and dissolve when themes stop returning — no fixed stable map layout, no permanent boundaries
 
@@ -383,6 +385,7 @@ Life area zones emerge organically from accumulated stories. No default zones (n
 - Zones appear only when a cluster has ≥5 stories in the same area
 - Stories in the same emergent area spatially cluster in 3D space
 - Zone visual: nebula/cloud overlay, very low opacity, soft gradient, subtle ambient motion
+- Multiple emotional colors inside a zone blend organically and proportionally
 - No sharp zone boundaries, no legend panel, no percentage or count display
 - Zone label visible only on hover — not shown by default
 - User can rename or clear any zone label

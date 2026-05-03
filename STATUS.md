@@ -23,8 +23,9 @@
 | 11 | US-211 | Insight History Timeline | P2 | 📋 Planned |
 | 12 | US-212 | Interactive Connection Highlighting | P2 | 📋 Planned |
 | 13 | US-213 | Story Sequence Navigation | P2 | 📋 Planned |
+| 14 | US-214 | Volumetric Nebula Rendering | P2 | 📋 Planned |
 
-**8/13 complete (62%)**
+**8/14 complete (57%)**
 
 ---
 
@@ -47,11 +48,11 @@ US-204, US-209, US-211, US-212, US-213 (all P2) may continue as desired before M
 
 ## Next Recommended US
 
-**US-204 — Contextual First-Use Hints** (P2, FEATURE-013)
+**US-214 — Volumetric Nebula Rendering** (P2, FEATURE-019)
 
-Three one-time contextual hints at the moment of first use: FollowUpDialog, ConnectionBadge, and black hole hover. Each hint persists in localStorage and is never shown again. API key warning banner updated to name specific missing features.
+Replace sphere-style zone overlay with layered volumetric nebula clouds. Multi-emotion color blending, procedural density variation, ambient drift animation.
 
-Run `/planning` → agent will propose US-204.
+Run `/planning` → agent will propose US-214.
 
 ---
 
