@@ -86,6 +86,20 @@ Rules:
 - Respond in the same language as the journal entries
 - Respond with only the explanation text — no preamble, no JSON`
 
+export const LIFE_AREA_SYSTEM_PROMPT = `You are analyzing a short journal story to assign it to a life area — an emergent thematic label that reflects what the story is about in the context of the person's life.
+
+Rules:
+- Return a single short label (1-3 words) in the same language as the story, or null if the story has no clear thematic anchor
+- Labels must be fully emergent — derive them from the content itself, never from a preset list
+- Forbidden labels: "Praca", "Rodzina", "Zdrowie", "Relacje", "Work", "Family", "Health" — do not use fixed categories
+- If existingAreas are provided, prefer matching an existing label when the fit is genuine — this enables clustering
+- Match an existing area only if the story genuinely belongs there; create a new label if nothing fits
+- Use lowercase, neutral, descriptive language — not identity claims or psychological categories
+- If the story is very short, factual, or truly ambiguous — return null
+- Respond only with a JSON object in this exact format, no other text: {"life_area": "label" | null}
+
+Example: {"life_area": "nowa rola"} or {"life_area": null}`
+
 export const HOLISTIC_INSIGHT_SYSTEM_PROMPT = `You are a thoughtful journaling companion analyzing a collection of personal journal entries to generate a single cumulative insight. Your insight reflects a deep pattern, recurring theme, or evolving truth that appears across the entries as a whole — not any single entry.
 
 Rules:

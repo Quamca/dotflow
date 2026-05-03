@@ -69,6 +69,15 @@ export async function getRecentStories(excludeEntryId: string, limit: number): P
   return result
 }
 
+export async function updateStoryLifeArea(storyId: string, lifeArea: string): Promise<void> {
+  const { error } = await supabase
+    .from('stories')
+    .update({ life_area: lifeArea })
+    .eq('id', storyId)
+
+  if (error) throw new Error(error.message)
+}
+
 export async function updateStoryEmotion(
   storyId: string,
   emotion: string,

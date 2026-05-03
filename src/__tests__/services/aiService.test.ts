@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback, extractStories, detectEmotionConfidence, generateHolisticInsight, elaborateInsight } from '../../services/aiService'
+import { generateFollowUpQuestions, findConnection, generatePatternSummary, extractUserValues, respondToInsightFeedback, extractStories, detectEmotionConfidence, generateHolisticInsight, elaborateInsight, classifyLifeArea } from '../../services/aiService'
 import { DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT } from '../../utils/prompts'
 import type { Entry, EntryWithFollowUps } from '../../types'
 
@@ -770,6 +770,113 @@ describe('aiService', () => {
       const body = JSON.parse((fetchSpy.mock.calls[0][1] as RequestInit).body as string) as { messages: Array<{ role: string; content: string }> }
       const userMessage = body.messages.find((m) => m.role === 'user')?.content ?? ''
       expect(userMessage).not.toContain("User's reflection")
+    })
+  })
+
+  // TC-208: classifyLifeArea
+  describe('classifyLifeArea', () => {
+    const storyContent = 'Dostałem awans i przejąłem nowy projekt.'
+    const existingAreas = ['nowa rola', 'relacje z zespołem']
+
+    it('should return life_area string when API responds with valid JSON', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: JSON.stringify({ life_area: 'nowa rola' }) } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await classifyLifeArea(storyContent, existingAreas, 'sk-test')
+
+      // Assert
+      expect(result).toBe('nowa rola')
+    })
+
+    it('should return null when API returns non-ok response', async () => {
+      // Arrange
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401 }))
+
+      // Act
+      const result = await classifyLifeArea(storyContent, existingAreas, 'sk-invalid')
+
+      // Assert
+      expect(result).toBeNull()
+    })
+
+    it('should return null when response JSON is malformed', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: 'not valid json' } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await classifyLifeArea(storyContent, existingAreas, 'sk-test')
+
+      // Assert
+      expect(result).toBeNull()
+    })
+
+    it('should return null when life_area value is null in response', async () => {
+      // Arrange
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: JSON.stringify({ life_area: null }) } }],
+          }),
+        })
+      )
+
+      // Act
+      const result = await classifyLifeArea(storyContent, existingAreas, 'sk-test')
+
+      // Assert
+      expect(result).toBeNull()
+    })
+
+    it('should return null when fetch throws a network error', async () => {
+      // Arrange
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')))
+
+      // Act
+      const result = await classifyLifeArea(storyContent, existingAreas, 'sk-test')
+
+      // Assert
+      expect(result).toBeNull()
+    })
+
+    it('should include existingAreas in the user message sent to AI', async () => {
+      // Arrange
+      const fetchSpy = vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          choices: [{ message: { content: JSON.stringify({ life_area: 'nowa rola' }) } }],
+        }),
+      })
+      vi.stubGlobal('fetch', fetchSpy)
+
+      // Act
+      await classifyLifeArea(storyContent, existingAreas, 'sk-test')
+
+      // Assert
+      const body = JSON.parse(fetchSpy.mock.calls[0][1].body as string) as {
+        messages: Array<{ role: string; content: string }>
+      }
+      const userMessage = body.messages[1].content
+      expect(userMessage).toContain('nowa rola')
+      expect(userMessage).toContain(storyContent)
     })
   })
 

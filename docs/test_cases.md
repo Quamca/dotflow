@@ -1,6 +1,6 @@
 # Dotflow - Test Cases Documentation
 
-**Version:** 2.1
+**Version:** 2.2
 **Date:** 2026-05-03
 **Author:** QA Agent
 **Test Framework:** Vitest + React Testing Library
@@ -4337,6 +4337,494 @@ For verification after /dev implementation.
 
 **File:** `src/__tests__/components/StarField/StoryModal.test.tsx`
 **Status:** 📋 Planned
+
+---
+
+## 3.17 FEATURE: Life Area Zones — Emergent Clusters (US-208)
+
+### TC-266: classifyLifeArea returns life_area string when API responds with valid JSON
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- fetch mocked to return `{"life_area": "nowa rola"}`
+
+**Test Steps:**
+1. Call `classifyLifeArea('Dostałem awans i przejąłem nowy projekt.', ['nowa rola'], 'sk-test')`
+
+**Expected Result:**
+- Returns `'nowa rola'`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-267: classifyLifeArea returns null when API returns non-ok response
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** Critical
+
+**Test Steps:**
+1. Mock fetch to return `{ ok: false, status: 401 }`
+2. Call `classifyLifeArea(...)`
+
+**Expected Result:**
+- Returns `null` (no throw)
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-268: classifyLifeArea returns null when response JSON is malformed
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Test Steps:**
+1. Mock fetch to return non-JSON content
+2. Call `classifyLifeArea(...)`
+
+**Expected Result:**
+- Returns `null`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-269: classifyLifeArea returns null when life_area value is null in response
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Test Steps:**
+1. Mock fetch to return `{"life_area": null}`
+2. Call `classifyLifeArea(...)`
+
+**Expected Result:**
+- Returns `null`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-270: classifyLifeArea returns null when fetch throws a network error
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Test Steps:**
+1. Mock fetch to throw `Error('Network error')`
+2. Call `classifyLifeArea(...)`
+
+**Expected Result:**
+- Returns `null` (no throw)
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-271: classifyLifeArea includes existingAreas in user message sent to AI
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Test Steps:**
+1. Call `classifyLifeArea(content, ['nowa rola'], 'sk-test')`
+2. Inspect fetch body
+
+**Expected Result:**
+- `messages[1].content` contains `'nowa rola'` and the story content
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-272: LIFE_AREA_SYSTEM_PROMPT requires fully emergent labels
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** Critical
+
+**Expected Result:**
+- Prompt contains `'emergent'`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-273: LIFE_AREA_SYSTEM_PROMPT instructs AI to return JSON object
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** Critical
+
+**Expected Result:**
+- Prompt contains `'JSON object'`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-274: LIFE_AREA_SYSTEM_PROMPT includes language instruction matching story language
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Expected Result:**
+- Prompt contains `'same language as the story'`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-275: LIFE_AREA_SYSTEM_PROMPT includes null as valid return value
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Expected Result:**
+- Prompt contains `'null'`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-276: LIFE_AREA_SYSTEM_PROMPT forbids fixed category labels
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Expected Result:**
+- Prompt contains `'Forbidden labels'`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-277: LIFE_AREA_SYSTEM_PROMPT instructs AI to prefer matching existing areas
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Expected Result:**
+- Prompt contains `'existingAreas'`
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-278: updateStoryLifeArea calls Supabase update with correct life_area value
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** Critical
+
+**Test Steps:**
+1. Mock Supabase `.update().eq()` chain to succeed
+2. Call `updateStoryLifeArea('story-uuid-1', 'nowa rola')`
+
+**Expected Result:**
+- `supabase.from('stories')` called
+- Update arg `{ life_area: 'nowa rola' }`
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-279: updateStoryLifeArea throws when Supabase returns error
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Test Steps:**
+1. Mock Supabase chain to return `{ error: { message: 'Update failed' } }`
+2. Call `updateStoryLifeArea(...)`
+
+**Expected Result:**
+- Promise rejects with `'Update failed'`
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-280: getFixedZoneCentroid returns a tuple of 3 numbers
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Test Steps:**
+1. Call `getFixedZoneCentroid('nowa rola')`
+
+**Expected Result:**
+- Array of 3 numbers
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-281: getFixedZoneCentroid is stable for the same label
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** Critical
+
+**Expected Result:**
+- Two calls with same label return identical result
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-282: getFixedZoneCentroid returns different centroids for different labels
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Expected Result:**
+- `getFixedZoneCentroid('nowa rola') !== getFixedZoneCentroid('twórczość')`
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-283: getFixedZoneCentroid places centroid at ZONE_CENTROID_RADIUS (6.0) from origin
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** Critical
+
+**Expected Result:**
+- `sqrt(x²+y²+z²) ≈ 6.0`
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-284: getZoneLocalPosition returns a tuple of 3 numbers
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Expected Result:**
+- Array of 3 numbers
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-285: getZoneLocalPosition is stable for same story id and centroid
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** Critical
+
+**Expected Result:**
+- Two calls with same args return identical result
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-286: getZoneLocalPosition returns different positions for different story ids
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Expected Result:**
+- Positions differ for distinct story ids
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-287: getZoneLocalPosition places story within ZONE_SPREAD_RADIUS (1.8) of centroid
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** Critical
+
+**Expected Result:**
+- `dist(position, centroid) <= 1.8`
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-288: getZoneLocalPosition differs from getStoryPosition with same id (independent seeds)
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Expected Result:**
+- `getZoneLocalPosition(id, centroid) !== getStoryPosition(id)` — proves seed offsets are independent
+
+**File:** `src/__tests__/utils/starPositions.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-289: useLifeAreaZones — getLabel returns AI label when no custom label set
+
+**Related US:** US-208
+**Type:** Unit (hook)
+**Priority:** Critical
+
+**Expected Result:**
+- `getLabel('nowa rola')` returns `'nowa rola'`
+
+**File:** `src/__tests__/hooks/useLifeAreaZones.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-290: useLifeAreaZones — getLabel returns custom label after renameZone
+
+**Related US:** US-208
+**Type:** Unit (hook)
+**Priority:** Critical
+
+**Expected Result:**
+- After `renameZone('nowa rola', 'awans')`, `getLabel('nowa rola')` returns `'awans'`
+
+**File:** `src/__tests__/hooks/useLifeAreaZones.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-291: useLifeAreaZones — renameZone persists custom label to localStorage
+
+**Related US:** US-208
+**Type:** Unit (hook)
+**Priority:** High
+
+**Expected Result:**
+- `localStorage.getItem('dotflow_zone_labels')` contains the renamed value
+
+**File:** `src/__tests__/hooks/useLifeAreaZones.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-292: useLifeAreaZones — initializes from existing localStorage data on mount
+
+**Related US:** US-208
+**Type:** Unit (hook)
+**Priority:** High
+
+**Expected Result:**
+- Pre-seeded localStorage data is picked up on hook initialization
+
+**File:** `src/__tests__/hooks/useLifeAreaZones.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-293: useLifeAreaZones — clearZoneLabel persists empty string to localStorage
+
+**Related US:** US-208
+**Type:** Unit (hook)
+**Priority:** High
+
+**Expected Result:**
+- `customLabels['relacje']` is `''` after `clearZoneLabel('relacje')`
+
+**File:** `src/__tests__/hooks/useLifeAreaZones.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-294: useLifeAreaZones — isLabelCleared returns false before clearing
+
+**Related US:** US-208
+**Type:** Unit (hook)
+**Priority:** High
+
+**Expected Result:**
+- `isLabelCleared('nowa rola')` returns `false` initially
+
+**File:** `src/__tests__/hooks/useLifeAreaZones.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-295: useLifeAreaZones — isLabelCleared returns true after clearZoneLabel
+
+**Related US:** US-208
+**Type:** Unit (hook)
+**Priority:** Critical
+
+**Expected Result:**
+- `isLabelCleared('twórczość')` returns `true` after `clearZoneLabel('twórczość')`
+
+**File:** `src/__tests__/hooks/useLifeAreaZones.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-296: useLifeAreaZones — isLabelCleared returns false for renamed (non-empty) label
+
+**Related US:** US-208
+**Type:** Unit (hook)
+**Priority:** High
+
+**Expected Result:**
+- `isLabelCleared('relacje')` returns `false` after `renameZone('relacje', 'bliskie osoby')`
+
+**File:** `src/__tests__/hooks/useLifeAreaZones.test.ts`
+**Status:** ✅ Done
+
+---
+
+### TC-297: useLifeAreaZones — isLabelCleared returns true for label cleared in previous session (localStorage)
+
+**Related US:** US-208
+**Type:** Unit (hook)
+**Priority:** High
+
+**Expected Result:**
+- Pre-seeded `{'zdrowie': ''}` → `isLabelCleared('zdrowie')` returns `true`
+
+**File:** `src/__tests__/hooks/useLifeAreaZones.test.ts`
+**Status:** ✅ Done
 
 ---
 

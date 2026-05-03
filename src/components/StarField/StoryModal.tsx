@@ -1,19 +1,21 @@
 import { useState } from 'react'
 import type { Story } from '../../types'
-import { addElaboration, updateStoryEmotion } from '../../services/storyService'
-import { detectEmotionConfidence } from '../../services/aiService'
+import { addElaboration, updateStoryEmotion, updateStoryLifeArea } from '../../services/storyService'
+import { detectEmotionConfidence, classifyLifeArea } from '../../services/aiService'
 import SkyModal from './SkyModal'
 
 interface StoryModalProps {
   story: Story
   onClose: () => void
   apiKey?: string
+  existingLifeAreas?: string[]
   onElaborationSaved?: (storyId: string, emotion: string, confidence: number) => void
+  onLifeAreaUpdated?: (storyId: string, lifeArea: string) => void
 }
 
 const CONFIRMATION_MS = 2000
 
-export default function StoryModal({ story, onClose, apiKey, onElaborationSaved }: StoryModalProps) {
+export default function StoryModal({ story, onClose, apiKey, existingLifeAreas, onElaborationSaved, onLifeAreaUpdated }: StoryModalProps) {
   const [isElaborating, setIsElaborating] = useState(false)
   const [elaborationText, setElaborationText] = useState('')
   const [isSaving, setIsSaving] = useState(false)
@@ -33,9 +35,16 @@ export default function StoryModal({ story, onClose, apiKey, onElaborationSaved 
       await addElaboration(story.id, trimmed)
       if (apiKey) {
         const combined = `${story.content}\n\n[Elaboration]: ${trimmed}`
-        const result = await detectEmotionConfidence(combined, apiKey)
-        await updateStoryEmotion(story.id, result.emotion, result.confidence)
-        onElaborationSaved?.(story.id, result.emotion, result.confidence)
+        const [emotionResult, lifeArea] = await Promise.all([
+          detectEmotionConfidence(combined, apiKey),
+          classifyLifeArea(combined, existingLifeAreas ?? [], apiKey),
+        ])
+        await Promise.allSettled([
+          updateStoryEmotion(story.id, emotionResult.emotion, emotionResult.confidence),
+          lifeArea ? updateStoryLifeArea(story.id, lifeArea) : Promise.resolve(),
+        ])
+        onElaborationSaved?.(story.id, emotionResult.emotion, emotionResult.confidence)
+        if (lifeArea) onLifeAreaUpdated?.(story.id, lifeArea)
       }
       setDone(true)
       setTimeout(onClose, CONFIRMATION_MS)

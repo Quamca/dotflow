@@ -1,4 +1,4 @@
-import { FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_DETECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT, STORY_EXTRACTION_SYSTEM_PROMPT, EMOTION_DETECTION_SYSTEM_PROMPT, HOLISTIC_INSIGHT_SYSTEM_PROMPT, INSIGHT_ELABORATION_SYSTEM_PROMPT } from '../utils/prompts'
+import { FOLLOW_UP_SYSTEM_PROMPT, CONNECTION_DETECTION_SYSTEM_PROMPT, PATTERN_SUMMARY_SYSTEM_PROMPT, USER_VALUES_SYSTEM_PROMPT, DEEPENING_QUESTION_SYSTEM_PROMPT, CLOSING_PHRASE_SYSTEM_PROMPT, STORY_EXTRACTION_SYSTEM_PROMPT, EMOTION_DETECTION_SYSTEM_PROMPT, HOLISTIC_INSIGHT_SYSTEM_PROMPT, INSIGHT_ELABORATION_SYSTEM_PROMPT, LIFE_AREA_SYSTEM_PROMPT } from '../utils/prompts'
 import type { Entry, EntryWithFollowUps, ConnectionResult } from '../types'
 
 export async function generateFollowUpQuestions(
@@ -265,6 +265,39 @@ export async function detectEmotionConfidence(
     return fallback
   } catch {
     return fallback
+  }
+}
+
+export async function classifyLifeArea(
+  storyContent: string,
+  existingAreas: string[],
+  apiKey: string
+): Promise<string | null> {
+  const userMessage = JSON.stringify({ story: storyContent, existingAreas })
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: LIFE_AREA_SYSTEM_PROMPT },
+          { role: 'user', content: userMessage },
+        ],
+        temperature: 0.3,
+      }),
+    })
+    if (!response.ok) return null
+    const data = (await response.json()) as { choices: Array<{ message: { content: string } }> }
+    const raw = data.choices[0]?.message?.content ?? 'null'
+    const parsed = JSON.parse(raw) as unknown
+    if (parsed !== null && typeof parsed === 'object' && 'life_area' in parsed) {
+      const area = (parsed as { life_area: unknown }).life_area
+      return typeof area === 'string' && area.length > 0 ? area : null
+    }
+    return null
+  } catch {
+    return null
   }
 }
 

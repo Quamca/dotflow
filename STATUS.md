@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-05-03
 **Current milestone:** M2.5 — Experience Depth (pre-M3)
-**Version:** 1.7
+**Version:** 1.8
 
 ---
 
@@ -17,14 +17,14 @@
 | 5 | US-207 | Emotion Intelligence per Story | P1 | ✅ Done |
 | 6 | US-210 | Contextual Follow-Up Between Lines | P1 | ✅ Done |
 | 7 | **US-205** | **Depth-Driven Adaptive Insights** | **P1** | **✅ Done** |
-| 8 | US-208 | Life Area Zones — Emergent Clusters | P1 | 📋 Planned |
+| 8 | US-208 | Life Area Zones — Emergent Clusters | P1 | ✅ Done |
 | 9 | US-204 | Contextual First-Use Hints | P2 | 📋 Planned |
 | 10 | US-209 | Typed Connection Visualization | P2 | 📋 Planned |
 | 11 | US-211 | Insight History Timeline | P2 | 📋 Planned |
 | 12 | US-212 | Interactive Connection Highlighting | P2 | 📋 Planned |
 | 13 | US-213 | Story Sequence Navigation | P2 | 📋 Planned |
 
-**7/13 complete (54%)**
+**8/13 complete (62%)**
 
 ---
 
@@ -38,19 +38,20 @@ M3 cannot begin until all P0/P1 M2.5 items are complete:
 - [x] US-210 — Contextual Follow-Up
 - [x] AI Communication Principles document
 - [x] **US-205** — Depth-Driven Adaptive Insights (P1) ✅
-- [ ] **US-208** — Life Area Zones (P1) ← next blocker
+- [x] **US-208** — Life Area Zones (P1) ✅
 
-US-204, US-209, US-211, US-212, US-213 (all P2) may follow the M3 gate — not blockers.
+**🎉 All M3 P0/P1 blockers resolved — M3 gate is CLEAR.**
+US-204, US-209, US-211, US-212, US-213 (all P2) may continue as desired before M3.
 
 ---
 
 ## Next Recommended US
 
-**US-208 — Life Area Zones — Emergent Clusters** (P1, FEATURE-019)
+**US-204 — Contextual First-Use Hints** (P2, FEATURE-013)
 
-After ~15 stories, AI detects thematic clusters and suggests hover-only zone labels in the 3D sky. Stories in the same area spatially cluster. Zones render as nebula/cloud overlays (very low opacity, ambient motion, no sharp boundaries). No default zones. Labels only on hover. Zones fade and reorganize dynamically. No preset categories.
+Three one-time contextual hints at the moment of first use: FollowUpDialog, ConnectionBadge, and black hole hover. Each hint persists in localStorage and is never shown again. API key warning banner updated to name specific missing features.
 
-Run `/planning` → agent will propose US-208.
+Run `/planning` → agent will propose US-204.
 
 ---
 

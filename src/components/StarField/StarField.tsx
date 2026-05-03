@@ -1,16 +1,25 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Line } from '@react-three/drei'
 import type { Entry, Connection, Story } from '../../types'
-import { getStarPosition, getAlignedStarPosition } from '../../utils/starPositions'
+import { getStarPosition, getAlignedStarPosition, getFixedZoneCentroid, getStoryPosition, getZoneLocalPosition } from '../../utils/starPositions'
+import { getEmotionColor } from '../../utils/emotionColors'
+import { useLifeAreaZones } from '../../hooks/useLifeAreaZones'
 import StarNode from './StarNode'
 import StoryNode from './StoryNode'
 import ConstellationLines from './ConstellationLines'
 import BlackHole from './BlackHole'
+import LifeAreaZone from './LifeAreaZone'
 
 const BLACK_HOLE_MIN_SIZE = 0.3
 const BLACK_HOLE_MAX_SIZE = 1.2
 const BLACK_HOLE_SCALE_AT = 50
+
+const CONTAINMENT_BUFFER = 0.25
+const SAFETY_MARGIN = 0.2
+const REPULSION_MARGIN = 0.4
+const ZONE_OVERLAP_MARGIN = 0.6
+const MIN_ZONE_RADIUS = 0.8
 
 interface StarFieldProps {
   entries: Entry[]
@@ -32,6 +41,50 @@ export default function StarField({
   hasUnreadInsight, depthScore, insightPreview, userValues,
   onEntryClick, onStoryClick, onBlackHoleClick, onInsightRead,
 }: StarFieldProps) {
+  const { getLabel, renameZone, clearZoneLabel, isLabelCleared } = useLifeAreaZones()
+  const [hoveredZoneArea, setHoveredZoneArea] = useState<string | null>(null)
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const zoneDistancesRef = useRef<Map<string, number>>(new Map())
+  const activeZoneRef = useRef<string | null>(null)
+
+  function activateNearestZone() {
+    let nearest: string | null = null
+    let minDist = Infinity
+    zoneDistancesRef.current.forEach((d, l) => { if (d < minDist) { minDist = d; nearest = l } })
+    if (activeZoneRef.current !== nearest) {
+      activeZoneRef.current = nearest
+      setHoveredZoneArea(nearest)
+    }
+  }
+
+  function handleZoneEnter(label: string, distance: number) {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
+    zoneDistancesRef.current.set(label, distance)
+    activateNearestZone()
+  }
+
+  function handleZoneMove(label: string, distance: number) {
+    const prev = zoneDistancesRef.current.get(label)
+    if (prev !== undefined && Math.abs(prev - distance) < 0.05) return
+    zoneDistancesRef.current.set(label, distance)
+    activateNearestZone()
+  }
+
+  function handleZoneLeave(label: string) {
+    zoneDistancesRef.current.delete(label)
+    if (zoneDistancesRef.current.size === 0) {
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
+      hoverTimerRef.current = setTimeout(() => {
+        if (zoneDistancesRef.current.size === 0) {
+          activeZoneRef.current = null
+          setHoveredZoneArea(null)
+        }
+      }, 350)
+    } else {
+      activateNearestZone()
+    }
+  }
+
   const positionMap = useMemo(() => {
     const map = new Map<string, [number, number, number]>()
     entries.forEach((e) => {
@@ -48,11 +101,119 @@ export default function StarField({
     return BLACK_HOLE_MIN_SIZE + t * (BLACK_HOLE_MAX_SIZE - BLACK_HOLE_MIN_SIZE)
   }, [entries.length])
 
-  const storyPositionMap = useMemo(() => {
-    const map = new Map<string, [number, number, number]>()
-    stories.forEach((s) => { if (s.position) map.set(s.id, s.position) })
-    return map
+  // Life areas with ≥5 stories — only these get a zone and spatial clustering bias
+  const activeAreas = useMemo(() => {
+    const counts = new Map<string, number>()
+    stories.forEach((s) => {
+      if (s.life_area) counts.set(s.life_area, (counts.get(s.life_area) ?? 0) + 1)
+    })
+    const active = new Set<string>()
+    counts.forEach((n, label) => { if (n >= 5) active.add(label) })
+    return active
   }, [stories])
+
+  const { storyPositionMap, activeZones } = useMemo(() => {
+    type ZoneSpec = { label: string; centroid: [number, number, number]; radius: number; color: string; storyCount: number }
+
+    // Pass 1 — zone stories: local-space position around fixed centroid (no origin bias)
+    const posMap = new Map<string, [number, number, number]>()
+    stories.forEach((s) => {
+      if (s.life_area && activeAreas.has(s.life_area)) {
+        const centroid = getFixedZoneCentroid(s.life_area)
+        posMap.set(s.id, getZoneLocalPosition(s.id, centroid))
+      } else {
+        posMap.set(s.id, getStoryPosition(s.id))
+      }
+    })
+
+    // Pass 2 — zone radii: maxDist + CONTAINMENT_BUFFER guarantees all stars inside
+    const raw: ZoneSpec[] = []
+    activeAreas.forEach((areaLabel) => {
+      const areaStories = stories.filter((s) => s.life_area === areaLabel)
+      const emotionCounts: Record<string, number> = {}
+      areaStories.forEach((s) => {
+        if (s.emotion) emotionCounts[s.emotion] = (emotionCounts[s.emotion] ?? 0) + 1
+      })
+      const dominant = Object.entries(emotionCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
+      const color = getEmotionColor(dominant)
+
+      const centroid = getFixedZoneCentroid(areaLabel)
+      const [cx, cy, cz] = centroid
+
+      let maxDist = 0
+      areaStories.forEach((s) => {
+        const p = posMap.get(s.id)
+        if (!p) return
+        const d = Math.sqrt((p[0] - cx) ** 2 + (p[1] - cy) ** 2 + (p[2] - cz) ** 2)
+        if (d > maxDist) maxDist = d
+      })
+
+      if (maxDist === 0) return
+      const rawRadius = Math.max(MIN_ZONE_RADIUS, maxDist + CONTAINMENT_BUFFER)
+      raw.push({ label: areaLabel, centroid, radius: rawRadius, color, storyCount: areaStories.length })
+    })
+
+    // Pass 3 — zone-zone overlap: more populated zone keeps its radius
+    const sorted = [...raw].sort((a, b) => b.storyCount - a.storyCount)
+    const placed: ZoneSpec[] = []
+    for (const zone of sorted) {
+      let r = zone.radius
+      for (const other of placed) {
+        const dx = zone.centroid[0] - other.centroid[0]
+        const dy = zone.centroid[1] - other.centroid[1]
+        const dz = zone.centroid[2] - other.centroid[2]
+        const d = Math.sqrt(dx * dx + dy * dy + dz * dz)
+        const excess = r + other.radius + ZONE_OVERLAP_MARGIN - d
+        if (excess > 0) r = Math.max(MIN_ZONE_RADIUS, r - excess)
+      }
+      if (r >= MIN_ZONE_RADIUS) placed.push({ ...zone, radius: r })
+    }
+
+    // Pass 3b — hard containment: clamp every zone star to radius − SAFETY_MARGIN
+    for (const zone of placed) {
+      const maxAllowed = zone.radius - SAFETY_MARGIN
+      const [cx, cy, cz] = zone.centroid
+      stories.forEach((s) => {
+        if (s.life_area !== zone.label) return
+        const p = posMap.get(s.id)
+        if (!p) return
+        const [px, py, pz] = p
+        const dx = px - cx
+        const dy = py - cy
+        const dz = pz - cz
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz)
+        if (dist > maxAllowed && dist > 0) {
+          const scale = maxAllowed / dist
+          posMap.set(s.id, [cx + dx * scale, cy + dy * scale, cz + dz * scale])
+        }
+      })
+    }
+
+    // Pass 4 — repel non-zone stories from all zone spheres
+    stories.forEach((s) => {
+      if (s.life_area && activeAreas.has(s.life_area)) return
+      const p = posMap.get(s.id)
+      if (!p) return
+      let [px, py, pz] = p
+      for (const zone of placed) {
+        const [cx, cy, cz] = zone.centroid
+        const dx = px - cx
+        const dy = py - cy
+        const dz = pz - cz
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz)
+        const minDist = zone.radius + REPULSION_MARGIN
+        if (dist < minDist && dist > 0) {
+          const scale = minDist / dist
+          px = cx + dx * scale
+          py = cy + dy * scale
+          pz = cz + dz * scale
+        }
+      }
+      posMap.set(s.id, [px, py, pz])
+    })
+
+    return { storyPositionMap: posMap, activeZones: placed }
+  }, [stories, activeAreas])
 
   const sessionLines = useMemo(() => {
     const grouped = new Map<string, Story[]>()
@@ -103,6 +264,9 @@ export default function StarField({
           position={storyPositionMap.get(story.id) ?? [0, 0, 0]}
           isInteractive={isInteractive}
           onOpenModal={isInteractive ? () => onStoryClick?.(story) : undefined}
+          zoneHighlight={
+            hoveredZoneArea !== null && story.life_area === hoveredZoneArea ? 'highlight' : undefined
+          }
         />
       ))}
       {sessionLines.map((line) => (
@@ -113,6 +277,23 @@ export default function StarField({
           lineWidth={0.5}
           transparent
           opacity={0.3}
+        />
+      ))}
+      {isInteractive && activeZones.map((zone) => (
+        <LifeAreaZone
+          key={zone.label}
+          label={zone.label}
+          centroid={zone.centroid}
+          radius={zone.radius}
+          color={zone.color}
+          isActive={zone.label === hoveredZoneArea}
+          isLabelCleared={isLabelCleared(zone.label)}
+          getLabel={getLabel}
+          onRename={(newLabel) => renameZone(zone.label, newLabel)}
+          onClear={() => clearZoneLabel(zone.label)}
+          onEnter={handleZoneEnter}
+          onLeave={handleZoneLeave}
+          onMove={handleZoneMove}
         />
       ))}
       <ConstellationLines connections={connections} positionMap={positionMap} />

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Html } from '@react-three/drei'
 import type { Story } from '../../types'
 import { getEmotionColor } from '../../utils/emotionColors'
@@ -8,23 +8,38 @@ interface StoryNodeProps {
   position: [number, number, number]
   isInteractive: boolean
   onOpenModal?: () => void
+  zoneHighlight?: 'highlight'
 }
 
+const DRAG_THRESHOLD_SQ = 25
 const STORY_STAR_SIZE = 0.06
 
-export default function StoryNode({ story, position, isInteractive, onOpenModal }: StoryNodeProps) {
+export default function StoryNode({ story, position, isInteractive, onOpenModal, zoneHighlight }: StoryNodeProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const pointerDownPos = useRef<{ x: number; y: number } | null>(null)
   const emotionColor = getEmotionColor(story.emotion)
   const color = isHovered ? '#1C1917' : emotionColor
+  const meshScale = zoneHighlight === 'highlight' ? 2.2 : 1
 
   const preview = story.content.length > 80 ? `${story.content.slice(0, 80)}…` : story.content
 
   return (
     <group position={position}>
       <mesh
+        scale={meshScale}
+        onPointerDown={isInteractive ? (e) => { pointerDownPos.current = { x: e.clientX, y: e.clientY } } : undefined}
         onPointerEnter={isInteractive ? (e) => { e.stopPropagation(); setIsHovered(true) } : undefined}
         onPointerLeave={isInteractive ? (e) => { e.stopPropagation(); setIsHovered(false) } : undefined}
-        onClick={isInteractive ? (e) => { e.stopPropagation(); onOpenModal?.() } : undefined}
+        onClick={isInteractive ? (e) => {
+          e.stopPropagation()
+          const pd = pointerDownPos.current
+          if (pd) {
+            const dx = e.clientX - pd.x
+            const dy = e.clientY - pd.y
+            if (dx * dx + dy * dy > DRAG_THRESHOLD_SQ) return
+          }
+          onOpenModal?.()
+        } : undefined}
       >
         <sphereGeometry args={[STORY_STAR_SIZE, 8, 8]} />
         <meshBasicMaterial color={color} />

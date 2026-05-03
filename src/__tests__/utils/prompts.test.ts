@@ -10,6 +10,7 @@ import {
   EMOTION_DETECTION_SYSTEM_PROMPT,
   HOLISTIC_INSIGHT_SYSTEM_PROMPT,
   INSIGHT_ELABORATION_SYSTEM_PROMPT,
+  LIFE_AREA_SYSTEM_PROMPT,
 } from '../../utils/prompts'
 
 describe('prompts', () => {
@@ -145,6 +146,33 @@ describe('prompts', () => {
 
     it('should forbid identity claims and advice', () => {
       expect(INSIGHT_ELABORATION_SYSTEM_PROMPT).toContain('Never identity claims')
+    })
+  })
+
+  // TC-208: LIFE_AREA_SYSTEM_PROMPT
+  describe('LIFE_AREA_SYSTEM_PROMPT', () => {
+    it('should require fully emergent labels derived from content', () => {
+      expect(LIFE_AREA_SYSTEM_PROMPT).toContain('emergent')
+    })
+
+    it('should instruct AI to return JSON object', () => {
+      expect(LIFE_AREA_SYSTEM_PROMPT).toContain('JSON object')
+    })
+
+    it('should include language instruction matching story language', () => {
+      expect(LIFE_AREA_SYSTEM_PROMPT).toContain('same language as the story')
+    })
+
+    it('should include null as valid return value', () => {
+      expect(LIFE_AREA_SYSTEM_PROMPT).toContain('null')
+    })
+
+    it('should forbid fixed category labels', () => {
+      expect(LIFE_AREA_SYSTEM_PROMPT).toContain('Forbidden labels')
+    })
+
+    it('should instruct AI to prefer matching existing areas when fit is genuine', () => {
+      expect(LIFE_AREA_SYSTEM_PROMPT).toContain('existingAreas')
     })
   })
 
