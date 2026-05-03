@@ -1,12 +1,39 @@
 # Dotflow - Requirements Documentation
 
-**Version:** 1.0
-**Date:** 2026-04-09
+**Version:** 2.0
+**Date:** 2026-05-03
 **Author:** Product Owner
-**Status:** Initial requirements
+**Status:** Updated after strategic session (2026-05-03)
 
 **Change Log:**
+- v2.0 — Product philosophy added; FR-015 expanded; FR-017–019 added (insight history, connection highlighting, story navigation)
 - v1.0 — Initial requirements from kickoff session
+
+---
+
+## 0. Product Philosophy
+
+### 0.1 Global Product Principle
+
+> **"Dotflow observes written stories, not the person."**
+
+This principle is the overriding constraint for every AI-generated observation, UI copy, and feature design decision.
+
+- All AI observations must be **observational**, **temporal**, and **story-based**
+- Forbidden framing: *"you are"*, *"your personality"*, *"you tend to"*, *"you always"*
+- Preferred framing: *"this theme appears"*, *"in recent stories"*, *"this topic returns"*, *"recent entries revolve around"*
+- No permanent profiles, no persistent labels, no psychological scoring visible to the user
+
+See `docs/ai_communication_principles.md` for the full language specification.
+
+### 0.2 Ambient Reflection Principle
+
+Every layer of the system must feel like a subtle reflection space — not an analytical dashboard.
+
+- Minimize visible labels and permanent classifications
+- Avoid persistent data that feels like psychological profiling
+- UI must not resemble mental health tracking apps or behavioral assessment tools
+- Elements should breathe, fade, and reorganize naturally — not freeze into a fixed map of the user
 
 ---
 
@@ -342,14 +369,26 @@ AI detects emotion and confidence score for each story. Both high-confidence (>8
 **Priority:** SHOULD HAVE (M2.5 P1)
 
 **Description:**
-Life area zones emerge organically from accumulated stories. No default zones (no preset "Praca", "Rodzina", "Zdrowie"). After ~15 stories, clusters of thematically related stories become visible as subtle ambient glows. AI suggests a zone label shown only on hover. User can rename or clear labels. Areas the user never writes about are never shown as empty zones.
+Life area zones emerge organically from accumulated stories. No default zones (no preset "Praca", "Rodzina", "Zdrowie"). After ~15 stories, clusters of thematically related stories become visible as subtle ambient overlays. Stories remain the foreground — zones are always secondary, ambient, and soft. Zones dynamically change, fade, and reorganize as themes evolve.
+
+**Visual treatment (Ambient Reflection Principle):**
+- Stories from the same emergent area are spatially clustered in 3D space
+- Clusters render as nebula/cloud-style overlays: very low opacity, soft gradients, gentle ambient motion
+- No sharp boundaries, no legends, no percentages, no always-visible labels
+- Zone labels appear only on hover
+- Zones breathe and dissolve when themes stop returning — no fixed stable map layout, no permanent boundaries
 
 **Acceptance Criteria:**
 - No preset life area zones — all zones are emergent from content
 - Zones appear only when a cluster has ≥5 stories in the same area
+- Stories in the same emergent area spatially cluster in 3D space
+- Zone visual: nebula/cloud overlay, very low opacity, soft gradient, subtle ambient motion
+- No sharp zone boundaries, no legend panel, no percentage or count display
 - Zone label visible only on hover — not shown by default
 - User can rename or clear any zone label
 - Absent life areas are never shown as empty zones
+- Zones fade and reorganize when the cluster's stories stop returning
+- Forbidden: fixed stable map layout, permanent zone boundaries, preset category list (no "Praca", "Rodzina", "Zdrowie")
 - Zone labels stored in localStorage (user-controlled)
 
 **Related User Stories:** US-208
@@ -373,6 +412,88 @@ Constellation lines between connected stories are visually differentiated by con
 - No psychological framework labels visible to user
 
 **Related User Stories:** US-209
+
+---
+
+### FR-017: Insight History Timeline
+
+**Priority:** SHOULD HAVE (M2.5 P2)
+
+**Description:**
+A chronological list of past holistic insights — presented as "noticed reflection moments", not an archive of truths about the user. Each insight is temporally anchored. The history is collapsible and scoped to a time window ("last 30 days", "since last insight"). No permanent profile summary.
+
+**AI Language Constraints (see `docs/ai_communication_principles.md` section 8):**
+- Every insight in history must carry a temporal anchor: *"recently"*, *"in recent stories"*, *"lately"*
+- Forbidden: confidence scores, permanent emotional profile, identity labels, summaries-of-summaries
+- History format: date + 1–2 sentences only
+
+**UX Constraints (Ambient Reflection Principle):**
+- History is minimalist — date + short observation
+- No dashboard, no analytics panel, no "recurring themes" permanent sidebar
+- No meta-summary that looks like a psychological profile
+- History is collapsible and secondary to the sky view
+
+**Acceptance Criteria:**
+- Past insights stored with timestamp when generated
+- Insight history view: chronological list, newest first
+- Each entry: date label + 1–2 sentence insight text
+- All insight text uses temporal framing ("lately...", "in recent stories...", "recently...")
+- History is collapsible — not always visible
+- No permanent pinned profile summary
+- No confidence scores, no scoring, no permanent emotional profile
+- Forbidden: dashboard feeling, profiling UI, labels that imply permanence
+
+**Related User Stories:** US-211
+
+---
+
+### FR-018: Interactive Connection Highlighting
+
+**Priority:** SHOULD HAVE (M2.5 P2)
+
+**Description:**
+Hovering a story star in 3D mode highlights only the direct connections of that story (optionally up to 2 levels). The rest of the sky subtly fades. Connection lines appear to emerge from darkness. Animations are fast and subtle. The purpose is to support noticing patterns — not analytical graph exploration.
+
+**UX Constraints (Ambient Reflection Principle):**
+- Animations: fast and subtle — no aggressive pulsing
+- Lines emerge from darkness, don't pop or flash
+- The rest of the sky fades subtly, not completely — other stars remain visible but recede
+- Forbidden: permanent active graph state, full graph reveal on hover, labeled connection panels
+
+**Acceptance Criteria:**
+- Hover on story star: direct connections of that star become visually prominent
+- Optional: up to 2 levels of relationships highlighted (2nd-degree connections at lower opacity)
+- Non-connected stars: subtle fade-out (remain visible but recede)
+- Connection lines: animate in as emerging from darkness (no abrupt appearance)
+- Animations: fast (< 200ms), subtle — no pulsing, no blinking
+- State resets immediately on mouse leave
+- Forbidden: permanent active graph state, full graph reveal, labeled panels
+
+**Related User Stories:** US-212
+
+---
+
+### FR-019: Story Sequence Navigation
+
+**Priority:** COULD HAVE (M2.5 P2)
+
+**Description:**
+In the story modal, subtle navigation arrows allow moving between stories from the same entry. Arrows are small, secondary, and visible only within the modal. The purpose is to maintain narrative continuity without turning the UX into a slideshow.
+
+**UX Constraints (Ambient Reflection Principle):**
+- Stars remain autonomous memory fragments — navigation only subtly hints at shared origin
+- Arrows are small and secondary — not primary navigation UI
+- Forbidden: pagination indicators ("2/5"), swipe/slideshow UX, auto-next, chapter-style framing
+
+**Acceptance Criteria:**
+- Story modal shows left/right arrows only when the story has siblings (other stories from the same entry)
+- Arrows are small, visually secondary (not primary CTA style)
+- Clicking arrow navigates to the previous/next story from the same entry
+- No pagination indicator (no "2 of 5")
+- No swipe gesture, no auto-advance
+- Arrows visible only inside modal context — never in the 3D sky itself
+
+**Related User Stories:** US-213
 
 ---
 

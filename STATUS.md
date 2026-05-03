@@ -20,8 +20,11 @@
 | 8 | US-208 | Life Area Zones — Emergent Clusters | P1 | 📋 Planned |
 | 9 | US-204 | Contextual First-Use Hints | P2 | 📋 Planned |
 | 10 | US-209 | Typed Connection Visualization | P2 | 📋 Planned |
+| 11 | US-211 | Insight History Timeline | P2 | 📋 Planned |
+| 12 | US-212 | Interactive Connection Highlighting | P2 | 📋 Planned |
+| 13 | US-213 | Story Sequence Navigation | P2 | 📋 Planned |
 
-**7/10 complete (70%)**
+**7/13 complete (54%)**
 
 ---
 
@@ -37,7 +40,7 @@ M3 cannot begin until all P0/P1 M2.5 items are complete:
 - [x] **US-205** — Depth-Driven Adaptive Insights (P1) ✅
 - [ ] **US-208** — Life Area Zones (P1) ← next blocker
 
-US-204 (P2) and US-209 (P2) may follow the M3 gate — not blockers.
+US-204, US-209, US-211, US-212, US-213 (all P2) may follow the M3 gate — not blockers.
 
 ---
 
@@ -45,7 +48,7 @@ US-204 (P2) and US-209 (P2) may follow the M3 gate — not blockers.
 
 **US-208 — Life Area Zones — Emergent Clusters** (P1, FEATURE-019)
 
-After ~15 stories, AI detects thematic clusters and suggests hover-only zone labels in the 3D sky. User can rename or clear a label. No default zones. Zones only emerge when cluster has ≥5 stories in the same area. No preset "Praca", "Rodzina" etc.
+After ~15 stories, AI detects thematic clusters and suggests hover-only zone labels in the 3D sky. Stories in the same area spatially cluster. Zones render as nebula/cloud overlays (very low opacity, ambient motion, no sharp boundaries). No default zones. Labels only on hover. Zones fade and reorganize dynamically. No preset categories.
 
 Run `/planning` → agent will propose US-208.
 

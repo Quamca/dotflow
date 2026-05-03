@@ -1,8 +1,8 @@
 # Dotflow — Active Backlog (M2.5)
 
 **Project:** Dotflow
-**Version:** 1.6
-**Last Updated:** 2026-05-02
+**Version:** 1.7
+**Last Updated:** 2026-05-03
 **Product Owner:** Quamca
 **Repository:** https://github.com/Quamca/dotflow
 
@@ -62,36 +62,41 @@ Default life area zones create a surveillance feeling — "you haven't written a
 ### US-208: Life Area Zones — Emergent Clusters
 
 **Description:**
-After ~15 stories, AI detects thematic clusters and suggests hover-only zone labels. User can rename or clear a label. No default zones. No visualization of absent life areas.
+After ~15 stories, AI detects thematic clusters and suggests hover-only zone labels. User can rename or clear a label. No default zones. No visualization of absent life areas. Stories are always the foreground — zones are ambient, secondary, and dynamic.
 
 **As a** user
 **I want** my sky to naturally group into areas of my life
 **So that** I see my actual patterns — not a template of what I should be writing about
 
 **Status:** 📋 Planned
-**Story Points:** 8
+**Story Points:** 13
 **Priority:** P1
 
 **Acceptance Criteria:**
 - [ ] `aiService.classifyLifeArea(storyContent, existingAreas, apiKey)` assigns a life area label to each story (or null if unclear)
 - [ ] Life area stored in `stories.life_area` field
-- [ ] Zone clusters rendered in 3D as subtle ambient glows grouping nearby story stars
+- [ ] Stories from the same emergent area are spatially clustered in 3D space (position bias toward cluster centroid)
+- [ ] Zone visual: nebula/cloud overlay with very low opacity, soft gradient, subtle ambient motion — NOT a solid colored region
 - [ ] Zone label appears only on hover — not visible by default
 - [ ] User can rename a zone label (stored in localStorage)
 - [ ] User can clear a zone label (zone disappears without label)
 - [ ] Zones only emerge when cluster has ≥5 stories in the same area
 - [ ] No placeholder / empty zones for life areas the user never writes about
-- [ ] Zones are fully emergent — no preset list (no "Praca", "Rodzina", etc.)
+- [ ] Zones are fully emergent — no preset list (no "Praca", "Rodzina", "Zdrowie")
+- [ ] Zones fade and reorganize dynamically when cluster themes stop returning
+- [ ] Forbidden: fixed stable map layout, permanent zone boundaries, sharp edges, legend panel, percentage or count display
 
 **Tasks:**
 - [ ] **TASK-208.1:** Implement `aiService.classifyLifeArea(storyContent, existingAreas, apiKey)` - 45min
 - [ ] **TASK-208.2:** Add life area prompt to `src/utils/prompts.ts` - 20min
 - [ ] **TASK-208.3:** Implement zone cluster detection from `stories.life_area` values — group stories, compute cluster centroid - 40min
-- [ ] **TASK-208.4:** Render zone ambient glow in StarField (visible only when cluster ≥5 stories) - 45min
-- [ ] **TASK-208.5:** Add hover-only label rendering per zone cluster - 20min
-- [ ] **TASK-208.6:** Create `useLifeAreaZones.ts` hook — manages labels + user renames in localStorage - 30min
-- [ ] **TASK-208.7:** Write tests (/qa) - 45min
-- [ ] **TASK-208.8:** Manual verification - 20min
+- [ ] **TASK-208.4:** Apply spatial clustering bias to story positions within the same zone - 30min
+- [ ] **TASK-208.5:** Render zone nebula/cloud overlay in StarField (very low opacity, soft gradient, ambient motion) - 60min
+- [ ] **TASK-208.6:** Add hover-only label rendering per zone cluster - 20min
+- [ ] **TASK-208.7:** Create `useLifeAreaZones.ts` hook — manages labels + user renames in localStorage - 30min
+- [ ] **TASK-208.8:** Implement zone fade/reorganize when cluster becomes inactive - 30min
+- [ ] **TASK-208.9:** Write tests (/qa) - 45min
+- [ ] **TASK-208.10:** Manual verification - 20min
 
 ---
 
@@ -196,6 +201,138 @@ Add visual type differentiation to constellation lines between connected stories
 - [ ] **TASK-209.6:** Persist filter state in localStorage via `useConnectionFilter.ts` hook - 20min
 - [ ] **TASK-209.7:** Write tests (/qa) - 45min
 - [ ] **TASK-209.8:** Manual verification - 20min
+
+---
+
+---
+
+## 🔧 FEATURE-021: Insight History Timeline
+
+**Description:**
+A minimalist chronological history of past holistic insights — presented as "noticed reflection moments", not a psychological profile. Each insight is temporally anchored to the period it was generated. Collapsible, scoped to a time window. No permanent profile summary.
+
+**UX Constraint:** History must feel like a journal of reflections, not a dashboard of patterns. Date + 1–2 sentences per entry only. No dashboard feeling.
+
+**Priority:** P2
+**Status:** 📋 Planned
+
+---
+
+### US-211: Insight History Timeline
+
+**Description:**
+Store past holistic insights with timestamps. Show a collapsible history view: chronological list, newest first, each entry showing date + 1–2 sentence insight with temporal framing. No permanent pinned summary. No profiling UI.
+
+**As a** user
+**I want** to look back at what patterns Dotflow noticed over time
+**So that** I can see how my reflective patterns have shifted — without it feeling like a permanent diagnosis
+
+**Status:** 📋 Planned
+**Story Points:** 5
+**Priority:** P2
+
+**Acceptance Criteria:**
+- [ ] Past holistic insights stored in localStorage with timestamp on generation
+- [ ] Insight history view available from black hole InsightModal (collapsible section)
+- [ ] Format: date label + 1–2 sentence insight text, newest first
+- [ ] All insight text uses temporal framing ("lately...", "in recent stories...", "in this period...")
+- [ ] History is collapsible — not always expanded
+- [ ] No permanent pinned profile summary
+- [ ] Forbidden: confidence scores, scoring, permanent emotional profile, identity labels, dashboard UI
+
+**Tasks:**
+- [ ] **TASK-211.1:** Save holistic insights to localStorage history (key: `dotflow_insight_history`, array of `{text, timestamp}`) on generation - 20min
+- [ ] **TASK-211.2:** Add collapsible "Historia refleksji" section to InsightModal - 30min
+- [ ] **TASK-211.3:** Render history list: date + text, newest first, max 20 entries - 30min
+- [ ] **TASK-211.4:** Write tests (/qa) - 30min
+- [ ] **TASK-211.5:** Manual verification - 15min
+
+---
+
+## 🔧 FEATURE-022: Interactive Connection Highlighting
+
+**Description:**
+Hovering a story star highlights only its direct connections. The rest of the sky subtly fades. Lines emerge from darkness. Fast, subtle animations. Supports noticing patterns — not analytical graph exploration.
+
+**UX Constraint:** No permanent active graph state. Highlighting resets immediately on mouse leave. Animations must be fast and non-aggressive.
+
+**Priority:** P2
+**Status:** 📋 Planned
+
+---
+
+### US-212: Interactive Connection Highlighting
+
+**Description:**
+When the user hovers a story star, only the direct connections of that star (and optionally up to 2 levels) become visually prominent. The remaining sky fades subtly. Connection lines animate in as emerging from darkness.
+
+**As a** user
+**I want** to see which stories connect to the one I'm hovering
+**So that** I can notice patterns without needing to analyze the full graph
+
+**Status:** 📋 Planned
+**Story Points:** 5
+**Priority:** P2
+
+**Acceptance Criteria:**
+- [ ] Hover on story star: direct connections of that star visually prominent
+- [ ] Optional: up to 2 levels of relationships highlighted (2nd-degree at lower opacity)
+- [ ] Non-connected stars: subtle fade-out (remain visible but visually recede)
+- [ ] Connection lines animate in as emerging from darkness (opacity transition, < 200ms)
+- [ ] Animations: fast (< 200ms), subtle — no pulsing, no blinking
+- [ ] State resets immediately on mouse leave
+- [ ] Forbidden: permanent active graph state, full graph reveal, labeled connection panels
+
+**Tasks:**
+- [ ] **TASK-212.1:** Add `hoveredStoryId` state to StarField — propagated to all StoryNode and ConstellationLines components - 20min
+- [ ] **TASK-212.2:** StoryNode: fade non-connected stars when `hoveredStoryId` is active - 30min
+- [ ] **TASK-212.3:** ConstellationLines: highlight direct connections of hovered star; fade others - 30min
+- [ ] **TASK-212.4:** Connection lines: opacity transition animation (emerge from darkness) - 20min
+- [ ] **TASK-212.5:** Write tests (/qa) - 30min
+- [ ] **TASK-212.6:** Manual verification - 15min
+
+---
+
+## 🔧 FEATURE-023: Story Sequence Navigation
+
+**Description:**
+Subtle arrows in the story modal allow navigating between stories from the same entry. Maintains narrative continuity. Stars remain autonomous memory fragments — arrows only hint at shared origin.
+
+**UX Constraint:** Small, secondary arrows. No pagination indicators. No slideshow. No auto-next.
+
+**Priority:** P2
+**Status:** 📋 Planned
+
+---
+
+### US-213: Story Sequence Navigation
+
+**Description:**
+Story modal shows small navigation arrows when the story has siblings (other stories from the same entry). Clicking navigates to the adjacent story. No "2/5" indicator, no swipe.
+
+**As a** user
+**I want** to move between stories from the same entry
+**So that** I can follow the narrative of what I wrote without losing my place in the sky
+
+**Status:** 📋 Planned
+**Story Points:** 3
+**Priority:** P2
+
+**Acceptance Criteria:**
+- [ ] Story modal detects sibling stories (same `entry_id`) from the loaded stories list
+- [ ] Left/right arrows rendered in modal — small, visually secondary (not primary CTA)
+- [ ] Arrows visible only when siblings exist
+- [ ] Clicking arrow navigates to previous/next sibling story
+- [ ] No pagination indicator ("2 of 5")
+- [ ] No swipe gesture, no auto-advance, no chapter framing
+- [ ] Arrows visible only inside modal — not in 3D sky
+
+**Tasks:**
+- [ ] **TASK-213.1:** StoryModal receives sibling stories as prop (or fetches via `getStoriesForEntry`) - 20min
+- [ ] **TASK-213.2:** Add small prev/next arrow buttons to StoryModal (conditional render) - 25min
+- [ ] **TASK-213.3:** Implement story switching within modal (update displayed story, no re-render of sky) - 20min
+- [ ] **TASK-213.4:** Write tests (/qa) - 25min
+- [ ] **TASK-213.5:** Manual verification - 15min
 
 ---
 
