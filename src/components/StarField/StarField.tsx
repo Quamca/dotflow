@@ -44,16 +44,45 @@ export default function StarField({
   const { getLabel, renameZone, clearZoneLabel, isLabelCleared } = useLifeAreaZones()
   const [hoveredZoneArea, setHoveredZoneArea] = useState<string | null>(null)
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const zoneDistancesRef = useRef<Map<string, number>>(new Map())
+  const activeZoneRef = useRef<string | null>(null)
 
-  function handleZoneEnter(zoneLabel: string) {
-    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
-    setHoveredZoneArea(zoneLabel)
+  function activateNearestZone() {
+    let nearest: string | null = null
+    let minDist = Infinity
+    zoneDistancesRef.current.forEach((d, l) => { if (d < minDist) { minDist = d; nearest = l } })
+    if (activeZoneRef.current !== nearest) {
+      activeZoneRef.current = nearest
+      setHoveredZoneArea(nearest)
+    }
   }
 
-  function handleZoneLeave(zoneLabel: string) {
-    hoverTimerRef.current = setTimeout(() => {
-      setHoveredZoneArea((current) => current === zoneLabel ? null : current)
-    }, 350)
+  function handleZoneEnter(label: string, distance: number) {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
+    zoneDistancesRef.current.set(label, distance)
+    activateNearestZone()
+  }
+
+  function handleZoneMove(label: string, distance: number) {
+    const prev = zoneDistancesRef.current.get(label)
+    if (prev !== undefined && Math.abs(prev - distance) < 0.05) return
+    zoneDistancesRef.current.set(label, distance)
+    activateNearestZone()
+  }
+
+  function handleZoneLeave(label: string) {
+    zoneDistancesRef.current.delete(label)
+    if (zoneDistancesRef.current.size === 0) {
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
+      hoverTimerRef.current = setTimeout(() => {
+        if (zoneDistancesRef.current.size === 0) {
+          activeZoneRef.current = null
+          setHoveredZoneArea(null)
+        }
+      }, 350)
+    } else {
+      activateNearestZone()
+    }
   }
 
   const positionMap = useMemo(() => {
@@ -263,6 +292,7 @@ export default function StarField({
           onClear={() => clearZoneLabel(zone.label)}
           onEnter={handleZoneEnter}
           onLeave={handleZoneLeave}
+          onMove={handleZoneMove}
         />
       ))}
       <ConstellationLines connections={connections} positionMap={positionMap} />

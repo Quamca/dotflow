@@ -12,14 +12,15 @@ interface LifeAreaZoneProps {
   onRename: (newLabel: string) => void
   onClear: () => void
   getLabel: (aiLabel: string) => string
-  onEnter: (label: string) => void
+  onEnter: (label: string, distance: number) => void
   onLeave: (label: string) => void
+  onMove: (label: string, distance: number) => void
 }
 
 const KEEP_OPEN_MS = 350
 
 export default function LifeAreaZone({
-  label, centroid, radius, color, isLabelCleared, onRename, onClear, getLabel, onEnter, onLeave,
+  label, centroid, radius, color, isLabelCleared, onRename, onClear, getLabel, onEnter, onLeave, onMove,
 }: LifeAreaZoneProps) {
   const visualMeshRef = useRef<Mesh>(null)
   const [isZoneHovered, setIsZoneHovered] = useState(false)
@@ -40,13 +41,6 @@ export default function LifeAreaZone({
     timerRef.current = setTimeout(() => setKeepOpen(false), KEEP_OPEN_MS)
   }
 
-  function handleZoneEnter() {
-    clearTimer()
-    setIsZoneHovered(true)
-    setKeepOpen(true)
-    onEnter(label)
-  }
-
   function handleZoneLeave() {
     setIsZoneHovered(false)
     if (!isLabelHovered) scheduleClose()
@@ -57,7 +51,7 @@ export default function LifeAreaZone({
     clearTimer()
     setIsLabelHovered(true)
     setKeepOpen(true)
-    onEnter(label)
+    onEnter(label, 0)  // label hover = distance 0, always wins depth ordering
   }
 
   function handleLabelLeave() {
@@ -100,8 +94,14 @@ export default function LifeAreaZone({
     <group position={centroid}>
       {/* Invisible hit detection mesh — fixed scale, drives hover events */}
       <mesh
-        onPointerEnter={handleZoneEnter}
+        onPointerEnter={(e) => {
+          clearTimer()
+          setIsZoneHovered(true)
+          setKeepOpen(true)
+          onEnter(label, e.distance)
+        }}
         onPointerLeave={handleZoneLeave}
+        onPointerMove={(e) => onMove(label, e.distance)}
       >
         <sphereGeometry args={[radius, 16, 16]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
