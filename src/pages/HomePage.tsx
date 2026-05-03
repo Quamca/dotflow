@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSettings } from '../hooks/useSettings'
 import { useUserValues } from '../hooks/useUserValues'
 import { getEntries, getConnectionsForEntry } from '../services/entryService'
-import { getAllStories } from '../services/storyService'
-import { generatePatternSummary, extractUserValues } from '../services/aiService'
+import { getAllStories, updateStoryLifeArea } from '../services/storyService'
+import { generatePatternSummary, extractUserValues, classifyLifeArea } from '../services/aiService'
 import { STORAGE_KEYS, ACCUMULATOR_CONFIG, DEPTH_SCORE_CONFIG } from '../utils/insightConfig'
 import EntryCard from '../components/EntryCard/EntryCard'
 import ConnectionBadge from '../components/ConnectionBadge/ConnectionBadge'
@@ -150,6 +150,40 @@ export default function HomePage() {
       ? 'Ten temat pojawia się kolejny raz — coś w nim jest ważnego.'
       : 'Tym razem inaczej — coś się zdaje zmieniać.'
   }, [entries, connections])
+
+  // Keep a ref so the backfill closure always reads fresh stories without triggering re-renders
+  const storiesRef = useRef(stories)
+  useEffect(() => { storiesRef.current = stories }, [stories])
+  const isClassifyingRef = useRef(false)
+
+  useEffect(() => {
+    if (!isStarFieldActive || !apiKey || isClassifyingRef.current) return
+    const unclassified = storiesRef.current.filter((s) => s.life_area === null)
+    if (unclassified.length === 0) return
+
+    isClassifyingRef.current = true
+    const currentAreas: string[] = [...new Set(
+      storiesRef.current.map((s) => s.life_area).filter((a): a is string => a !== null)
+    )]
+
+    async function backfill() {
+      for (const story of unclassified) {
+        try {
+          const area = await classifyLifeArea(story.content, currentAreas, apiKey!)
+          if (area) {
+            await updateStoryLifeArea(story.id, area)
+            if (!currentAreas.includes(area)) currentAreas.push(area)
+            setStories((prev) => prev.map((s) => s.id === story.id ? { ...s, life_area: area } : s))
+          }
+        } catch {
+          // per-story failure is non-fatal
+        }
+      }
+      isClassifyingRef.current = false
+    }
+
+    void backfill()
+  }, [isStarFieldActive, apiKey])
 
   function handleInsightRead() {
     localStorage.removeItem(STORAGE_KEYS.HOLISTIC_INSIGHT_UNREAD)
