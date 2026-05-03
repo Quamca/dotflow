@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { saveStories, getStoriesForEntry, getAllStories, addElaboration, updateStoryEmotion, getRecentStories } from '../../services/storyService'
+import { saveStories, getStoriesForEntry, getAllStories, addElaboration, updateStoryEmotion, getRecentStories, updateStoryLifeArea } from '../../services/storyService'
 import { supabase } from '../../lib/supabase'
 import type { Story } from '../../types'
 
@@ -237,6 +237,41 @@ describe('storyService', () => {
       } as ReturnType<typeof supabase.from>)
 
       await expect(getRecentStories('entry-uuid-1', 3)).rejects.toThrow('Fetch failed')
+    })
+  })
+
+  // TC-208: updateStoryLifeArea
+  describe('updateStoryLifeArea', () => {
+    it('should call Supabase update with correct life_area value', async () => {
+      // Arrange
+      const updateMock = vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ error: null }),
+      })
+      vi.mocked(supabase.from).mockReturnValue({
+        update: updateMock,
+      } as ReturnType<typeof supabase.from>)
+
+      // Act
+      await updateStoryLifeArea('story-uuid-1', 'nowa rola')
+
+      // Assert
+      expect(supabase.from).toHaveBeenCalledWith('stories')
+      const updateArg = updateMock.mock.calls[0][0] as { life_area: string }
+      expect(updateArg.life_area).toBe('nowa rola')
+    })
+
+    it('should throw when Supabase update returns error', async () => {
+      // Arrange
+      vi.mocked(supabase.from).mockReturnValue({
+        update: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ error: { message: 'Update failed' } }),
+        }),
+      } as ReturnType<typeof supabase.from>)
+
+      // Act & Assert
+      await expect(
+        updateStoryLifeArea('story-uuid-1', 'nowa rola')
+      ).rejects.toThrow('Update failed')
     })
   })
 
