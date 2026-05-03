@@ -114,7 +114,7 @@ export default function LifeAreaZone({
         <meshBasicMaterial
           color={color}
           transparent
-          opacity={isZoneHovered ? 0.12 : 0.07}
+          opacity={isActive ? 0.12 : 0.07}
           depthWrite={false}
         />
       </mesh>
