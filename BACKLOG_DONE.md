@@ -372,4 +372,54 @@ Replace fixed-milestone insight triggers with a continuous reflection depth accu
 
 ---
 
+---
+
+## 🔧 FEATURE-019: Life Area Zones ✅ Completed
+
+### US-208: Life Area Zones — Emergent Clusters ✅ COMPLETED
+
+**Status:** ✅ Completed | **Story Points:** 13 | **Priority:** P1
+
+**Description:**
+After ~15 stories, AI detects thematic clusters and suggests hover-only zone labels in the 3D sky. Stories in the same area spatially cluster. Zones render as nebula/cloud overlays (very low opacity, ambient motion, no sharp boundaries). No default zones. Labels only on hover. Zones fade and reorganize dynamically. No preset categories.
+
+**Acceptance Criteria:**
+- [x] `aiService.classifyLifeArea(storyContent, existingAreas, apiKey)` assigns a life area label to each story (or null if unclear)
+- [x] Life area stored in `stories.life_area` field
+- [x] Stories from the same emergent area are spatially clustered in 3D space
+- [x] Zone visual: nebula/cloud overlay with very low opacity, soft gradient, subtle ambient motion
+- [x] Zone label appears only on hover — not visible by default
+- [x] User can rename a zone label (stored in localStorage)
+- [x] User can clear a zone label (zone disappears without label)
+- [x] Zones only emerge when cluster has ≥5 stories in the same area
+- [x] No placeholder / empty zones for life areas the user never writes about
+- [x] Zones are fully emergent — no preset list (no "Praca", "Rodzina", "Zdrowie")
+- [x] Forbidden: fixed stable map layout, permanent zone boundaries, sharp edges, legend panel, percentage or count display
+
+**Tasks:**
+- [x] **TASK-208.1:** Implement `aiService.classifyLifeArea(storyContent, existingAreas, apiKey)`
+- [x] **TASK-208.2:** Add `LIFE_AREA_SYSTEM_PROMPT` to `src/utils/prompts.ts`
+- [x] **TASK-208.3:** Zone cluster detection from `stories.life_area` — group stories, compute centroid
+- [x] **TASK-208.4:** `getZoneLocalPosition()` + `getFixedZoneCentroid()` in `starPositions.ts` — local-space clustering, no near-side bias
+- [x] **TASK-208.5:** `LifeAreaZone.tsx` — nebula sphere mesh (low opacity, ambient motion, invisible hit mesh)
+- [x] **TASK-208.6:** Hover-only label rendering per zone (depth-priority: nearest zone wins)
+- [x] **TASK-208.7:** `useLifeAreaZones.ts` hook — label persistence + user renames in localStorage
+- [x] **TASK-208.8:** Hard containment invariant: zone stars clamped to `radius − 0.2` (Pass 3b in StarField useMemo)
+- [x] **TASK-208.9:** Write tests (/qa)
+- [x] **TASK-208.10:** Manual verification
+
+**Implementation notes:**
+- Depth-priority hover: `zoneDistancesRef` Map tracks `e.distance` per zone; `activateNearestZone()` picks minimum — prevents back zone activating through front zone
+- Local-space zone positioning: `getZoneLocalPosition(storyId, centroid)` uses seed offsets +5000/+6000/+7000 (independent from `getStoryPosition`) — no near-side bias toward black hole
+- Fixed zone centroids: `getFixedZoneCentroid(label)` derived purely from label string hash, placed at `ZONE_CENTROID_RADIUS=6.0` from origin — stable regardless of story positions
+- Pass 3b hard clamp: after zone-zone overlap resolution reduces radii, all zone stars are clamped to `radius − SAFETY_MARGIN (0.2)` to enforce containment invariant
+- `isActive` prop on `LifeAreaZone` gates label visibility, visual opacity, and zone highlighting — not raw local `isZoneHovered`
+- `onPointerMove: stopPropagation` removed from zone hit mesh — star tooltips use independent raycast path
+- Zone label `handleLabelEnter` passes `distance=0` so hovered label always beats 3D mesh in distance comparison
+- Drag threshold on StarNode, StoryNode, BlackHole: 5px (`DRAG_THRESHOLD_SQ=25`) prevents modal open after scene drag
+- Zone emotion color: derived from dominant emotion in cluster stories using `getEmotionColor()`
+- `useLifeAreaZones`: localStorage key `dotflow_zone_labels`, JSON `Record<aiLabel, customLabel>`, empty string = cleared
+
+---
+
 *This file is an archive. For active work see [BACKLOG.md](BACKLOG.md).*

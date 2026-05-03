@@ -30,7 +30,7 @@
 | M2.5 | Experience Depth (pre-M3) | 🔄 In Progress (7/10 done) |
 | M3 | Multi-User + Mobile | ⏸️ Blocked — M2.5 P0/P1 must complete first |
 
-> **M3 Blockers remaining:** US-208 (Life Area Zones, P1). US-204 (P2) and US-209 (P2) are not M3 blockers.
+> **M3 Blockers remaining:** None — all P0/P1 items complete. 🎉 M3 gate is CLEAR.
 
 ---
 
@@ -68,35 +68,35 @@ After ~15 stories, AI detects thematic clusters and suggests hover-only zone lab
 **I want** my sky to naturally group into areas of my life
 **So that** I see my actual patterns — not a template of what I should be writing about
 
-**Status:** 📋 Planned
+**Status:** ✅ COMPLETED
 **Story Points:** 13
 **Priority:** P1
 
 **Acceptance Criteria:**
-- [ ] `aiService.classifyLifeArea(storyContent, existingAreas, apiKey)` assigns a life area label to each story (or null if unclear)
-- [ ] Life area stored in `stories.life_area` field
-- [ ] Stories from the same emergent area are spatially clustered in 3D space (position bias toward cluster centroid)
-- [ ] Zone visual: nebula/cloud overlay with very low opacity, soft gradient, subtle ambient motion — NOT a solid colored region
-- [ ] Zone label appears only on hover — not visible by default
-- [ ] User can rename a zone label (stored in localStorage)
-- [ ] User can clear a zone label (zone disappears without label)
-- [ ] Zones only emerge when cluster has ≥5 stories in the same area
-- [ ] No placeholder / empty zones for life areas the user never writes about
-- [ ] Zones are fully emergent — no preset list (no "Praca", "Rodzina", "Zdrowie")
-- [ ] Zones fade and reorganize dynamically when cluster themes stop returning
-- [ ] Forbidden: fixed stable map layout, permanent zone boundaries, sharp edges, legend panel, percentage or count display
+- [x] `aiService.classifyLifeArea(storyContent, existingAreas, apiKey)` assigns a life area label to each story (or null if unclear)
+- [x] Life area stored in `stories.life_area` field
+- [x] Stories from the same emergent area are spatially clustered in 3D space (position bias toward cluster centroid)
+- [x] Zone visual: nebula/cloud overlay with very low opacity, soft gradient, subtle ambient motion — NOT a solid colored region
+- [x] Zone label appears only on hover — not visible by default
+- [x] User can rename a zone label (stored in localStorage)
+- [x] User can clear a zone label (zone disappears without label)
+- [x] Zones only emerge when cluster has ≥5 stories in the same area
+- [x] No placeholder / empty zones for life areas the user never writes about
+- [x] Zones are fully emergent — no preset list (no "Praca", "Rodzina", "Zdrowie")
+- [x] Zones fade and reorganize dynamically when cluster themes stop returning
+- [x] Forbidden: fixed stable map layout, permanent zone boundaries, sharp edges, legend panel, percentage or count display
 
 **Tasks:**
-- [ ] **TASK-208.1:** Implement `aiService.classifyLifeArea(storyContent, existingAreas, apiKey)` - 45min
-- [ ] **TASK-208.2:** Add life area prompt to `src/utils/prompts.ts` - 20min
-- [ ] **TASK-208.3:** Implement zone cluster detection from `stories.life_area` values — group stories, compute cluster centroid - 40min
-- [ ] **TASK-208.4:** Apply spatial clustering bias to story positions within the same zone - 30min
-- [ ] **TASK-208.5:** Render zone nebula/cloud overlay in StarField (very low opacity, soft gradient, ambient motion) - 60min
-- [ ] **TASK-208.6:** Add hover-only label rendering per zone cluster - 20min
-- [ ] **TASK-208.7:** Create `useLifeAreaZones.ts` hook — manages labels + user renames in localStorage - 30min
-- [ ] **TASK-208.8:** Implement zone fade/reorganize when cluster becomes inactive - 30min
-- [ ] **TASK-208.9:** Write tests (/qa) - 45min
-- [ ] **TASK-208.10:** Manual verification - 20min
+- [x] **TASK-208.1:** Implement `aiService.classifyLifeArea(storyContent, existingAreas, apiKey)` - 45min
+- [x] **TASK-208.2:** Add life area prompt to `src/utils/prompts.ts` - 20min
+- [x] **TASK-208.3:** Implement zone cluster detection from `stories.life_area` values — group stories, compute cluster centroid - 40min
+- [x] **TASK-208.4:** Apply spatial clustering bias to story positions within the same zone - 30min
+- [x] **TASK-208.5:** Render zone nebula/cloud overlay in StarField (very low opacity, soft gradient, ambient motion) - 60min
+- [x] **TASK-208.6:** Add hover-only label rendering per zone cluster - 20min
+- [x] **TASK-208.7:** Create `useLifeAreaZones.ts` hook — manages labels + user renames in localStorage - 30min
+- [x] **TASK-208.8:** Implement zone fade/reorganize when cluster becomes inactive - 30min
+- [x] **TASK-208.9:** Write tests (/qa) - 45min
+- [x] **TASK-208.10:** Manual verification - 20min
 
 ---
 

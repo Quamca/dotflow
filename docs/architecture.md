@@ -206,21 +206,22 @@ dotflow/
 │   │   │   └── ValuesModal/
 │   │   │       └── ValuesModal.test.tsx     # TC-072–083: modal render, edit, remove/restore, add theme, escape hatch, confirm (US-202)
 │   │   ├── hooks/
-│   │   │   ├── useSettings.test.ts   # TC-019–022 (US-004)
-│   │   │   └── useUserValues.test.ts # TC-084–091: localStorage read/write, confirmValues, dismissProposal, clearValues (US-202)
+│   │   │   ├── useSettings.test.ts      # TC-019–022 (US-004)
+│   │   │   ├── useUserValues.test.ts    # TC-084–091: localStorage read/write, confirmValues, dismissProposal, clearValues (US-202)
+│   │   │   └── useLifeAreaZones.test.ts # TC-289–297: getLabel, renameZone, clearZoneLabel, isLabelCleared, localStorage persistence (US-208)
 │   │   ├── pages/
 │   │   │   ├── HomePage.test.tsx     # TC-002, TC-005, TC-010–011, TC-024, TC-028, TC-050, TC-057–062, TC-069–071, TC-092–098 (US-004, US-005, US-007, US-101, US-102, US-201, US-202)
 │   │   │   ├── EntryDetailPage.test.tsx # TC-036–039 (US-007)
 │   │   │   ├── NewEntryPage.test.tsx # TC-003–009, TC-025–026, TC-034, TC-161–164 (US-005, US-006, US-210)
 │   │   │   └── SettingsPage.test.tsx # TC-001, TC-023 (US-004)
 │   │   ├── services/
-│   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043, TC-051–054, TC-099–102, TC-107–112, TC-116–122, TC-168–179 (US-006, US-101, US-102, US-202, US-203, US-205, US-206)
+│   │   │   ├── aiService.test.ts     # TC-010–011, TC-040–043, TC-051–054, TC-099–102, TC-107–112, TC-116–122, TC-168–179, TC-266–271: classifyLifeArea (US-006, US-101, US-102, US-202, US-203, US-205, US-206, US-208)
 │   │   │   ├── entryService.test.ts  # TC-012–018, TC-044–047, TC-180–182: getEntriesWithFollowUps (US-002, US-006, US-101, US-205)
-│   │   │   └── storyService.test.ts  # TC-123–133, TC-158–160: saveStories, getStoriesForEntry, getAllStories, addElaboration, updateStoryEmotion, getRecentStories (US-206, US-207, US-210)
+│   │   │   └── storyService.test.ts  # TC-123–133, TC-158–160, TC-278–279: saveStories, getStoriesForEntry, getAllStories, addElaboration, updateStoryEmotion, getRecentStories, updateStoryLifeArea (US-206, US-207, US-210, US-208)
 │   │   └── utils/
 │   │       ├── testHelpers.tsx       # renderWithRouter helper
-│   │       ├── prompts.test.ts       # TC-063–064, TC-113–115, TC-134–135, TC-165–167, TC-183–188: HOLISTIC_INSIGHT_SYSTEM_PROMPT, INSIGHT_ELABORATION_SYSTEM_PROMPT (US-103, US-203, US-205, US-206, US-210)
-│   │       └── starPositions.test.ts # TC-065–068, TC-103–106, TC-136–139: deterministic position, radius range, aligned positioning, story position (US-201, US-202, US-206)
+│   │       ├── prompts.test.ts       # TC-063–064, TC-113–115, TC-134–135, TC-165–167, TC-183–188, TC-272–277: HOLISTIC_INSIGHT_SYSTEM_PROMPT, INSIGHT_ELABORATION_SYSTEM_PROMPT, LIFE_AREA_SYSTEM_PROMPT (US-103, US-203, US-205, US-206, US-210, US-208)
+│   │       └── starPositions.test.ts # TC-065–068, TC-103–106, TC-136–139, TC-280–288: getZoneLocalPosition, getFixedZoneCentroid (US-201, US-202, US-206, US-208)
 │   ├── App.tsx              # Root component with BrowserRouter + Routes (US-004, US-005, US-007)
 │   ├── index.css            # Tailwind directives
 │   ├── main.tsx
