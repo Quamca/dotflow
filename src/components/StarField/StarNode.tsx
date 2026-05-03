@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Html } from '@react-three/drei'
 import type { Entry } from '../../types'
 
@@ -10,12 +10,14 @@ interface StarNodeProps {
   onOpenModal?: () => void
 }
 
+const DRAG_THRESHOLD_SQ = 25
 const MIN_STAR_SIZE = 0.07
 const STAR_SIZE_PER_CONNECTION = 0.03
 const MAX_STAR_SIZE_BONUS = 0.12
 
 export default function StarNode({ entry, position, connectionCount, isInteractive, onOpenModal }: StarNodeProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const pointerDownPos = useRef<{ x: number; y: number } | null>(null)
   const starSize = MIN_STAR_SIZE + Math.min(connectionCount * STAR_SIZE_PER_CONNECTION, MAX_STAR_SIZE_BONUS)
   const starColor = isHovered ? '#1C1917' : '#78716C'
 
@@ -28,9 +30,19 @@ export default function StarNode({ entry, position, connectionCount, isInteracti
   return (
     <group position={position}>
       <mesh
+        onPointerDown={isInteractive ? (e) => { pointerDownPos.current = { x: e.clientX, y: e.clientY } } : undefined}
         onPointerEnter={isInteractive ? (e) => { e.stopPropagation(); setIsHovered(true) } : undefined}
         onPointerLeave={isInteractive ? (e) => { e.stopPropagation(); setIsHovered(false) } : undefined}
-        onClick={isInteractive ? (e) => { e.stopPropagation(); onOpenModal?.() } : undefined}
+        onClick={isInteractive ? (e) => {
+          e.stopPropagation()
+          const pd = pointerDownPos.current
+          if (pd) {
+            const dx = e.clientX - pd.x
+            const dy = e.clientY - pd.y
+            if (dx * dx + dy * dy > DRAG_THRESHOLD_SQ) return
+          }
+          onOpenModal?.()
+        } : undefined}
       >
         <sphereGeometry args={[starSize, 8, 8]} />
         <meshBasicMaterial color={starColor} />

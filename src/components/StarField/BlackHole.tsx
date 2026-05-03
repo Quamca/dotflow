@@ -14,6 +14,7 @@ interface BlackHoleProps {
   onInsightRead?: () => void
 }
 
+const DRAG_THRESHOLD_SQ = 25
 const MIN_SIZE = 0.3
 const PULSE_SPEED = 0.8
 const MIN_PULSE_AMPLITUDE = 0.04
@@ -29,6 +30,7 @@ export default function BlackHole({
   const glowFadingRef = useRef(false)
   const glowFadeRef = useRef(1.0)
   const isHoveredRef = useRef(false)
+  const pointerDownPos = useRef<{ x: number; y: number } | null>(null)
   const [isHovered, setIsHovered] = useState(false)
 
   const tooltipText = insightPreview
@@ -89,9 +91,19 @@ export default function BlackHole({
 
       {/* invisible hit area — larger than visual core */}
       <mesh
+        onPointerDown={isInteractive ? (e) => { pointerDownPos.current = { x: e.clientX, y: e.clientY } } : undefined}
         onPointerEnter={isInteractive ? (e) => { e.stopPropagation(); isHoveredRef.current = true; setIsHovered(true) } : undefined}
         onPointerLeave={isInteractive ? (e) => { e.stopPropagation(); isHoveredRef.current = false; setIsHovered(false) } : undefined}
-        onClick={isInteractive ? (e) => { e.stopPropagation(); handleClick() } : undefined}
+        onClick={isInteractive ? (e) => {
+          e.stopPropagation()
+          const pd = pointerDownPos.current
+          if (pd) {
+            const dx = e.clientX - pd.x
+            const dy = e.clientY - pd.y
+            if (dx * dx + dy * dy > DRAG_THRESHOLD_SQ) return
+          }
+          handleClick()
+        } : undefined}
       >
         <sphereGeometry args={[clampedSize * 1.6, 16, 16]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
