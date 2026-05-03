@@ -25,6 +25,44 @@ export function getStoryPosition(storyId: string): [number, number, number] {
   return computePosition(storyId, STORY_RADIUS_MIN, STORY_RADIUS_MAX)
 }
 
+const CLUSTER_BIAS = 0.55
+
+// Returns position biased toward zone centroid when story belongs to a life area cluster.
+export function getClusteredStoryPosition(
+  storyId: string,
+  centroid: [number, number, number] | null
+): [number, number, number] {
+  const base = getStoryPosition(storyId)
+  if (!centroid) return base
+  return [
+    base[0] * (1 - CLUSTER_BIAS) + centroid[0] * CLUSTER_BIAS,
+    base[1] * (1 - CLUSTER_BIAS) + centroid[1] * CLUSTER_BIAS,
+    base[2] * (1 - CLUSTER_BIAS) + centroid[2] * CLUSTER_BIAS,
+  ]
+}
+
+// Groups stories by life_area and computes centroids. Only areas with ≥5 stories are included.
+export function computeZoneCentroids(
+  stories: Array<{ id: string; life_area: string | null; position: [number, number, number] | null }>
+): Map<string, [number, number, number]> {
+  const groups = new Map<string, Array<[number, number, number]>>()
+  for (const s of stories) {
+    if (!s.life_area || !s.position) continue
+    const arr = groups.get(s.life_area) ?? []
+    arr.push(s.position)
+    groups.set(s.life_area, arr)
+  }
+  const centroids = new Map<string, [number, number, number]>()
+  groups.forEach((positions, area) => {
+    if (positions.length < 5) return
+    const cx = positions.reduce((sum, p) => sum + p[0], 0) / positions.length
+    const cy = positions.reduce((sum, p) => sum + p[1], 0) / positions.length
+    const cz = positions.reduce((sum, p) => sum + p[2], 0) / positions.length
+    centroids.set(area, [cx, cy, cz])
+  })
+  return centroids
+}
+
 // Returns a deterministic 3D position for an entry — same id always maps to same position.
 export function getStarPosition(entryId: string): [number, number, number] {
   return computePosition(entryId, DEFAULT_RADIUS_MIN, DEFAULT_RADIUS_MAX)

@@ -2,11 +2,14 @@ import { useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Line } from '@react-three/drei'
 import type { Entry, Connection, Story } from '../../types'
-import { getStarPosition, getAlignedStarPosition } from '../../utils/starPositions'
+import { getStarPosition, getAlignedStarPosition, computeZoneCentroids, getClusteredStoryPosition } from '../../utils/starPositions'
+import { getEmotionColor } from '../../utils/emotionColors'
+import { useLifeAreaZones } from '../../hooks/useLifeAreaZones'
 import StarNode from './StarNode'
 import StoryNode from './StoryNode'
 import ConstellationLines from './ConstellationLines'
 import BlackHole from './BlackHole'
+import LifeAreaZone from './LifeAreaZone'
 
 const BLACK_HOLE_MIN_SIZE = 0.3
 const BLACK_HOLE_MAX_SIZE = 1.2
@@ -32,6 +35,8 @@ export default function StarField({
   hasUnreadInsight, depthScore, insightPreview, userValues,
   onEntryClick, onStoryClick, onBlackHoleClick, onInsightRead,
 }: StarFieldProps) {
+  const { getLabel, renameZone, clearZoneLabel, isLabelCleared } = useLifeAreaZones()
+
   const positionMap = useMemo(() => {
     const map = new Map<string, [number, number, number]>()
     entries.forEach((e) => {
@@ -48,11 +53,20 @@ export default function StarField({
     return BLACK_HOLE_MIN_SIZE + t * (BLACK_HOLE_MAX_SIZE - BLACK_HOLE_MIN_SIZE)
   }, [entries.length])
 
+  const zoneCentroids = useMemo(() => computeZoneCentroids(
+    stories.map((s) => ({ id: s.id, life_area: s.life_area, position: s.position }))
+  ), [stories])
+
   const storyPositionMap = useMemo(() => {
     const map = new Map<string, [number, number, number]>()
-    stories.forEach((s) => { if (s.position) map.set(s.id, s.position) })
+    stories.forEach((s) => {
+      if (s.position) {
+        const centroid = s.life_area ? (zoneCentroids.get(s.life_area) ?? null) : null
+        map.set(s.id, getClusteredStoryPosition(s.id, centroid))
+      }
+    })
     return map
-  }, [stories])
+  }, [stories, zoneCentroids])
 
   const sessionLines = useMemo(() => {
     const grouped = new Map<string, Story[]>()
@@ -71,6 +85,29 @@ export default function StarField({
     })
     return lines
   }, [stories, storyPositionMap])
+
+  const activeZones = useMemo(() => {
+    const result: Array<{ label: string; centroid: [number, number, number]; radius: number; color: string }> = []
+    zoneCentroids.forEach((centroid, areaLabel) => {
+      const areaStories = stories.filter((s) => s.life_area === areaLabel)
+      const emotionCounts: Record<string, number> = {}
+      areaStories.forEach((s) => {
+        if (s.emotion) emotionCounts[s.emotion] = (emotionCounts[s.emotion] ?? 0) + 1
+      })
+      const dominant = Object.entries(emotionCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
+      const color = getEmotionColor(dominant)
+      const spread = Math.max(...areaStories.map((s) => {
+        if (!s.position) return 0
+        const p = storyPositionMap.get(s.id) ?? s.position
+        const dx = p[0] - centroid[0]
+        const dy = p[1] - centroid[1]
+        const dz = p[2] - centroid[2]
+        return Math.sqrt(dx * dx + dy * dy + dz * dz)
+      }))
+      result.push({ label: areaLabel, centroid, radius: spread + 1.2, color })
+    })
+    return result
+  }, [zoneCentroids, stories, storyPositionMap])
 
   const connectionCount = useMemo(() => {
     const count: Record<string, number> = {}
@@ -113,6 +150,19 @@ export default function StarField({
           lineWidth={0.5}
           transparent
           opacity={0.3}
+        />
+      ))}
+      {isInteractive && activeZones.map((zone) => (
+        <LifeAreaZone
+          key={zone.label}
+          label={zone.label}
+          centroid={zone.centroid}
+          radius={zone.radius}
+          color={zone.color}
+          isLabelCleared={isLabelCleared(zone.label)}
+          getLabel={getLabel}
+          onRename={(newLabel) => renameZone(zone.label, newLabel)}
+          onClear={() => clearZoneLabel(zone.label)}
         />
       ))}
       <ConstellationLines connections={connections} positionMap={positionMap} />

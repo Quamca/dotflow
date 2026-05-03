@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createEntry, saveFollowUps, getEntries, getEntriesWithFollowUps, saveConnection } from '../services/entryService'
-import { generateFollowUpQuestions, findConnection, extractStories, detectEmotionConfidence, generateHolisticInsight } from '../services/aiService'
-import { saveStories, updateStoryEmotion, getRecentStories } from '../services/storyService'
+import { generateFollowUpQuestions, findConnection, extractStories, detectEmotionConfidence, generateHolisticInsight, classifyLifeArea } from '../services/aiService'
+import { saveStories, updateStoryEmotion, updateStoryLifeArea, getRecentStories, getAllStories } from '../services/storyService'
 import { useSettings } from '../hooks/useSettings'
 import { useDepthAccumulator, computeDepthScore } from '../hooks/useDepthAccumulator'
 import { STORAGE_KEYS } from '../utils/insightConfig'
@@ -13,10 +13,22 @@ async function extractAndSaveStories(entryId: string, content: string, apiKey: s
   try {
     const storyContents = await extractStories(content, apiKey)
     const stories = await saveStories(entryId, storyContents)
+
+    const existingStories = await getAllStories()
+    const existingAreas = [...new Set(
+      existingStories.map((s) => s.life_area).filter((a): a is string => a !== null)
+    )]
+
     await Promise.allSettled(
       stories.map(async (story) => {
-        const result = await detectEmotionConfidence(story.content, apiKey)
-        await updateStoryEmotion(story.id, result.emotion, result.confidence)
+        const [emotionResult, lifeArea] = await Promise.all([
+          detectEmotionConfidence(story.content, apiKey),
+          classifyLifeArea(story.content, existingAreas, apiKey),
+        ])
+        await Promise.allSettled([
+          updateStoryEmotion(story.id, emotionResult.emotion, emotionResult.confidence),
+          lifeArea ? updateStoryLifeArea(story.id, lifeArea) : Promise.resolve(),
+        ])
       })
     )
   } catch {
