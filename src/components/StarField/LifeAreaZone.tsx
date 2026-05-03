@@ -12,15 +12,59 @@ interface LifeAreaZoneProps {
   onRename: (newLabel: string) => void
   onClear: () => void
   getLabel: (aiLabel: string) => string
+  onHoverChange?: (label: string | null) => void
 }
 
+const KEEP_OPEN_MS = 250
+
 export default function LifeAreaZone({
-  label, centroid, radius, color, isLabelCleared, onRename, onClear, getLabel,
+  label, centroid, radius, color, isLabelCleared, onRename, onClear, getLabel, onHoverChange,
 }: LifeAreaZoneProps) {
   const meshRef = useRef<Mesh>(null)
-  const [hovered, setHovered] = useState(false)
+  const [isZoneHovered, setIsZoneHovered] = useState(false)
+  const [isLabelHovered, setIsLabelHovered] = useState(false)
+  const [keepOpen, setKeepOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const showLabel = isZoneHovered || isLabelHovered || keepOpen
+
+  function clearTimer() {
+    if (timerRef.current) clearTimeout(timerRef.current)
+  }
+
+  function scheduleClose() {
+    clearTimer()
+    timerRef.current = setTimeout(() => {
+      setKeepOpen(false)
+      onHoverChange?.(null)
+    }, KEEP_OPEN_MS)
+  }
+
+  function handleZoneEnter() {
+    clearTimer()
+    setIsZoneHovered(true)
+    setKeepOpen(true)
+    onHoverChange?.(label)
+  }
+
+  function handleZoneLeave() {
+    setIsZoneHovered(false)
+    if (!isLabelHovered) scheduleClose()
+  }
+
+  function handleLabelEnter() {
+    clearTimer()
+    setIsLabelHovered(true)
+    setKeepOpen(true)
+    onHoverChange?.(label)
+  }
+
+  function handleLabelLeave() {
+    setIsLabelHovered(false)
+    if (!isZoneHovered) scheduleClose()
+  }
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return
@@ -47,28 +91,30 @@ export default function LifeAreaZone({
   }
 
   const displayLabel = getLabel(label)
-
-  // Label is offset above the zone sphere so it doesn't overlap other elements near centroid
   const labelOffsetY = radius + 0.6
 
   return (
     <group position={centroid}>
       <mesh
         ref={meshRef}
-        onPointerEnter={() => setHovered(true)}
-        onPointerLeave={() => setHovered(false)}
+        onPointerEnter={handleZoneEnter}
+        onPointerLeave={handleZoneLeave}
       >
         <sphereGeometry args={[radius, 16, 16]} />
         <meshBasicMaterial
           color={color}
           transparent
-          opacity={hovered ? 0.12 : 0.07}
+          opacity={isZoneHovered ? 0.12 : 0.07}
           depthWrite={false}
         />
       </mesh>
 
-      {hovered && !isLabelCleared && (
-        <Html position={[0, labelOffsetY, 0]} center style={{ pointerEvents: 'auto', userSelect: 'none' }}>
+      {showLabel && !isLabelCleared && (
+        <Html
+          position={[0, labelOffsetY, 0]}
+          center
+          style={{ pointerEvents: 'auto', userSelect: 'none' }}
+        >
           {editing ? (
             <form onSubmit={handleLabelSubmit} style={{ display: 'inline-flex', gap: 4 }}>
               <input
@@ -92,6 +138,8 @@ export default function LifeAreaZone({
           ) : (
             <span
               onClick={handleLabelClick}
+              onMouseEnter={handleLabelEnter}
+              onMouseLeave={handleLabelLeave}
               style={{
                 font: '11px DM Sans, sans-serif',
                 color: '#78716C',

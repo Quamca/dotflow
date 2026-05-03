@@ -62,6 +62,11 @@ export default function HomePage() {
   )
 
   const hasEntries = !isLoading && !error && entries.length > 0
+
+  const existingLifeAreas = useMemo(
+    () => [...new Set(stories.map((s) => s.life_area).filter((a): a is string => a !== null))],
+    [stories]
+  )
   const shouldOfferValues =
     !isLoading && !error && entries.length >= VALUES_MIN_ENTRIES && !hasConfirmed && !proposalDismissed && !!apiKey
 
@@ -262,8 +267,12 @@ export default function HomePage() {
           story={openStory}
           onClose={() => setOpenStory(null)}
           apiKey={apiKey ?? undefined}
+          existingLifeAreas={existingLifeAreas}
           onElaborationSaved={(storyId, emotion, confidence) => {
             setStories((prev) => prev.map((s) => s.id === storyId ? { ...s, emotion, emotion_confidence: confidence } : s))
+          }}
+          onLifeAreaUpdated={(storyId, lifeArea) => {
+            setStories((prev) => prev.map((s) => s.id === storyId ? { ...s, life_area: lifeArea } : s))
           }}
         />
       )}

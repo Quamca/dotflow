@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Line } from '@react-three/drei'
 import type { Entry, Connection, Story } from '../../types'
@@ -36,6 +36,7 @@ export default function StarField({
   onEntryClick, onStoryClick, onBlackHoleClick, onInsightRead,
 }: StarFieldProps) {
   const { getLabel, renameZone, clearZoneLabel, isLabelCleared } = useLifeAreaZones()
+  const [hoveredZoneArea, setHoveredZoneArea] = useState<string | null>(null)
 
   const positionMap = useMemo(() => {
     const map = new Map<string, [number, number, number]>()
@@ -86,11 +87,18 @@ export default function StarField({
     return lines
   }, [stories, storyPositionMap])
 
-  const BLACK_HOLE_EXCLUSION_RADIUS = 2.2
+  // Rule 1: zone sphere surface must be at least (BH_EXCLUSION_BASE + ZONE_SAFETY) from origin
+  const BH_EXCLUSION_BASE = 1.8
+  const ZONE_SAFETY_MARGIN = 0.8
+  // Rule 2: zone spheres must not overlap each other (plus this margin)
+  const ZONE_OVERLAP_MARGIN = 0.6
+  const MIN_ZONE_RADIUS = 0.8
 
   const activeZones = useMemo(() => {
-    const result: Array<{ label: string; centroid: [number, number, number]; radius: number; color: string }> = []
-    zoneCentroids.forEach((centroid, areaLabel) => {
+    type ZoneSpec = { label: string; centroid: [number, number, number]; radius: number; color: string; storyCount: number }
+    const raw: ZoneSpec[] = []
+
+    zoneCentroids.forEach((rawCentroid, areaLabel) => {
       const areaStories = stories.filter((s) => s.life_area === areaLabel)
       const emotionCounts: Record<string, number> = {}
       areaStories.forEach((s) => {
@@ -102,23 +110,45 @@ export default function StarField({
       const distances = areaStories.map((s) => {
         const p = storyPositionMap.get(s.id) ?? s.position
         if (!p) return 0
-        const dx = p[0] - centroid[0]
-        const dy = p[1] - centroid[1]
-        const dz = p[2] - centroid[2]
-        return Math.sqrt(dx * dx + dy * dy + dz * dz)
+        const [cx, cy, cz] = rawCentroid
+        return Math.sqrt((p[0] - cx) ** 2 + (p[1] - cy) ** 2 + (p[2] - cz) ** 2)
       })
       const avgDist = distances.reduce((a, b) => a + b, 0) / Math.max(distances.length, 1)
-      const rawRadius = avgDist * 1.4 + 0.5
+      const rawRadius = Math.max(MIN_ZONE_RADIUS, avgDist * 1.4 + 0.5)
 
-      // Clamp radius to keep zone sphere from overlapping the black hole center area
-      const cx = centroid[0], cy = centroid[1], cz = centroid[2]
+      // Rule 1: push centroid outward if zone sphere would encroach on black hole exclusion zone
+      const [cx, cy, cz] = rawCentroid
       const centroidDist = Math.sqrt(cx * cx + cy * cy + cz * cz)
-      const maxRadius = Math.max(0.5, centroidDist - BLACK_HOLE_EXCLUSION_RADIUS)
-      const radius = Math.min(rawRadius, maxRadius)
+      const minAllowedDist = BH_EXCLUSION_BASE + rawRadius + ZONE_SAFETY_MARGIN
+      let finalCentroid: [number, number, number]
+      if (centroidDist < minAllowedDist) {
+        const scale = centroidDist > 0.001 ? minAllowedDist / centroidDist : 1
+        finalCentroid = [cx * scale, cy * scale, cz * scale]
+        if (centroidDist <= 0.001) finalCentroid = [minAllowedDist, 0, 0]
+      } else {
+        finalCentroid = rawCentroid
+      }
 
-      result.push({ label: areaLabel, centroid, radius, color })
+      raw.push({ label: areaLabel, centroid: finalCentroid, radius: rawRadius, color, storyCount: areaStories.length })
     })
-    return result
+
+    // Rule 2: resolve zone-zone overlaps — most populated zones keep their radius
+    const sorted = [...raw].sort((a, b) => b.storyCount - a.storyCount)
+    const placed: ZoneSpec[] = []
+    for (const zone of sorted) {
+      let r = zone.radius
+      for (const other of placed) {
+        const dx = zone.centroid[0] - other.centroid[0]
+        const dy = zone.centroid[1] - other.centroid[1]
+        const dz = zone.centroid[2] - other.centroid[2]
+        const d = Math.sqrt(dx * dx + dy * dy + dz * dz)
+        const excess = r + other.radius + ZONE_OVERLAP_MARGIN - d
+        if (excess > 0) r = Math.max(MIN_ZONE_RADIUS - 0.01, r - excess)
+      }
+      if (r >= MIN_ZONE_RADIUS) placed.push({ ...zone, radius: r })
+    }
+
+    return placed
   }, [zoneCentroids, stories, storyPositionMap])
 
   const connectionCount = useMemo(() => {
@@ -152,6 +182,10 @@ export default function StarField({
           position={storyPositionMap.get(story.id) ?? [0, 0, 0]}
           isInteractive={isInteractive}
           onOpenModal={isInteractive ? () => onStoryClick?.(story) : undefined}
+          zoneHighlight={
+            hoveredZoneArea === null ? undefined :
+            story.life_area === hoveredZoneArea ? 'highlight' : 'dim'
+          }
         />
       ))}
       {sessionLines.map((line) => (
@@ -175,6 +209,7 @@ export default function StarField({
           getLabel={getLabel}
           onRename={(newLabel) => renameZone(zone.label, newLabel)}
           onClear={() => clearZoneLabel(zone.label)}
+          onHoverChange={setHoveredZoneArea}
         />
       ))}
       <ConstellationLines connections={connections} positionMap={positionMap} />
