@@ -30,6 +30,28 @@ const CLUSTER_BIAS = 0.70
 // Radius at which fixed zone centroids are placed — outside black hole exclusion zone.
 const ZONE_CENTROID_RADIUS = 6.0
 
+// Max spread of stars within a zone — positions are generated in local space around the
+// centroid with no reference to the scene origin, so there is no near-side bias.
+const ZONE_SPREAD_RADIUS = 1.8
+
+// Returns a deterministic position for a zone story in local space around its centroid.
+// Uses seed offsets distinct from getStoryPosition so the two distributions are independent.
+export function getZoneLocalPosition(
+  storyId: string,
+  centroid: [number, number, number],
+): [number, number, number] {
+  const seed = hashString(storyId)
+  const r = seededRandom(seed + 5000) * ZONE_SPREAD_RADIUS
+  const theta = seededRandom(seed + 6000) * Math.PI * 2
+  const phi = Math.acos(2 * seededRandom(seed + 7000) - 1)
+  const [cx, cy, cz] = centroid
+  return [
+    cx + r * Math.sin(phi) * Math.cos(theta),
+    cy + r * Math.sin(phi) * Math.sin(theta),
+    cz + r * Math.cos(phi),
+  ]
+}
+
 // Returns a deterministic centroid for a life area label — stable regardless of story positions.
 // Derived purely from the label string so the same label always maps to the same point in space.
 export function getFixedZoneCentroid(label: string): [number, number, number] {
