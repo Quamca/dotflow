@@ -17,6 +17,7 @@ const BLACK_HOLE_SCALE_AT = 50
 
 const ZONE_BIAS = 0.82
 const CONTAINMENT_BUFFER = 0.25
+const SAFETY_MARGIN = 0.2
 const REPULSION_MARGIN = 0.4
 const ZONE_OVERLAP_MARGIN = 0.6
 const MIN_ZONE_RADIUS = 0.8
@@ -141,6 +142,26 @@ export default function StarField({
         if (excess > 0) r = Math.max(MIN_ZONE_RADIUS, r - excess)
       }
       if (r >= MIN_ZONE_RADIUS) placed.push({ ...zone, radius: r })
+    }
+
+    // Pass 3b — hard containment: clamp every zone star to radius − SAFETY_MARGIN
+    for (const zone of placed) {
+      const maxAllowed = zone.radius - SAFETY_MARGIN
+      const [cx, cy, cz] = zone.centroid
+      stories.forEach((s) => {
+        if (s.life_area !== zone.label) return
+        const p = posMap.get(s.id)
+        if (!p) return
+        const [px, py, pz] = p
+        const dx = px - cx
+        const dy = py - cy
+        const dz = pz - cz
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz)
+        if (dist > maxAllowed && dist > 0) {
+          const scale = maxAllowed / dist
+          posMap.set(s.id, [cx + dx * scale, cy + dy * scale, cz + dz * scale])
+        }
+      })
     }
 
     // Pass 4 — repel non-zone stories from all zone spheres
