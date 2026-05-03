@@ -1,7 +1,7 @@
 # Dotflow - Test Cases Documentation
 
-**Version:** 2.0
-**Date:** 2026-04-26
+**Version:** 2.1
+**Date:** 2026-05-03
 **Author:** QA Agent
 **Test Framework:** Vitest + React Testing Library
 
@@ -3903,6 +3903,440 @@ For verification after /dev implementation.
 
 **File:** `src/__tests__/components/StarField/SkyModal.test.tsx`
 **Status:** ✅ Done
+
+---
+
+---
+
+## 3.16 FEATURE: Tooltip Stability (US-205 — keepOpen + isTooltipHovered)
+
+> Tests for the BlackHole tooltip stability system. These cover the interaction contract, not Three.js internals.
+
+### TC-216: HOLISTIC_INSIGHT_SYSTEM_PROMPT contains style variation instruction
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** Critical
+
+**Test Steps:**
+1. Import `HOLISTIC_INSIGHT_SYSTEM_PROMPT` from `src/utils/prompts.ts`
+2. Check for variation instruction
+
+**Expected Result:**
+- Prompt contains text listing forbidden openers (e.g. `"W Twoich wpisach"`) as forbidden
+- Prompt references at least 3 rotation style options
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** 📋 Planned
+
+---
+
+### TC-217: HOLISTIC_INSIGHT_SYSTEM_PROMPT explicitly forbids repeated opener patterns
+
+**Related US:** US-205
+**Type:** Unit
+**Priority:** High
+
+**Test Steps:**
+1. Check prompt contains `"Wygląda na to"` in a forbidden-opener context
+
+**Expected Result:**
+- `HOLISTIC_INSIGHT_SYSTEM_PROMPT` mentions `"Wygląda na to"` in a forbidden list
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** 📋 Planned
+
+---
+
+## 3.17 FEATURE: Life Area Zones (US-208)
+
+> These tests will be written by /qa after US-208 implementation.
+
+### TC-220: classifyLifeArea returns null when content does not match an existing area
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return `{ area: null }`
+
+**Test Steps:**
+1. Call `classifyLifeArea('Random content', [], 'sk-test')`
+
+**Expected Result:**
+- Returns `null`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** 📋 Planned
+
+---
+
+### TC-221: classifyLifeArea returns area string when content matches
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return `{ area: "praca i ambicja" }`
+
+**Test Steps:**
+1. Call `classifyLifeArea('Had a great day at the project', ['praca i ambicja'], 'sk-test')`
+
+**Expected Result:**
+- Returns `"praca i ambicja"`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** 📋 Planned
+
+---
+
+### TC-222: classifyLifeArea falls back to null on API error
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- `fetch` stubbed to return `{ ok: false }`
+
+**Test Steps:**
+1. Call `classifyLifeArea('content', [], 'sk-test')`
+
+**Expected Result:**
+- Returns `null` (does not throw)
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** 📋 Planned
+
+---
+
+### TC-223: LIFE_AREA_SYSTEM_PROMPT forbids preset category list
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** Critical
+
+**Test Steps:**
+1. Import `LIFE_AREA_SYSTEM_PROMPT`
+2. Check it does NOT contain "Praca", "Rodzina", "Zdrowie" as preset suggestions
+
+**Expected Result:**
+- Prompt does not contain any of those preset strings
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** 📋 Planned
+
+---
+
+### TC-224: updateStoryLifeArea updates life_area field in Supabase
+
+**Related US:** US-208
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- Supabase mock returns `{ error: null }`
+
+**Test Steps:**
+1. Call `updateStoryLifeArea('story-uuid-1', 'praca i ambicja')`
+
+**Expected Result:**
+- Resolves without error
+
+**File:** `src/__tests__/services/storyService.test.ts`
+**Status:** 📋 Planned
+
+---
+
+## 3.18 FEATURE: Typed Connection Visualization (US-209)
+
+> Tests will be written by /qa after US-209 implementation.
+
+### TC-230: classifyConnectionType returns valid type string
+
+**Related US:** US-209
+**Type:** Unit
+**Priority:** Critical
+
+**Preconditions:**
+- `fetch` stubbed to return `{ type: "emotional" }`
+
+**Test Steps:**
+1. Call `classifyConnectionType(story1, story2, 'sk-test')`
+
+**Expected Result:**
+- Returns `"emotional"`, `"thematic"`, or `"life-choices"`
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** 📋 Planned
+
+---
+
+### TC-231: classifyConnectionType falls back to "thematic" on API error
+
+**Related US:** US-209
+**Type:** Unit
+**Priority:** High
+
+**Preconditions:**
+- `fetch` stubbed to return `{ ok: false }`
+
+**Test Steps:**
+1. Call `classifyConnectionType(story1, story2, 'sk-test')`
+
+**Expected Result:**
+- Returns `"thematic"` (safe default, does not throw)
+
+**File:** `src/__tests__/services/aiService.test.ts`
+**Status:** 📋 Planned
+
+---
+
+### TC-232: CONNECTION_TYPE_SYSTEM_PROMPT forbids psychological framework labels
+
+**Related US:** US-209
+**Type:** Unit
+**Priority:** Critical
+
+**Test Steps:**
+1. Import `CONNECTION_TYPE_SYSTEM_PROMPT`
+2. Check it does NOT contain "Dilts", "DISC", "MBTI"
+
+**Expected Result:**
+- None of those strings present in the prompt
+
+**File:** `src/__tests__/utils/prompts.test.ts`
+**Status:** 📋 Planned
+
+---
+
+## 3.19 FEATURE: Insight History Timeline (US-211)
+
+> Tests will be written by /qa after US-211 implementation.
+
+### TC-240: InsightModal shows Historia refleksji section when history exists in localStorage
+
+**Related US:** US-211
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `dotflow_insight_history` in localStorage contains one entry `{ text: "Ostatnio dużo o pracy.", timestamp: "2026-05-01T10:00:00Z" }`
+- InsightModal rendered with acknowledged insight
+
+**Expected Result:**
+- "Historia refleksji" text visible in DOM
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** 📋 Planned
+
+---
+
+### TC-241: InsightModal shows insight text and date from history
+
+**Related US:** US-211
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `dotflow_insight_history` set with one entry
+
+**Expected Result:**
+- History entry text visible
+- Date formatted (localized) visible
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** 📋 Planned
+
+---
+
+### TC-242: InsightModal does not show Historia section when history is empty
+
+**Related US:** US-211
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- `dotflow_insight_history` absent or empty array in localStorage
+
+**Expected Result:**
+- "Historia refleksji" NOT in DOM
+
+**File:** `src/__tests__/components/StarField/InsightModal.test.tsx`
+**Status:** 📋 Planned
+
+---
+
+### TC-243: generateHolisticInsight writes to dotflow_insight_history on call
+
+**Related US:** US-211
+**Type:** Unit
+**Priority:** Critical
+
+**Note:** This test verifies that the call-site (not aiService itself) writes to history. May be tested at integration level (HomePage or StarField).
+
+**Preconditions:**
+- `fetch` returns valid insight content
+- `dotflow_insight_history` absent from localStorage
+
+**Test Steps:**
+1. Trigger holistic insight generation
+2. Read `dotflow_insight_history` from localStorage
+
+**Expected Result:**
+- Contains one entry with `text` (non-empty) and `timestamp` (valid ISO string)
+
+**File:** `src/__tests__/pages/HomePage.test.tsx` (integration)
+**Status:** 📋 Planned
+
+---
+
+## 3.20 FEATURE: Interactive Connection Highlighting (US-212)
+
+> Tests will be written by /qa after US-212 implementation. Component tests use mocked Three.js.
+
+### TC-250: StarField passes hoveredStoryId to ConstellationLines when story is hovered
+
+**Related US:** US-212
+**Type:** Component (integration)
+**Priority:** Critical
+
+**Note:** StarField uses `vi.mock` in page-level tests — use a dedicated StarField unit test with mocked child components.
+
+**Expected Result:**
+- When `hoveredStoryId` is set, ConstellationLines receives the non-null value as prop
+
+**File:** `src/__tests__/components/StarField/StarField.test.tsx` (new file)
+**Status:** 📋 Planned
+
+---
+
+### TC-251: Connection lines for non-connected stories have reduced opacity when a story is hovered
+
+**Related US:** US-212
+**Type:** Component
+**Priority:** Critical
+
+**Expected Result:**
+- ConstellationLines renders non-connected lines with `opacity < 1` when `hoveredStoryId` is active
+
+**File:** `src/__tests__/components/StarField/StarField.test.tsx`
+**Status:** 📋 Planned
+
+---
+
+## 3.21 FEATURE: Story Sequence Navigation (US-213)
+
+> Tests will be written by /qa after US-213 implementation.
+
+### TC-260: StoryModal shows right arrow when siblings exist and current is not last
+
+**Related US:** US-213
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- StoryModal rendered with `siblings=[story1, story2, story3]`, `story=story1`
+
+**Expected Result:**
+- Right arrow (chevron-right) visible in DOM
+- Left arrow NOT visible (current is first)
+
+**File:** `src/__tests__/components/StarField/StoryModal.test.tsx` (new file)
+**Status:** 📋 Planned
+
+---
+
+### TC-261: StoryModal shows both arrows when current story is in the middle
+
+**Related US:** US-213
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `siblings=[story1, story2, story3]`, `story=story2`
+
+**Expected Result:**
+- Both left and right arrows visible
+
+**File:** `src/__tests__/components/StarField/StoryModal.test.tsx`
+**Status:** 📋 Planned
+
+---
+
+### TC-262: StoryModal shows no arrows when no siblings
+
+**Related US:** US-213
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `siblings=[]` or `siblings` not provided
+
+**Expected Result:**
+- No arrow elements in DOM
+
+**File:** `src/__tests__/components/StarField/StoryModal.test.tsx`
+**Status:** 📋 Planned
+
+---
+
+### TC-263: Clicking right arrow advances to next sibling story
+
+**Related US:** US-213
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `siblings=[story1, story2]`, `story=story1`
+- `story1.content = "First story"`, `story2.content = "Second story"`
+
+**Test Steps:**
+1. Render StoryModal
+2. Click right arrow
+
+**Expected Result:**
+- `story2.content` ("Second story") visible in DOM
+
+**File:** `src/__tests__/components/StarField/StoryModal.test.tsx`
+**Status:** 📋 Planned
+
+---
+
+### TC-264: Navigating to sibling resets elaboration state
+
+**Related US:** US-213
+**Type:** Component
+**Priority:** High
+
+**Preconditions:**
+- Elaboration textarea is open (user clicked "Dopowiedz")
+- Right arrow clicked
+
+**Expected Result:**
+- Elaboration textarea NOT in DOM after navigation
+
+**File:** `src/__tests__/components/StarField/StoryModal.test.tsx`
+**Status:** 📋 Planned
+
+---
+
+### TC-265: StoryModal does not show pagination indicator
+
+**Related US:** US-213
+**Type:** Component
+**Priority:** Critical
+
+**Preconditions:**
+- `siblings=[story1, story2, story3]`, current = story1
+
+**Expected Result:**
+- No text matching `/\d\s*\/\s*\d/` (e.g. "1/3", "1 / 3") in DOM
+
+**File:** `src/__tests__/components/StarField/StoryModal.test.tsx`
+**Status:** 📋 Planned
 
 ---
 

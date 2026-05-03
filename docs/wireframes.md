@@ -369,4 +369,170 @@ graph LR
 
 ---
 
+## 7. 3D Sky Mode — Screens (US-201+)
+
+### S-007: 3D Sky — Ambient Mode (background)
+
+The star field is a fixed CSS layer behind the entry list. Stars are blurred, not interactive.
+
+```
+┌─────────────────────────────────┐
+│  [blurred star field behind]    │
+│  ─────────────────────────────  │
+│  Dotflow ●                 ⚙    │  ← logo = toggle
+│  ─────────────────────────────  │
+│  [entry list, z-10]             │
+│  ┌─────────────────────────┐    │
+│  │ April 9 — Tough meeting │    │
+│  └─────────────────────────┘    │
+│  [Write +]                      │
+└─────────────────────────────────┘
+```
+
+### S-008: 3D Sky — Interactive Mode
+
+Activated by clicking the Dotflow logo. Full-screen 3D canvas. Entry list hidden.
+
+```
+┌─────────────────────────────────┐
+│  ✕ Exit 3D            [z-30]    │
+│                                 │
+│    ·  ✦  ·    ✦   ·             │
+│  ✦      ●(black hole)   ·  ✦   │
+│    ·  ✦          ✦   ·          │
+│      ·  ✦  ·                    │
+│                                 │
+│  [OrbitControls: rotate/zoom]   │
+└─────────────────────────────────┘
+```
+
+**Stars:** one per story. Color = emotion. Hover → tooltip (exclusive, one at a time).
+
+**Black hole:** at `[0,0,0]`. Hover → insight tooltip. Click → InsightModal.
+
+**Session lines:** thin purple line between stories from the same entry.
+
+**Constellation lines:** `#D6D3D1` 50% opacity between connected stories.
+
+---
+
+### S-009: Story Star Tooltip (hover state)
+
+```
+┌─────────────────────────────────┐
+│  [story text preview — 80 chars]│
+│  [emotion badge] • [entry date] │
+│                                 │
+│  [Dopowiedz →]                  │
+└─────────────────────────────────┘
+```
+
+- Max width 220px
+- Appears after 300ms hover delay (one at a time globally)
+- "Dopowiedz →" button opens StoryModal
+
+---
+
+### S-010: StoryModal
+
+Opened by clicking a story star or "Dopowiedz →" in tooltip.
+
+```
+┌─────────────────────────────────┐
+│  ‹                          ×   │  ← X closes modal (aria-label "Zamknij")
+│  ─────────────────────────────  │
+│  ● [emotion dot]  [date]        │
+│                                 │
+│  [story content — full text]    │
+│                                 │
+│  [Dopowiedz — add context]      │
+│  ┌─────────────────────────┐    │
+│  │  [elaboration textarea] │    │
+│  │  [Zapisz →]             │    │
+│  └─────────────────────────┘    │
+│  ─────────────────────────────  │
+│  ‹                           ›  │  ← sibling arrows (visible only when siblings exist)
+└─────────────────────────────────┘
+```
+
+**Sibling navigation arrows:**
+- `‹` (left): visible when `currentIndex > 0`
+- `›` (right): visible when `currentIndex < siblings.length - 1`
+- Small (24px hit target), Warm Stone color, secondary prominence
+- No "2/5" indicator
+- Clicking resets elaboration state and displays adjacent sibling
+
+---
+
+### S-011: InsightModal (black hole click)
+
+Opened by clicking the black hole mesh.
+
+**Initial state (not yet acknowledged):**
+```
+┌─────────────────────────────────┐
+│  ─────────────────────────────  │
+│  [holistic insight text]        │
+│  — 1-2 sentences, temporal —    │
+│                                 │
+│  [Jest OK]        [Rozwiń]      │
+└─────────────────────────────────┘
+```
+
+**After "Rozwiń" (elaboration loaded):**
+```
+┌─────────────────────────────────┐
+│  [insight text]                 │
+│                                 │
+│  [elaboration text — 2-4 sen.]  │
+│                                 │
+│  ┌─────────────────────────┐    │
+│  │  Twoje dopowiedzenie... │    │  ← textarea
+│  └─────────────────────────┘    │
+│  [To ma sens]   [Zapisz →]      │
+└─────────────────────────────────┘
+```
+
+**After save (note persisted):**
+```
+┌─────────────────────────────────┐
+│  [insight text]                 │
+│  [saved note text]              │
+│  Dobrze. Twoja refleksja...     │
+│  [collapsible: Historia ▼]      │
+└─────────────────────────────────┘
+```
+
+**History section (US-211 — planned, collapsible):**
+```
+┌─────────────────────────────────┐
+│  Historia refleksji ▲           │
+│  ─────────────────────────────  │
+│  2 maja 2026                    │
+│  Ostatnio dużo o pracy...       │
+│  ─────────────────────────────  │
+│  15 kwietnia 2026               │
+│  Ten temat wraca od tygodni...  │
+└─────────────────────────────────┘
+```
+
+Format: date + 1-2 sentence insight. No analytics. No dashboard. No scoring.
+
+---
+
+## 8. Tooltip System — Interaction Rules
+
+| Rule | Value |
+|------|-------|
+| Max active tooltips | 1 |
+| Activation delay | 300ms after `onPointerEnter` |
+| Deactivation delay | 300ms after `onPointerLeave` (keepOpen grace period) |
+| keepOpen duration (BlackHole) | 500ms |
+| Override: new tooltip opens | Previous deactivates immediately |
+| Override: cursor in tooltip div | keepOpen held (`isTooltipHovered`) |
+
+See `docs/architecture.md` section 5.7a for technical rationale.
+
+---
+
 *This document is updated when UI changes are made during /discover or implementation.*

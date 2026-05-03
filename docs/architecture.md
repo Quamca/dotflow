@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 2.8
+**Version:** 2.9
 **Date:** 2026-05-03
 **Author:** Solution Architect
-**Status:** Updated after InsightModal/SkyModal (v1.7)
+**Status:** Updated after strategic session — StoryModal, tooltip rationale, language variation, history model (v1.7+)
 
 ---
 
@@ -327,7 +327,7 @@ dotflow/
 **Responsibility:** Render a 3D visualization of journal entries as stars in space, with constellation lines between connected entries, and a black hole at the center. Lives as a fixed CSS layer on the Home screen; toggled between blurred background mode and interactive 3D mode by clicking the Dotflow logo.
 
 **Components:**
-- `StarField.tsx` — Canvas root (`@react-three/fiber`). Sets up Camera (PerspectiveCamera, FOV 60), OrbitControls, ambient light. Renders `<StarNode>` per entry, `<StoryNode>` per story, `<ConstellationLines>`, and `<BlackHole>`. **Global tooltip coordinator (US-205):** `activeTooltipId` state with `activateTooltip(id)` / `deactivateTooltip()` — only one tooltip can be active at a time; 300ms deactivation delay; passed as `isActive`, `onActivate`, `onDeactivate` props to all node components.
+- `StarField.tsx` — Canvas root (`@react-three/fiber`). Sets up Camera (PerspectiveCamera, FOV 60), OrbitControls, ambient light. Renders `<StarNode>` per entry, `<StoryNode>` per story, `<ConstellationLines>`, and `<BlackHole>`. **Global tooltip coordinator (US-205):** `activeTooltipId` state with `activateTooltip(id)` / `deactivateTooltip()` — only one tooltip can be active at a time; 300ms deactivation delay; passed as `isActive`, `onActivate`, `onDeactivate` props to all node components. See section 5.7a for UX rationale.
 - `StarNode.tsx` — `<mesh>` with `sphereGeometry` + `meshBasicMaterial`. On hover: renders `<Html>` overlay showing entry date + 80-char content snippet. Uses parent-controlled `isActive` prop; `e.stopPropagation()` on pointer events.
 - `BlackHole.tsx` — Sphere mesh at origin `[0, 0, 0]`. Two meshes: pulsing glow halo (`#3b2a4a`, 18% opacity) and core (`#0a0a0f`, metalness 0.8). Size is clamped `max(0.3, entryCount * scale)`. On hover (interactive mode only): shows insight tooltip with holistic insight or fallback "Keep writing — your center is forming." See section 5.8 for full behavior.
 - `ConstellationLines.tsx` — `<Line>` from `@react-three/drei` for each connection pair. Color `#D6D3D1`, opacity 0.5.
@@ -337,6 +337,23 @@ dotflow/
 - **Deterministic positions:** `getStarPosition(entry.id)` generates a stable `[x, y, z]` from sin-based UUID hash, radius 3–8. Value-aligned entries use `getAlignedStarPosition()` (radius 1.5–3, closer to black hole); divergent entries use radius 3–8.
 - **Z-layering:** `StarField` is `position: fixed, z-0` (background). Entry list content is `relative, z-10`. Exit 3D button is `z-30`. Logo toggle is `z-20`.
 - **jsdom compatibility:** `ResizeObserver` global mock in `src/__tests__/setup.ts`; `StarField` component is fully mocked with `vi.mock` in all page-level tests to avoid WebGL Canvas dependency.
+
+### 5.7a Single Active Tooltip — UX Rationale
+
+**Why only one tooltip can be active at a time:**
+
+The 3D sky contains many story nodes clustered in proximity. Without coordination, hovering near a cluster boundary triggers multiple tooltips simultaneously — each mounted as an HTML overlay on the Three.js canvas, competing for the same screen area, creating overlapping text and visual chaos.
+
+**Problems a single-tooltip system solves:**
+1. **Spatial chaos** — Multiple tooltips overlap when stars are close. One active tooltip preserves readability.
+2. **Cognitive overload** — More than one tooltip at a time overwhelms the user's attention; the sky should feel like a calm space, not a data panel.
+3. **Race conditions** — Without coordination, rapid pointer movement causes tooltips to mount and unmount unpredictably; the global `activeTooltipId` acts as a mutex.
+4. **Performance** — Each tooltip is an `<Html>` portal in the Three.js scene. Multiple simultaneous `Html` components degrade canvas render performance.
+
+**Implementation constraints:**
+- 300ms deactivation delay: allows cursor transit from mesh to tooltip without flicker (keepOpen + isTooltipHovered pattern in BlackHole)
+- `e.stopPropagation()` on all mesh pointer events: prevents raycast bleed-through — a pointer event on one star should not trigger another star's `onPointerEnter`
+- Invisible hit mesh at `clampedSize * 1.6` (BlackHole only): creates a larger, stable pointer target that matches the visual glow extent rather than the mathematical sphere surface
 
 ### 5.8 BlackHole (US-202, US-203, US-205)
 
@@ -396,6 +413,45 @@ In v1.7, clicking the black hole opens `InsightModal` (see section 5.11) — the
 - `dotflow_insight_notes` — note history (last 50 entries, appended on save)
 
 **Integration with `generateHolisticInsight`:** `previousNote` (read from `dotflow_insight_note`) is passed into the next insight generation so the AI can reference the user's last reflection.
+
+**Insight history data model (US-211 — planned):**
+
+```typescript
+type InsightHistoryEntry = {
+  text: string        // 1-2 sentence insight, must include temporal anchor
+  timestamp: string   // ISO 8601 datetime string
+}
+```
+
+localStorage key: `dotflow_insight_history` — JSON array of `InsightHistoryEntry[]`, newest first, capped at 50 entries. Written when a new holistic insight is generated. Read by InsightModal to render a collapsible "Historia refleksji" section. Language constraint: every `text` must include temporal framing — enforced by prompt. See `docs/ai_communication_principles.md` section 8.
+
+### 5.12 StoryModal (US-206, US-213 planned)
+
+**Responsibility:** Full-screen modal opened when the user clicks a story star. Shows story content, emotion color indicator, "Dopowiedz" elaboration input, and — when siblings exist — subtle prev/next navigation arrows for stories from the same entry.
+
+**Props:** `story: Story`, `siblings?: Story[]` (other stories from same entry, ordered by creation), `onClose: () => void`, `onElaborate: (text: string) => void`
+
+**State machine:**
+```
+idle → user clicks Dopowiedz → elaborating (input visible)
+     → user submits → submitting (loading)
+     → success → viewing (story content updated)
+     → user navigates arrow → viewing new story (state resets to idle)
+```
+
+**Story navigation (US-213 — planned):**
+- Left/right arrows visible only when siblings exist
+- Left renders when `currentIndex > 0`, right when `currentIndex < siblings.length - 1`
+- Navigation resets elaboration state to idle and displays the sibling story
+- Arrows: small, secondary, not primary CTA — no pagination indicator ("2/5"), no swipe gesture, no auto-advance
+
+**Type additions needed in `src/types/index.ts`:**
+```typescript
+type InsightHistoryEntry = {
+  text: string
+  timestamp: string
+}
+```
 
 ### 5.9 ValuesModal (US-202)
 
@@ -587,6 +643,32 @@ User: User's most recent message: [user's second response]
 ```
 
 **Round selection:** `respondToInsightFeedback(insight, userFeedback, round, apiKey)` uses `DEEPENING_QUESTION_SYSTEM_PROMPT` for round 1 and `CLOSING_PHRASE_SYSTEM_PROMPT` for round 2. Returns plain string (not JSON).
+
+### Holistic Insight Language Variation (US-205 + ai_communication_principles.md v2.0)
+
+**Problem:** A fixed `HOLISTIC_INSIGHT_SYSTEM_PROMPT` opener produces repetitive phrasing. After a few insights the user starts skimming, not reading.
+
+**Implementation strategy in `src/utils/prompts.ts`:**
+
+The `HOLISTIC_INSIGHT_SYSTEM_PROMPT` must explicitly instruct the AI to vary the entry point by style. The prompt should enumerate the five rotation styles and instruct the AI to pick one that fits the data:
+
+```
+Vary the sentence opening each time. Do not begin with "W Twoich wpisach" or
+"Wygląda na to". Choose one of these styles based on what fits the content:
+- Temporal: "Ostatnio...", "W ciągu ostatnich tygodni...", "Od jakiegoś czasu..."
+- Pattern: "Ten temat pojawia się ponownie...", "To zdaje się wracać..."
+- Contrast: "Tym razem inaczej...", "Coś się zdaje zmieniać..."
+- Emotional texture: "W tych historiach jest coś...", "Coś się tu kumuluje..."
+- Narrative: "W ostatnich historiach...", "Sporo ostatnio o..."
+```
+
+**Anti-template safeguards (enforce in prompt):**
+- Forbidden openers listed explicitly: `"W Twoich wpisach"`, `"Wygląda na to, że"`, `"Twoje wpisy wskazują"`
+- Max 1-2 sentences — brevity prevents formulaic structure from emerging
+- No advice, imperatives, identity labels, or questions directed at the user
+
+**Testing this (planned TC):**
+- TC for HOLISTIC_INSIGHT_SYSTEM_PROMPT: verify it contains the variation instruction and the explicit forbidden-opener list (analogous to TC-177–181 which test existing constraints)
 
 ---
 

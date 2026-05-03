@@ -274,14 +274,64 @@ These constraints apply to the insight history timeline (US-211):
 
 ---
 
-## 9. Implementation Reference
+## 9. Language Variation — Implementation Strategy
+
+This section bridges the principles in section 6 with the actual prompt engineering in `src/utils/prompts.ts`.
+
+### What goes in HOLISTIC_INSIGHT_SYSTEM_PROMPT
+
+The prompt must contain an explicit variation instruction. The AI cannot vary structure reliably without being told to:
+
+```
+STYLE VARIATION — do not begin with the same phrase twice in a row.
+Forbidden openers: "W Twoich wpisach", "Wygląda na to, że", "Twoje wpisy wskazują".
+Choose one style that best fits the emotional texture of the content:
+- Temporal: "Ostatnio...", "W ciągu ostatnich tygodni...", "Od jakiegoś czasu..."
+- Pattern noticing: "Ten temat pojawia się...", "To zdaje się wracać..."
+- Contrast: "Tym razem inaczej...", "Coś się zdaje zmieniać..."
+- Emotional texture: "W tych historiach jest coś...", "Coś się tu kumuluje..."
+- Narrative: "W ostatnich historiach...", "Sporo ostatnio o..."
+```
+
+### Anti-template safeguards in the prompt
+
+Include all of these as explicit instructions:
+1. `No advice, imperatives, or directives ("spróbuj", "możesz", "warto", "pamiętaj")`
+2. `No identity labels ("jesteś osobą", "masz tendencję", "twoja osobowość")`
+3. `No pseudo-empathy ("rozumiem, że", "widzę, że", "czuję, że")`
+4. `Max 1-2 sentences — brevity prevents formulaic patterns from emerging`
+5. `Respond in the same language as the entry content`
+
+### What NOT to put in the prompt
+
+- Hardcoded example sentences — AI will copy the structure, defeating the variation purpose
+- Style names (temporal, contrast, etc.) visible to the user — these are internal engineering terms
+- References to "previous insight" phrasing that might make the AI copy prior style
+
+### Testable acceptance criteria for the prompt (to add to test_cases.md)
+
+| TC | What to test | How |
+|----|-------------|-----|
+| TC-2xx | Prompt contains variation instruction | `expect(HOLISTIC_INSIGHT_SYSTEM_PROMPT).toContain('Forbidden openers')` or equivalent |
+| TC-2xx | Prompt lists forbidden openers | `expect(prompt).toContain('W Twoich wpisach')` (in forbidden list) |
+| TC-2xx | Prompt lists style names | `expect(prompt).toContain('Temporal')` |
+| TC-2xx | Prompt forbids identity labels | existing TC-178 covers this |
+| TC-2xx | Prompt limits to 1-2 sentences | existing TC-181 covers this |
+
+---
+
+## 10. Implementation Reference
 
 All prompts implementing these principles live in `src/utils/prompts.ts`.
 
 Relevant functions in `src/services/aiService.ts`:
-- `generateHolisticInsight()` — US-205
-- `respondToInsightFeedback()` — US-203
-- `generateConnectionInsight()` — US-205
+- `generateHolisticInsight(entries, apiKey, previousNote?)` — US-205; must implement variation instruction (see section 9)
+- `respondToInsightFeedback(insight, feedback, round, apiKey)` — US-203
+- `elaborateInsight(insight, entries, apiKey)` — US-205
+
+Planned functions:
+- `classifyLifeArea(storyContent, existingAreas, apiKey)` — US-208; zone labels must be observational (no "Praca", no identity categories)
+- `classifyConnectionType(story1, story2, apiKey)` — US-209; internal classification only, label never shown to user
 
 Before shipping US-203: verify all Polish question variants with a native speaker. Document verified variants in this file under a new section: **Approved Question Examples**.
 

@@ -261,4 +261,103 @@ SVG style, no gradients.
 
 ---
 
+## 13. Exploration vs Dashboard — UX Philosophy Constraints
+
+### The core distinction
+
+**Dashboard:** persistent labels, visible counts, comparison panels, always-on statistics, progress bars. The user is an analyst viewing their data.
+
+**Exploration space:** elements emerge and recede, labels appear only on hover, connections reveal themselves, nothing is permanently pinned. The user is a wanderer noticing things.
+
+Dotflow is an exploration space. Every design decision must push away from dashboard feeling.
+
+### Constraint checklist (apply to all new features)
+
+| Check | Dashboard (forbidden) | Exploration (required) |
+|-------|----------------------|------------------------|
+| Labels | Always visible | Hover only, or absent |
+| Counts / numbers | Shown prominently | Hidden or absent |
+| Zones / categories | Fixed, labeled, bordered | Emergent, soft, hover-label |
+| Insights | Pinned permanently | Temporal, fading, collapsible |
+| Connections | Always highlighted | Revealed on hover, recede on leave |
+| History | Analytics timeline | Minimal: date + 1-2 sentences |
+| Progress | Progress bars, streaks | No measurement visible to user |
+
+### Cognitive chaos prevention
+
+The 3D sky can become visually overwhelming as stories accumulate. Design decisions that prevent cognitive overload:
+
+1. **Tooltip exclusivity:** Only one tooltip active at a time (global coordinator) — prevents simultaneous text overlays from competing for attention
+2. **Connection fade-reveal:** Connections are not always visible as a full graph — they emerge on hover, the rest fades. Prevents the sky from reading as a network diagram.
+3. **Zone softness:** Emergent zone overlays use very low opacity and no sharp edges — zones are a whisper, not a label. If you look away, they vanish into the sky.
+4. **Insight brevity:** 1-2 sentences per insight, never a paragraph. The sky is not a text document.
+5. **Star autonomy:** Each story star is a memory fragment, not a data point in a chart. Arrows between siblings hint at shared origin without imposing sequence.
+
+---
+
+## 14. Connection Highlighting — Visual Specification
+
+**Trigger:** `onPointerEnter` on a story node mesh (in interactive 3D mode only)
+
+**Effect:**
+- Directly connected stars: full opacity, lines emerge from darkness (opacity transition 0→1, 150ms ease)
+- Non-connected stars: fade to 20% opacity (150ms ease) — remain visible but visually recede
+- Connection lines to 2nd-degree connections (optional): 40% opacity — hints at extended network without overwhelming
+
+**Reset:** All opacity values return to defaults on `onPointerLeave` (150ms ease)
+
+**Forbidden:**
+- No persistent highlight state (resets on leave)
+- No labeled panels showing connection details
+- No "click to lock highlight" pattern — purely ephemeral on hover
+- No aggressive pulsing or blinking on highlighted lines
+
+**Implementation note:** `hoveredStoryId` state in StarField — passed as prop to StoryNode (to compute its own fade opacity) and ConstellationLines (to compute line opacity).
+
+---
+
+## 15. Emergent Zone Visual Specification
+
+**Zone visual anatomy:**
+- Geometry: convex hull of the cluster's story positions, smoothed with Gaussian blur or feathering
+- Fill: radial gradient from center, opacity max 8–12% at center, 0% at edges
+- Color: derived from the dominant emotion in the cluster (uses `emotionColors.ts` palette, further desaturated by 50%)
+- Motion: slow, continuous ambient drift (scale oscillation ±2%, period ~8s via `useFrame` sin-wave) — makes zones feel alive, not static
+- Border: none — hard edges are forbidden
+
+**Zone label:**
+- Font: DM Sans 11px, Warm Stone color
+- Appears only on hover — 200ms fade in
+- Position: above the cluster centroid
+- Format: AI-suggested label (user-renameable) — no quotes, no explanation
+- If label cleared: no text renders — zone is purely ambient
+
+**Zone lifecycle:**
+- Appears: when cluster reaches ≥5 stories
+- Fades: when cluster falls below 5 active stories (stories with recent elaborations take priority)
+- Reorganizes: cluster centroid recomputes when new stories classified into the area — zone "drifts" to new centroid over 2s transition
+
+---
+
+## 16. Story Navigation Arrows — Visual Specification
+
+**Context:** Inside StoryModal only — never in the 3D sky
+
+**Visual treatment:**
+- Size: 24×24px hit target, chevron icon 14px stroke (Lucide `ChevronLeft` / `ChevronRight`)
+- Color: Warm Stone (`#78716C`) — secondary, not prominent
+- Position: absolute, vertically centered on modal card sides (left: 12px padding, right: 12px padding)
+- Visibility: only when siblings exist — rendered conditionally, never as disabled state
+- Hover: fade to Ink (`#1C1917`) on hover, 150ms ease
+
+**What is explicitly absent:**
+- No "2/5" or "story X of Y" text
+- No progress dots (the Follow-Up Dialog has these — StoryModal must not)
+- No swipe gesture
+- No auto-advance
+
+**Why:** Stars are autonomous memory fragments. Arrows hint that two stories share origin — they don't impose a reading order or a chapter structure. The navigation is a whisper, not a chapter interface.
+
+---
+
 *This brief is a living document — update when design decisions evolve.*
