@@ -86,6 +86,8 @@ export default function StarField({
     return lines
   }, [stories, storyPositionMap])
 
+  const BLACK_HOLE_EXCLUSION_RADIUS = 2.2
+
   const activeZones = useMemo(() => {
     const result: Array<{ label: string; centroid: [number, number, number]; radius: number; color: string }> = []
     zoneCentroids.forEach((centroid, areaLabel) => {
@@ -96,15 +98,25 @@ export default function StarField({
       })
       const dominant = Object.entries(emotionCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
       const color = getEmotionColor(dominant)
-      const spread = Math.max(...areaStories.map((s) => {
-        if (!s.position) return 0
+
+      const distances = areaStories.map((s) => {
         const p = storyPositionMap.get(s.id) ?? s.position
+        if (!p) return 0
         const dx = p[0] - centroid[0]
         const dy = p[1] - centroid[1]
         const dz = p[2] - centroid[2]
         return Math.sqrt(dx * dx + dy * dy + dz * dz)
-      }))
-      result.push({ label: areaLabel, centroid, radius: spread + 1.2, color })
+      })
+      const avgDist = distances.reduce((a, b) => a + b, 0) / Math.max(distances.length, 1)
+      const rawRadius = avgDist * 1.4 + 0.5
+
+      // Clamp radius to keep zone sphere from overlapping the black hole center area
+      const cx = centroid[0], cy = centroid[1], cz = centroid[2]
+      const centroidDist = Math.sqrt(cx * cx + cy * cy + cz * cz)
+      const maxRadius = Math.max(0.5, centroidDist - BLACK_HOLE_EXCLUSION_RADIUS)
+      const radius = Math.min(rawRadius, maxRadius)
+
+      result.push({ label: areaLabel, centroid, radius, color })
     })
     return result
   }, [zoneCentroids, stories, storyPositionMap])

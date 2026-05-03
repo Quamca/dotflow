@@ -48,6 +48,9 @@ export default function LifeAreaZone({
 
   const displayLabel = getLabel(label)
 
+  // Label is offset above the zone sphere so it doesn't overlap other elements near centroid
+  const labelOffsetY = radius + 0.6
+
   return (
     <group position={centroid}>
       <mesh
@@ -65,7 +68,7 @@ export default function LifeAreaZone({
       </mesh>
 
       {hovered && !isLabelCleared && (
-        <Html center style={{ pointerEvents: 'auto', userSelect: 'none' }}>
+        <Html position={[0, labelOffsetY, 0]} center style={{ pointerEvents: 'auto', userSelect: 'none' }}>
           {editing ? (
             <form onSubmit={handleLabelSubmit} style={{ display: 'inline-flex', gap: 4 }}>
               <input
