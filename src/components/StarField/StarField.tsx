@@ -51,8 +51,10 @@ export default function StarField({
     setHoveredZoneArea(zoneLabel)
   }
 
-  function handleZoneLeave() {
-    hoverTimerRef.current = setTimeout(() => setHoveredZoneArea(null), 350)
+  function handleZoneLeave(zoneLabel: string) {
+    hoverTimerRef.current = setTimeout(() => {
+      setHoveredZoneArea((current) => current === zoneLabel ? null : current)
+    }, 350)
   }
 
   const positionMap = useMemo(() => {

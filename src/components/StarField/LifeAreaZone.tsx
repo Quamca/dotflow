@@ -13,7 +13,7 @@ interface LifeAreaZoneProps {
   onClear: () => void
   getLabel: (aiLabel: string) => string
   onEnter: (label: string) => void
-  onLeave: () => void
+  onLeave: (label: string) => void
 }
 
 const KEEP_OPEN_MS = 350
@@ -50,7 +50,7 @@ export default function LifeAreaZone({
   function handleZoneLeave() {
     setIsZoneHovered(false)
     if (!isLabelHovered) scheduleClose()
-    onLeave()
+    onLeave(label)
   }
 
   function handleLabelEnter() {
@@ -63,7 +63,7 @@ export default function LifeAreaZone({
   function handleLabelLeave() {
     setIsLabelHovered(false)
     if (!isZoneHovered) scheduleClose()
-    onLeave()
+    onLeave(label)
   }
 
   // Animate only the visual mesh — hit detection mesh stays at fixed scale to avoid
