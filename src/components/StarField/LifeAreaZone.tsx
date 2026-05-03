@@ -76,6 +76,7 @@ export default function LifeAreaZone({
 
   function handleLabelClick(e: React.MouseEvent) {
     e.stopPropagation()
+    setIsLabelHovered(false)  // span is about to unmount — its onMouseLeave won't fire
     setDraft(getLabel(label))
     setEditing(true)
   }
