@@ -12,15 +12,16 @@ interface LifeAreaZoneProps {
   onRename: (newLabel: string) => void
   onClear: () => void
   getLabel: (aiLabel: string) => string
-  onHoverChange?: (label: string | null) => void
+  onEnter: (label: string) => void
+  onLeave: () => void
 }
 
-const KEEP_OPEN_MS = 250
+const KEEP_OPEN_MS = 350
 
 export default function LifeAreaZone({
-  label, centroid, radius, color, isLabelCleared, onRename, onClear, getLabel, onHoverChange,
+  label, centroid, radius, color, isLabelCleared, onRename, onClear, getLabel, onEnter, onLeave,
 }: LifeAreaZoneProps) {
-  const meshRef = useRef<Mesh>(null)
+  const visualMeshRef = useRef<Mesh>(null)
   const [isZoneHovered, setIsZoneHovered] = useState(false)
   const [isLabelHovered, setIsLabelHovered] = useState(false)
   const [keepOpen, setKeepOpen] = useState(false)
@@ -36,41 +37,41 @@ export default function LifeAreaZone({
 
   function scheduleClose() {
     clearTimer()
-    timerRef.current = setTimeout(() => {
-      setKeepOpen(false)
-      onHoverChange?.(null)
-    }, KEEP_OPEN_MS)
+    timerRef.current = setTimeout(() => setKeepOpen(false), KEEP_OPEN_MS)
   }
 
   function handleZoneEnter() {
     clearTimer()
     setIsZoneHovered(true)
     setKeepOpen(true)
-    onHoverChange?.(label)
+    onEnter(label)
   }
 
   function handleZoneLeave() {
     setIsZoneHovered(false)
     if (!isLabelHovered) scheduleClose()
+    onLeave()
   }
 
   function handleLabelEnter() {
     clearTimer()
     setIsLabelHovered(true)
     setKeepOpen(true)
-    onHoverChange?.(label)
+    onEnter(label)
   }
 
   function handleLabelLeave() {
     setIsLabelHovered(false)
     if (!isZoneHovered) scheduleClose()
+    onLeave()
   }
 
+  // Animate only the visual mesh — hit detection mesh stays at fixed scale to avoid
+  // spurious pointer events caused by scale changes on the raycast target
   useFrame(({ clock }) => {
-    if (!meshRef.current) return
-    const t = clock.getElapsedTime()
-    const pulse = 1 + Math.sin(t * 0.7) * 0.02
-    meshRef.current.scale.setScalar(pulse)
+    if (!visualMeshRef.current) return
+    const pulse = 1 + Math.sin(clock.getElapsedTime() * 0.7) * 0.02
+    visualMeshRef.current.scale.setScalar(pulse)
   })
 
   function handleLabelClick(e: React.MouseEvent) {
@@ -95,11 +96,17 @@ export default function LifeAreaZone({
 
   return (
     <group position={centroid}>
+      {/* Invisible hit detection mesh — fixed scale, drives hover events */}
       <mesh
-        ref={meshRef}
         onPointerEnter={handleZoneEnter}
         onPointerLeave={handleZoneLeave}
       >
+        <sphereGeometry args={[radius, 16, 16]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+
+      {/* Visual-only mesh — animated, no pointer events */}
+      <mesh ref={visualMeshRef}>
         <sphereGeometry args={[radius, 16, 16]} />
         <meshBasicMaterial
           color={color}
@@ -141,11 +148,13 @@ export default function LifeAreaZone({
               onMouseEnter={handleLabelEnter}
               onMouseLeave={handleLabelLeave}
               style={{
+                display: 'inline-block',
                 font: '11px DM Sans, sans-serif',
                 color: '#78716C',
                 background: 'rgba(250,250,249,0.75)',
-                padding: '2px 6px',
-                borderRadius: 4,
+                // generous padding creates a larger invisible hit area around the text
+                padding: '8px 16px',
+                borderRadius: 6,
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
               }}

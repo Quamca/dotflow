@@ -27,8 +27,7 @@ export function useLifeAreaZones() {
 
   const clearZoneLabel = useCallback((aiLabel: string) => {
     setCustomLabels((prev) => {
-      const next = { ...prev }
-      delete next[aiLabel]
+      const next = { ...prev, [aiLabel]: '' }
       localStorage.setItem(ZONE_LABELS_KEY, JSON.stringify(next))
       return next
     })

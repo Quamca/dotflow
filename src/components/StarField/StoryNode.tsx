@@ -17,8 +17,8 @@ export default function StoryNode({ story, position, isInteractive, onOpenModal,
   const [isHovered, setIsHovered] = useState(false)
   const emotionColor = getEmotionColor(story.emotion)
   const color = isHovered ? '#1C1917' : emotionColor
-  const meshScale = zoneHighlight === 'highlight' ? 2.2 : 1
-  const opacity = zoneHighlight === 'dim' ? 0.2 : 1
+  const meshScale = zoneHighlight === 'highlight' ? 2.2 : zoneHighlight === 'dim' ? 0.7 : 1
+  const opacity = zoneHighlight === 'dim' ? 0.1 : 1
 
   const preview = story.content.length > 80 ? `${story.content.slice(0, 80)}…` : story.content
 

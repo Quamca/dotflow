@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Line } from '@react-three/drei'
 import type { Entry, Connection, Story } from '../../types'
-import { getStarPosition, getAlignedStarPosition, computeZoneCentroids, getClusteredStoryPosition } from '../../utils/starPositions'
+import { getStarPosition, getAlignedStarPosition, getFixedZoneCentroid, getClusteredStoryPosition } from '../../utils/starPositions'
 import { getEmotionColor } from '../../utils/emotionColors'
 import { useLifeAreaZones } from '../../hooks/useLifeAreaZones'
 import StarNode from './StarNode'
@@ -37,6 +37,16 @@ export default function StarField({
 }: StarFieldProps) {
   const { getLabel, renameZone, clearZoneLabel, isLabelCleared } = useLifeAreaZones()
   const [hoveredZoneArea, setHoveredZoneArea] = useState<string | null>(null)
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function handleZoneEnter(zoneLabel: string) {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
+    setHoveredZoneArea(zoneLabel)
+  }
+
+  function handleZoneLeave() {
+    hoverTimerRef.current = setTimeout(() => setHoveredZoneArea(null), 350)
+  }
 
   const positionMap = useMemo(() => {
     const map = new Map<string, [number, number, number]>()
@@ -54,20 +64,27 @@ export default function StarField({
     return BLACK_HOLE_MIN_SIZE + t * (BLACK_HOLE_MAX_SIZE - BLACK_HOLE_MIN_SIZE)
   }, [entries.length])
 
-  const zoneCentroids = useMemo(() => computeZoneCentroids(
-    stories.map((s) => ({ id: s.id, life_area: s.life_area, position: s.position }))
-  ), [stories])
+  // Life areas with ≥5 stories — only these get a zone and spatial clustering bias
+  const activeAreas = useMemo(() => {
+    const counts = new Map<string, number>()
+    stories.forEach((s) => {
+      if (s.life_area) counts.set(s.life_area, (counts.get(s.life_area) ?? 0) + 1)
+    })
+    const active = new Set<string>()
+    counts.forEach((n, label) => { if (n >= 5) active.add(label) })
+    return active
+  }, [stories])
 
   const storyPositionMap = useMemo(() => {
     const map = new Map<string, [number, number, number]>()
     stories.forEach((s) => {
-      if (s.position) {
-        const centroid = s.life_area ? (zoneCentroids.get(s.life_area) ?? null) : null
-        map.set(s.id, getClusteredStoryPosition(s.id, centroid))
-      }
+      const centroid = s.life_area && activeAreas.has(s.life_area)
+        ? getFixedZoneCentroid(s.life_area)
+        : null
+      map.set(s.id, getClusteredStoryPosition(s.id, centroid))
     })
     return map
-  }, [stories, zoneCentroids])
+  }, [stories, activeAreas])
 
   const sessionLines = useMemo(() => {
     const grouped = new Map<string, Story[]>()
@@ -87,10 +104,6 @@ export default function StarField({
     return lines
   }, [stories, storyPositionMap])
 
-  // Rule 1: zone sphere surface must be at least (BH_EXCLUSION_BASE + ZONE_SAFETY) from origin
-  const BH_EXCLUSION_BASE = 1.8
-  const ZONE_SAFETY_MARGIN = 0.8
-  // Rule 2: zone spheres must not overlap each other (plus this margin)
   const ZONE_OVERLAP_MARGIN = 0.6
   const MIN_ZONE_RADIUS = 0.8
 
@@ -98,7 +111,7 @@ export default function StarField({
     type ZoneSpec = { label: string; centroid: [number, number, number]; radius: number; color: string; storyCount: number }
     const raw: ZoneSpec[] = []
 
-    zoneCentroids.forEach((rawCentroid, areaLabel) => {
+    activeAreas.forEach((areaLabel) => {
       const areaStories = stories.filter((s) => s.life_area === areaLabel)
       const emotionCounts: Record<string, number> = {}
       areaStories.forEach((s) => {
@@ -107,32 +120,29 @@ export default function StarField({
       const dominant = Object.entries(emotionCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
       const color = getEmotionColor(dominant)
 
+      // Use the fixed centroid — this is the authoritative center of the zone
+      const centroid = getFixedZoneCentroid(areaLabel)
+      const [cx, cy, cz] = centroid
+
+      // Compute radius from FINAL story positions (after clustering bias is applied)
       const distances = areaStories.map((s) => {
-        const p = storyPositionMap.get(s.id) ?? s.position
+        const p = storyPositionMap.get(s.id)
         if (!p) return 0
-        const [cx, cy, cz] = rawCentroid
         return Math.sqrt((p[0] - cx) ** 2 + (p[1] - cy) ** 2 + (p[2] - cz) ** 2)
-      })
-      const avgDist = distances.reduce((a, b) => a + b, 0) / Math.max(distances.length, 1)
-      const rawRadius = Math.max(MIN_ZONE_RADIUS, avgDist * 1.4 + 0.5)
+      }).filter((d) => d > 0)
 
-      // Rule 1: push centroid outward if zone sphere would encroach on black hole exclusion zone
-      const [cx, cy, cz] = rawCentroid
-      const centroidDist = Math.sqrt(cx * cx + cy * cy + cz * cz)
-      const minAllowedDist = BH_EXCLUSION_BASE + rawRadius + ZONE_SAFETY_MARGIN
-      let finalCentroid: [number, number, number]
-      if (centroidDist < minAllowedDist) {
-        const scale = centroidDist > 0.001 ? minAllowedDist / centroidDist : 1
-        finalCentroid = [cx * scale, cy * scale, cz * scale]
-        if (centroidDist <= 0.001) finalCentroid = [minAllowedDist, 0, 0]
-      } else {
-        finalCentroid = rawCentroid
-      }
+      if (distances.length === 0) return
 
-      raw.push({ label: areaLabel, centroid: finalCentroid, radius: rawRadius, color, storyCount: areaStories.length })
+      // Radius = avgDist + stdDev + 0.3 buffer — density-based, not count-based
+      const avgDist = distances.reduce((a, b) => a + b, 0) / distances.length
+      const variance = distances.reduce((sum, d) => sum + (d - avgDist) ** 2, 0) / distances.length
+      const stdDev = Math.sqrt(variance)
+      const rawRadius = Math.max(MIN_ZONE_RADIUS, avgDist + stdDev + 0.3)
+
+      raw.push({ label: areaLabel, centroid, radius: rawRadius, color, storyCount: areaStories.length })
     })
 
-    // Rule 2: resolve zone-zone overlaps — most populated zones keep their radius
+    // Resolve zone-zone overlaps — most populated zones keep their radius
     const sorted = [...raw].sort((a, b) => b.storyCount - a.storyCount)
     const placed: ZoneSpec[] = []
     for (const zone of sorted) {
@@ -149,7 +159,7 @@ export default function StarField({
     }
 
     return placed
-  }, [zoneCentroids, stories, storyPositionMap])
+  }, [activeAreas, stories, storyPositionMap])
 
   const connectionCount = useMemo(() => {
     const count: Record<string, number> = {}
@@ -209,7 +219,8 @@ export default function StarField({
           getLabel={getLabel}
           onRename={(newLabel) => renameZone(zone.label, newLabel)}
           onClear={() => clearZoneLabel(zone.label)}
-          onHoverChange={setHoveredZoneArea}
+          onEnter={handleZoneEnter}
+          onLeave={handleZoneLeave}
         />
       ))}
       <ConstellationLines connections={connections} positionMap={positionMap} />

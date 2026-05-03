@@ -25,7 +25,23 @@ export function getStoryPosition(storyId: string): [number, number, number] {
   return computePosition(storyId, STORY_RADIUS_MIN, STORY_RADIUS_MAX)
 }
 
-const CLUSTER_BIAS = 0.55
+const CLUSTER_BIAS = 0.70
+
+// Radius at which fixed zone centroids are placed — outside black hole exclusion zone.
+const ZONE_CENTROID_RADIUS = 6.0
+
+// Returns a deterministic centroid for a life area label — stable regardless of story positions.
+// Derived purely from the label string so the same label always maps to the same point in space.
+export function getFixedZoneCentroid(label: string): [number, number, number] {
+  const seed = hashString(label)
+  const theta = seededRandom(seed) * Math.PI * 2
+  const phi = Math.acos(2 * seededRandom(seed + 1000) - 1)
+  return [
+    ZONE_CENTROID_RADIUS * Math.sin(phi) * Math.cos(theta),
+    ZONE_CENTROID_RADIUS * Math.sin(phi) * Math.sin(theta),
+    ZONE_CENTROID_RADIUS * Math.cos(phi),
+  ]
+}
 
 // Returns position biased toward zone centroid when story belongs to a life area cluster.
 export function getClusteredStoryPosition(
