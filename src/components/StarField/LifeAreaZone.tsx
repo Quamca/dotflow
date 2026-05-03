@@ -8,6 +8,7 @@ interface LifeAreaZoneProps {
   centroid: [number, number, number]
   radius: number
   color: string
+  isActive: boolean
   isLabelCleared: boolean
   onRename: (newLabel: string) => void
   onClear: () => void
@@ -20,7 +21,7 @@ interface LifeAreaZoneProps {
 const KEEP_OPEN_MS = 350
 
 export default function LifeAreaZone({
-  label, centroid, radius, color, isLabelCleared, onRename, onClear, getLabel, onEnter, onLeave, onMove,
+  label, centroid, radius, color, isActive, isLabelCleared, onRename, onClear, getLabel, onEnter, onLeave, onMove,
 }: LifeAreaZoneProps) {
   const visualMeshRef = useRef<Mesh>(null)
   const [isZoneHovered, setIsZoneHovered] = useState(false)
@@ -30,7 +31,7 @@ export default function LifeAreaZone({
   const [draft, setDraft] = useState('')
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const showLabel = isZoneHovered || isLabelHovered || keepOpen
+  const showLabel = isLabelHovered || (isActive && (isZoneHovered || keepOpen))
 
   function clearTimer() {
     if (timerRef.current) clearTimeout(timerRef.current)

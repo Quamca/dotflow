@@ -286,6 +286,7 @@ export default function StarField({
           centroid={zone.centroid}
           radius={zone.radius}
           color={zone.color}
+          isActive={zone.label === hoveredZoneArea}
           isLabelCleared={isLabelCleared(zone.label)}
           getLabel={getLabel}
           onRename={(newLabel) => renameZone(zone.label, newLabel)}
