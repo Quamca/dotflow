@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Line } from '@react-three/drei'
 import type { Entry, Connection, Story } from '../../types'
-import { getStarPosition, getAlignedStarPosition, getFixedZoneCentroid, getClusteredStoryPosition } from '../../utils/starPositions'
+import { getStarPosition, getAlignedStarPosition, getFixedZoneCentroid, getStoryPosition } from '../../utils/starPositions'
 import { getEmotionColor } from '../../utils/emotionColors'
 import { useLifeAreaZones } from '../../hooks/useLifeAreaZones'
 import StarNode from './StarNode'
@@ -14,6 +14,12 @@ import LifeAreaZone from './LifeAreaZone'
 const BLACK_HOLE_MIN_SIZE = 0.3
 const BLACK_HOLE_MAX_SIZE = 1.2
 const BLACK_HOLE_SCALE_AT = 50
+
+const ZONE_BIAS = 0.82
+const CONTAINMENT_BUFFER = 0.25
+const REPULSION_MARGIN = 0.4
+const ZONE_OVERLAP_MARGIN = 0.6
+const MIN_ZONE_RADIUS = 0.8
 
 interface StarFieldProps {
   entries: Entry[]
@@ -75,15 +81,92 @@ export default function StarField({
     return active
   }, [stories])
 
-  const storyPositionMap = useMemo(() => {
-    const map = new Map<string, [number, number, number]>()
+  const { storyPositionMap, activeZones } = useMemo(() => {
+    type ZoneSpec = { label: string; centroid: [number, number, number]; radius: number; color: string; storyCount: number }
+
+    // Pass 1 — zone stories: strong bias toward fixed centroid (ZONE_BIAS = 0.82)
+    const posMap = new Map<string, [number, number, number]>()
     stories.forEach((s) => {
-      const centroid = s.life_area && activeAreas.has(s.life_area)
-        ? getFixedZoneCentroid(s.life_area)
-        : null
-      map.set(s.id, getClusteredStoryPosition(s.id, centroid))
+      if (s.life_area && activeAreas.has(s.life_area)) {
+        const centroid = getFixedZoneCentroid(s.life_area)
+        const base = getStoryPosition(s.id)
+        posMap.set(s.id, [
+          base[0] * (1 - ZONE_BIAS) + centroid[0] * ZONE_BIAS,
+          base[1] * (1 - ZONE_BIAS) + centroid[1] * ZONE_BIAS,
+          base[2] * (1 - ZONE_BIAS) + centroid[2] * ZONE_BIAS,
+        ])
+      } else {
+        posMap.set(s.id, getStoryPosition(s.id))
+      }
     })
-    return map
+
+    // Pass 2 — zone radii: maxDist + CONTAINMENT_BUFFER guarantees all stars inside
+    const raw: ZoneSpec[] = []
+    activeAreas.forEach((areaLabel) => {
+      const areaStories = stories.filter((s) => s.life_area === areaLabel)
+      const emotionCounts: Record<string, number> = {}
+      areaStories.forEach((s) => {
+        if (s.emotion) emotionCounts[s.emotion] = (emotionCounts[s.emotion] ?? 0) + 1
+      })
+      const dominant = Object.entries(emotionCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
+      const color = getEmotionColor(dominant)
+
+      const centroid = getFixedZoneCentroid(areaLabel)
+      const [cx, cy, cz] = centroid
+
+      let maxDist = 0
+      areaStories.forEach((s) => {
+        const p = posMap.get(s.id)
+        if (!p) return
+        const d = Math.sqrt((p[0] - cx) ** 2 + (p[1] - cy) ** 2 + (p[2] - cz) ** 2)
+        if (d > maxDist) maxDist = d
+      })
+
+      if (maxDist === 0) return
+      const rawRadius = Math.max(MIN_ZONE_RADIUS, maxDist + CONTAINMENT_BUFFER)
+      raw.push({ label: areaLabel, centroid, radius: rawRadius, color, storyCount: areaStories.length })
+    })
+
+    // Pass 3 — zone-zone overlap: more populated zone keeps its radius
+    const sorted = [...raw].sort((a, b) => b.storyCount - a.storyCount)
+    const placed: ZoneSpec[] = []
+    for (const zone of sorted) {
+      let r = zone.radius
+      for (const other of placed) {
+        const dx = zone.centroid[0] - other.centroid[0]
+        const dy = zone.centroid[1] - other.centroid[1]
+        const dz = zone.centroid[2] - other.centroid[2]
+        const d = Math.sqrt(dx * dx + dy * dy + dz * dz)
+        const excess = r + other.radius + ZONE_OVERLAP_MARGIN - d
+        if (excess > 0) r = Math.max(MIN_ZONE_RADIUS, r - excess)
+      }
+      if (r >= MIN_ZONE_RADIUS) placed.push({ ...zone, radius: r })
+    }
+
+    // Pass 4 — repel non-zone stories from all zone spheres
+    stories.forEach((s) => {
+      if (s.life_area && activeAreas.has(s.life_area)) return
+      const p = posMap.get(s.id)
+      if (!p) return
+      let [px, py, pz] = p
+      for (const zone of placed) {
+        const [cx, cy, cz] = zone.centroid
+        const dx = px - cx
+        const dy = py - cy
+        const dz = pz - cz
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz)
+        const minDist = zone.radius + REPULSION_MARGIN
+        if (dist < minDist && dist > 0) {
+          const scale = minDist / dist
+          px = cx + dx * scale
+          py = cy + dy * scale
+          pz = cz + dz * scale
+        }
+      }
+      posMap.set(s.id, [px, py, pz])
+    })
+
+    return { storyPositionMap: posMap, activeZones: placed }
   }, [stories, activeAreas])
 
   const sessionLines = useMemo(() => {
@@ -103,63 +186,6 @@ export default function StarField({
     })
     return lines
   }, [stories, storyPositionMap])
-
-  const ZONE_OVERLAP_MARGIN = 0.6
-  const MIN_ZONE_RADIUS = 0.8
-
-  const activeZones = useMemo(() => {
-    type ZoneSpec = { label: string; centroid: [number, number, number]; radius: number; color: string; storyCount: number }
-    const raw: ZoneSpec[] = []
-
-    activeAreas.forEach((areaLabel) => {
-      const areaStories = stories.filter((s) => s.life_area === areaLabel)
-      const emotionCounts: Record<string, number> = {}
-      areaStories.forEach((s) => {
-        if (s.emotion) emotionCounts[s.emotion] = (emotionCounts[s.emotion] ?? 0) + 1
-      })
-      const dominant = Object.entries(emotionCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
-      const color = getEmotionColor(dominant)
-
-      // Use the fixed centroid — this is the authoritative center of the zone
-      const centroid = getFixedZoneCentroid(areaLabel)
-      const [cx, cy, cz] = centroid
-
-      // Compute radius from FINAL story positions (after clustering bias is applied)
-      const distances = areaStories.map((s) => {
-        const p = storyPositionMap.get(s.id)
-        if (!p) return 0
-        return Math.sqrt((p[0] - cx) ** 2 + (p[1] - cy) ** 2 + (p[2] - cz) ** 2)
-      }).filter((d) => d > 0)
-
-      if (distances.length === 0) return
-
-      // Radius = avgDist + stdDev + 0.3 buffer — density-based, not count-based
-      const avgDist = distances.reduce((a, b) => a + b, 0) / distances.length
-      const variance = distances.reduce((sum, d) => sum + (d - avgDist) ** 2, 0) / distances.length
-      const stdDev = Math.sqrt(variance)
-      const rawRadius = Math.max(MIN_ZONE_RADIUS, avgDist + stdDev + 0.3)
-
-      raw.push({ label: areaLabel, centroid, radius: rawRadius, color, storyCount: areaStories.length })
-    })
-
-    // Resolve zone-zone overlaps — most populated zones keep their radius
-    const sorted = [...raw].sort((a, b) => b.storyCount - a.storyCount)
-    const placed: ZoneSpec[] = []
-    for (const zone of sorted) {
-      let r = zone.radius
-      for (const other of placed) {
-        const dx = zone.centroid[0] - other.centroid[0]
-        const dy = zone.centroid[1] - other.centroid[1]
-        const dz = zone.centroid[2] - other.centroid[2]
-        const d = Math.sqrt(dx * dx + dy * dy + dz * dz)
-        const excess = r + other.radius + ZONE_OVERLAP_MARGIN - d
-        if (excess > 0) r = Math.max(MIN_ZONE_RADIUS - 0.01, r - excess)
-      }
-      if (r >= MIN_ZONE_RADIUS) placed.push({ ...zone, radius: r })
-    }
-
-    return placed
-  }, [activeAreas, stories, storyPositionMap])
 
   const connectionCount = useMemo(() => {
     const count: Record<string, number> = {}
@@ -193,8 +219,7 @@ export default function StarField({
           isInteractive={isInteractive}
           onOpenModal={isInteractive ? () => onStoryClick?.(story) : undefined}
           zoneHighlight={
-            hoveredZoneArea === null ? undefined :
-            story.life_area === hoveredZoneArea ? 'highlight' : 'dim'
+            hoveredZoneArea !== null && story.life_area === hoveredZoneArea ? 'highlight' : undefined
           }
         />
       ))}

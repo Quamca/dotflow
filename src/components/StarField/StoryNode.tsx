@@ -8,7 +8,7 @@ interface StoryNodeProps {
   position: [number, number, number]
   isInteractive: boolean
   onOpenModal?: () => void
-  zoneHighlight?: 'highlight' | 'dim'
+  zoneHighlight?: 'highlight'
 }
 
 const STORY_STAR_SIZE = 0.06
@@ -17,8 +17,7 @@ export default function StoryNode({ story, position, isInteractive, onOpenModal,
   const [isHovered, setIsHovered] = useState(false)
   const emotionColor = getEmotionColor(story.emotion)
   const color = isHovered ? '#1C1917' : emotionColor
-  const meshScale = zoneHighlight === 'highlight' ? 2.2 : zoneHighlight === 'dim' ? 0.7 : 1
-  const opacity = zoneHighlight === 'dim' ? 0.1 : 1
+  const meshScale = zoneHighlight === 'highlight' ? 2.2 : 1
 
   const preview = story.content.length > 80 ? `${story.content.slice(0, 80)}…` : story.content
 
@@ -31,7 +30,7 @@ export default function StoryNode({ story, position, isInteractive, onOpenModal,
         onClick={isInteractive ? (e) => { e.stopPropagation(); onOpenModal?.() } : undefined}
       >
         <sphereGeometry args={[STORY_STAR_SIZE, 8, 8]} />
-        <meshBasicMaterial color={color} transparent={zoneHighlight === 'dim'} opacity={opacity} />
+        <meshBasicMaterial color={color} />
       </mesh>
 
       {isHovered && isInteractive && (

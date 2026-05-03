@@ -89,6 +89,7 @@ export default function LifeAreaZone({
       onRename(trimmed)
     }
     setEditing(false)
+    scheduleClose()
   }
 
   const displayLabel = getLabel(label)
@@ -100,6 +101,7 @@ export default function LifeAreaZone({
       <mesh
         onPointerEnter={handleZoneEnter}
         onPointerLeave={handleZoneLeave}
+        onPointerMove={(e) => e.stopPropagation()}
       >
         <sphereGeometry args={[radius, 16, 16]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
