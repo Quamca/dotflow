@@ -3,7 +3,6 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Line } from '@react-three/drei'
 import type { Entry, Connection, Story } from '../../types'
 import { getStarPosition, getAlignedStarPosition, getFixedZoneCentroid, getStoryPosition, getZoneLocalPosition } from '../../utils/starPositions'
-import { getEmotionColor } from '../../utils/emotionColors'
 import { useLifeAreaZones } from '../../hooks/useLifeAreaZones'
 import StarNode from './StarNode'
 import StoryNode from './StoryNode'
@@ -113,7 +112,7 @@ export default function StarField({
   }, [stories])
 
   const { storyPositionMap, activeZones } = useMemo(() => {
-    type ZoneSpec = { label: string; centroid: [number, number, number]; radius: number; color: string; storyCount: number }
+    type ZoneSpec = { label: string; centroid: [number, number, number]; radius: number; emotionWeights: Record<string, number>; storyCount: number }
 
     // Pass 1 — zone stories: local-space position around fixed centroid (no origin bias)
     const posMap = new Map<string, [number, number, number]>()
@@ -134,8 +133,11 @@ export default function StarField({
       areaStories.forEach((s) => {
         if (s.emotion) emotionCounts[s.emotion] = (emotionCounts[s.emotion] ?? 0) + 1
       })
-      const dominant = Object.entries(emotionCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
-      const color = getEmotionColor(dominant)
+      const total = areaStories.length
+      const emotionWeights: Record<string, number> = {}
+      Object.entries(emotionCounts).forEach(([emotion, count]) => {
+        emotionWeights[emotion] = count / total
+      })
 
       const centroid = getFixedZoneCentroid(areaLabel)
       const [cx, cy, cz] = centroid
@@ -150,7 +152,7 @@ export default function StarField({
 
       if (maxDist === 0) return
       const rawRadius = Math.max(MIN_ZONE_RADIUS, maxDist + CONTAINMENT_BUFFER)
-      raw.push({ label: areaLabel, centroid, radius: rawRadius, color, storyCount: areaStories.length })
+      raw.push({ label: areaLabel, centroid, radius: rawRadius, emotionWeights, storyCount: areaStories.length })
     })
 
     // Pass 3 — zone-zone overlap: more populated zone keeps its radius
@@ -285,7 +287,7 @@ export default function StarField({
           label={zone.label}
           centroid={zone.centroid}
           radius={zone.radius}
-          color={zone.color}
+          emotionWeights={zone.emotionWeights}
           isActive={zone.label === hoveredZoneArea}
           isLabelCleared={isLabelCleared(zone.label)}
           getLabel={getLabel}
