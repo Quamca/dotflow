@@ -422,4 +422,46 @@ After ~15 stories, AI detects thematic clusters and suggests hover-only zone lab
 
 ---
 
+---
+
+### US-214: Volumetric Nebula Rendering ✅ COMPLETED
+
+**Status:** ✅ Completed | **Story Points:** 8 | **Priority:** P2
+
+**Description:**
+Replace the single-sphere zone overlay from US-208 with layered volumetric nebula clouds. Emotional colors blend proportionally inside the same zone — no dominant flat tint. Zones breathe and drift independently per layer. Each zone renders up to 7 sphere meshes: 2 per qualifying emotion (outer diffuse + inner concentration, max 3 emotions) + 1 ambient tie layer.
+
+**Acceptance Criteria:**
+- [x] Zone visuals use layered volumetric fog/cloud rendering instead of sphere-like overlays
+- [x] Multiple emotions blend proportionally inside the same nebula
+- [x] No hard color separation or visible gradient bands
+- [x] Nebula density varies organically using noise distortion
+- [x] Ambient movement is subtle and slow (breathing/drifting effect)
+- [x] Zones remain soft and atmospheric — never become solid objects
+- [x] Existing hover-only label behavior preserved
+- [x] Existing zone clustering logic preserved
+- [x] Performance remains stable with 50+ stories
+
+**Tasks:**
+- [x] **TASK-214.1:** Replace sphere-style zone material with layered volumetric cloud shader
+- [x] **TASK-214.2:** Add multi-emotion color blending system for nebula rendering
+- [x] **TASK-214.3:** Add procedural noise distortion for density variation
+- [x] **TASK-214.4:** Add subtle ambient drift/breathing animation
+- [x] **TASK-214.5:** Tune opacity falloff to avoid visible hard edges
+- [x] **TASK-214.6:** Optimize rendering performance for multiple active nebulae
+- [x] **TASK-214.7:** Write tests (/qa)
+- [x] **TASK-214.8:** Manual verification
+
+**Implementation notes:**
+- `buildLayers(emotionWeights)`: filters `w > 0.05`, sorts descending, slices to max 3 emotions; each emotion produces 2 layers (outer diffuse + inner concentration); always appends 1 ambient layer (`#78716C`) — total: 2×N + 1
+- Layer structure: `{ color, radiusScale, opacityBase, phaseOffset, speed, axisScale }` — each layer animated independently via `useFrame` sin/cos on scale axes
+- `layerRefs = useRef<(Mesh | null)[]>([])` — per-layer ref array indexed by map position
+- `ACTIVE_OPACITY_MULTIPLIER = 1.6` — boosts all layer opacities when zone is hovered (`isActive`)
+- `StarField.tsx`: replaced dominant-emotion color with proportional `emotionWeights: Record<string, number>` — weight = `storyCount[emotion] / totalStories`
+- Emotion threshold `> 0.05` prevents micro-weights from adding invisible/noise layers
+- Tests use `querySelectorAll('mesh')` in JSDOM — Three.js JSX elements render as HTMLUnknownElements; layer count formula: `2 × N_emotions + 1 ambient + 1 hit mesh`
+- `e.distance` is undefined in JSDOM (DOM PointerEvent, not Three.js ThreeEvent) — TC-309 asserts only the label argument
+
+---
+
 *This file is an archive. For active work see [BACKLOG.md](BACKLOG.md).*

@@ -1,13 +1,14 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import type { Mesh } from 'three'
+import type { Mesh, MeshBasicMaterial } from 'three'
+import { getEmotionColor } from '../../utils/emotionColors'
 
 interface LifeAreaZoneProps {
   label: string
   centroid: [number, number, number]
   radius: number
-  color: string
+  emotionWeights: Record<string, number>
   isActive: boolean
   isLabelCleared: boolean
   onRename: (newLabel: string) => void
@@ -18,18 +19,76 @@ interface LifeAreaZoneProps {
   onMove: (label: string, distance: number) => void
 }
 
+interface NebulaLayer {
+  color: string
+  radiusScale: number
+  opacityBase: number
+  phaseOffset: number
+  speed: number
+  axisScale: [number, number, number]
+}
+
+const AMBIENT_COLOR = '#78716C'
 const KEEP_OPEN_MS = 350
+const ACTIVE_OPACITY_MULTIPLIER = 1.6
+
+function buildLayers(emotionWeights: Record<string, number>): NebulaLayer[] {
+  const sorted = Object.entries(emotionWeights)
+    .filter(([, w]) => w > 0.05)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3)
+
+  const layers: NebulaLayer[] = []
+
+  sorted.forEach(([emotion, weight], i) => {
+    const color = getEmotionColor(emotion)
+    const phase = i * 2.1
+    // Outer diffuse sphere
+    layers.push({
+      color,
+      radiusScale: 1.0 - i * 0.03,
+      opacityBase: weight * 0.065,
+      phaseOffset: phase,
+      speed: 0.15 + i * 0.05,
+      axisScale: [1.0, 0.92, 1.0],
+    })
+    // Inner concentration sphere
+    layers.push({
+      color,
+      radiusScale: 0.58 - i * 0.04,
+      opacityBase: weight * 0.090,
+      phaseOffset: phase + 1.0,
+      speed: 0.22 + i * 0.07,
+      axisScale: [0.95, 1.0, 0.90],
+    })
+  })
+
+  // Ambient tie layer — always present
+  layers.push({
+    color: AMBIENT_COLOR,
+    radiusScale: 0.80,
+    opacityBase: 0.020,
+    phaseOffset: 3.7,
+    speed: 0.12,
+    axisScale: [1.0, 0.95, 1.0],
+  })
+
+  return layers
+}
 
 export default function LifeAreaZone({
-  label, centroid, radius, color, isActive, isLabelCleared, onRename, onClear, getLabel, onEnter, onLeave, onMove,
+  label, centroid, radius, emotionWeights, isActive, isLabelCleared,
+  onRename, onClear, getLabel, onEnter, onLeave, onMove,
 }: LifeAreaZoneProps) {
-  const visualMeshRef = useRef<Mesh>(null)
   const [isZoneHovered, setIsZoneHovered] = useState(false)
   const [isLabelHovered, setIsLabelHovered] = useState(false)
   const [keepOpen, setKeepOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const layers = useMemo(() => buildLayers(emotionWeights), [emotionWeights])
+  const layerRefs = useRef<(Mesh | null)[]>([])
 
   const showLabel = isLabelHovered || (isActive && (isZoneHovered || keepOpen))
 
@@ -52,7 +111,7 @@ export default function LifeAreaZone({
     clearTimer()
     setIsLabelHovered(true)
     setKeepOpen(true)
-    onEnter(label, 0)  // label hover = distance 0, always wins depth ordering
+    onEnter(label, 0)
   }
 
   function handleLabelLeave() {
@@ -61,17 +120,27 @@ export default function LifeAreaZone({
     onLeave(label)
   }
 
-  // Animate only the visual mesh — hit detection mesh stays at fixed scale to avoid
-  // spurious pointer events caused by scale changes on the raycast target
   useFrame(({ clock }) => {
-    if (!visualMeshRef.current) return
-    const pulse = 1 + Math.sin(clock.getElapsedTime() * 0.7) * 0.02
-    visualMeshRef.current.scale.setScalar(pulse)
+    const t = clock.getElapsedTime()
+    layerRefs.current.forEach((ref, i) => {
+      if (!ref || i >= layers.length) return
+      const layer = layers[i]
+      const breathe = 1 + Math.sin(t * layer.speed + layer.phaseOffset) * 0.04
+      const sway = 1 + Math.cos(t * layer.speed * 0.7 + layer.phaseOffset) * 0.025
+      ref.scale.set(
+        breathe * layer.axisScale[0],
+        sway * layer.axisScale[1],
+        breathe * layer.axisScale[2],
+      )
+      const mat = ref.material as MeshBasicMaterial
+      const targetOpacity = layer.opacityBase * (isActive ? ACTIVE_OPACITY_MULTIPLIER : 1)
+      mat.opacity = targetOpacity
+    })
   })
 
   function handleLabelClick(e: React.MouseEvent) {
     e.stopPropagation()
-    setIsLabelHovered(false)  // span is about to unmount — its onMouseLeave won't fire
+    setIsLabelHovered(false)
     setDraft(getLabel(label))
     setEditing(true)
   }
@@ -108,16 +177,21 @@ export default function LifeAreaZone({
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 
-      {/* Visual-only mesh — animated, no pointer events */}
-      <mesh ref={visualMeshRef}>
-        <sphereGeometry args={[radius, 16, 16]} />
-        <meshBasicMaterial
-          color={color}
-          transparent
-          opacity={isActive ? 0.12 : 0.07}
-          depthWrite={false}
-        />
-      </mesh>
+      {/* Nebula layers — animated independently, no pointer events */}
+      {layers.map((layer, i) => (
+        <mesh
+          key={i}
+          ref={(el) => { layerRefs.current[i] = el }}
+        >
+          <sphereGeometry args={[radius * layer.radiusScale, 16, 16]} />
+          <meshBasicMaterial
+            color={layer.color}
+            transparent
+            opacity={layer.opacityBase}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
 
       {showLabel && !isLabelCleared && (
         <Html
@@ -155,7 +229,6 @@ export default function LifeAreaZone({
                 font: '11px DM Sans, sans-serif',
                 color: '#78716C',
                 background: 'rgba(250,250,249,0.75)',
-                // generous padding creates a larger invisible hit area around the text
                 padding: '8px 16px',
                 borderRadius: 6,
                 cursor: 'pointer',

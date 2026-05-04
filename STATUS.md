@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-05-03
 **Current milestone:** M2.5 — Experience Depth (pre-M3)
-**Version:** 1.8
+**Version:** 1.9
 
 ---
 
@@ -23,8 +23,9 @@
 | 11 | US-211 | Insight History Timeline | P2 | 📋 Planned |
 | 12 | US-212 | Interactive Connection Highlighting | P2 | 📋 Planned |
 | 13 | US-213 | Story Sequence Navigation | P2 | 📋 Planned |
+| 14 | US-214 | Volumetric Nebula Rendering | P2 | ✅ Done |
 
-**8/13 complete (62%)**
+**9/14 complete (64%)**
 
 ---
 
@@ -49,7 +50,7 @@ US-204, US-209, US-211, US-212, US-213 (all P2) may continue as desired before M
 
 **US-204 — Contextual First-Use Hints** (P2, FEATURE-013)
 
-Three one-time contextual hints at the moment of first use: FollowUpDialog, ConnectionBadge, and black hole hover. Each hint persists in localStorage and is never shown again. API key warning banner updated to name specific missing features.
+Add one-time contextual hints to three AI feature moments: first follow-up questions, first connection badge, first black hole hover. Each hint appears exactly once and is never shown again. Update the API key warning banner.
 
 Run `/planning` → agent will propose US-204.
 
