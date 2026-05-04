@@ -1,6 +1,6 @@
 # Dotflow - Test Cases Documentation
 
-**Version:** 2.2
+**Version:** 2.3
 **Date:** 2026-05-03
 **Author:** QA Agent
 **Test Framework:** Vitest + React Testing Library
@@ -4824,6 +4824,178 @@ For verification after /dev implementation.
 - Pre-seeded `{'zdrowie': ''}` → `isLabelCleared('zdrowie')` returns `true`
 
 **File:** `src/__tests__/hooks/useLifeAreaZones.test.ts`
+**Status:** ✅ Done
+
+---
+
+---
+
+## 3.18 US-214 — Volumetric Nebula Rendering (LifeAreaZone)
+
+### TC-298: LifeAreaZone — renders 6 meshes when 2 emotions qualify
+
+**Related US:** US-214
+**Type:** Component
+**Priority:** Critical
+
+**Expected Result:**
+- `{ joy: 0.6, sadness: 0.4 }` → 2 emotions × 2 layers + 1 ambient + 1 hit = 6 mesh elements
+
+**File:** `src/__tests__/components/StarField/LifeAreaZone.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-299: LifeAreaZone — renders 2 meshes when emotionWeights is empty
+
+**Related US:** US-214
+**Type:** Component
+**Priority:** Critical
+
+**Expected Result:**
+- `{}` → 0 emotion layers + 1 ambient + 1 hit = 2 mesh elements
+
+**File:** `src/__tests__/components/StarField/LifeAreaZone.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-300: LifeAreaZone — renders 4 meshes when single emotion qualifies
+
+**Related US:** US-214
+**Type:** Component
+**Priority:** High
+
+**Expected Result:**
+- `{ joy: 1.0 }` → 1 emotion × 2 layers + 1 ambient + 1 hit = 4 mesh elements
+
+**File:** `src/__tests__/components/StarField/LifeAreaZone.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-301: LifeAreaZone — renders 8 meshes when 3 emotions qualify
+
+**Related US:** US-214
+**Type:** Component
+**Priority:** High
+
+**Expected Result:**
+- `{ joy: 0.5, sadness: 0.3, anger: 0.2 }` → 3 emotions × 2 layers + 1 ambient + 1 hit = 8 mesh elements
+
+**File:** `src/__tests__/components/StarField/LifeAreaZone.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-302: LifeAreaZone — excludes emotions with weight ≤ 0.05 from layer generation
+
+**Related US:** US-214
+**Type:** Component
+**Priority:** High
+
+**Expected Result:**
+- `{ joy: 0.9, fear: 0.05 }` → fear excluded (not > 0.05) → 1 emotion × 2 layers + 1 ambient + 1 hit = 4 mesh elements
+
+**File:** `src/__tests__/components/StarField/LifeAreaZone.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-303: LifeAreaZone — does not render label when isLabelCleared is true
+
+**Related US:** US-214
+**Type:** Component
+**Priority:** Critical
+
+**Expected Result:**
+- Zone label not visible even after pointer enters, when `isLabelCleared={true}`
+
+**File:** `src/__tests__/components/StarField/LifeAreaZone.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-304: LifeAreaZone — renders label after pointer enters when isActive is true
+
+**Related US:** US-214
+**Type:** Component
+**Priority:** Critical
+
+**Expected Result:**
+- Zone label "praca" visible after `pointerEnter` on hit mesh when `isActive={true}`
+
+**File:** `src/__tests__/components/StarField/LifeAreaZone.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-305: LifeAreaZone — displays custom label text from getLabel
+
+**Related US:** US-214
+**Type:** Component
+**Priority:** High
+
+**Expected Result:**
+- `getLabel` returning "zona robocza" is shown in label after hover
+
+**File:** `src/__tests__/components/StarField/LifeAreaZone.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-306: LifeAreaZone — shows edit input when label span is clicked
+
+**Related US:** US-214
+**Type:** Component
+**Priority:** High
+
+**Expected Result:**
+- Input with placeholder "usuń lub zmień" appears after clicking the label span
+
+**File:** `src/__tests__/components/StarField/LifeAreaZone.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-307: LifeAreaZone — calls onRename with trimmed text on form submit
+
+**Related US:** US-214
+**Type:** Component
+**Priority:** Critical
+
+**Expected Result:**
+- `onRename` called with `'nowa praca'` when input value is `'  nowa praca  '` and form is submitted
+
+**File:** `src/__tests__/components/StarField/LifeAreaZone.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-308: LifeAreaZone — calls onClear on form submit with empty text
+
+**Related US:** US-214
+**Type:** Component
+**Priority:** Critical
+
+**Expected Result:**
+- `onClear` called when input is empty and form is submitted
+
+**File:** `src/__tests__/components/StarField/LifeAreaZone.test.tsx`
+**Status:** ✅ Done
+
+---
+
+### TC-309: LifeAreaZone — calls onEnter with label when pointer enters hit mesh
+
+**Related US:** US-214
+**Type:** Component
+**Priority:** Critical
+
+**Expected Result:**
+- `onEnter` called once with first argument `'praca'` on pointer enter (DOM PointerEvent lacks Three.js `.distance` — second arg not asserted)
+
+**File:** `src/__tests__/components/StarField/LifeAreaZone.test.tsx`
 **Status:** ✅ Done
 
 ---
