@@ -1,9 +1,9 @@
 # Dotflow - Architecture Documentation
 
-**Version:** 2.9
+**Version:** 3.0
 **Date:** 2026-05-03
 **Author:** Solution Architect
-**Status:** Updated after strategic session — StoryModal, tooltip rationale, language variation, history model (v1.7+)
+**Status:** Updated after US-214 — volumetric nebula rendering, layered emotionWeights per zone (v1.9)
 
 ---
 
@@ -153,7 +153,7 @@ dotflow/
 │   │   ├── PatternSummary/  # Bullet-list display of AI pattern observations (US-102)
 │   │   │   └── PatternSummary.tsx
 │   │   ├── StarField/       # 3D star-field visualization (US-201, US-202, US-206–209)
-│   │   │   ├── StarField.tsx        # Canvas scene: Camera, OrbitControls, lights, story nodes, session lines, constellation lines, black hole, volumetric nebula layers; global activeTooltipId tooltip coordinator (US-205)
+│   │   │   ├── StarField.tsx        # Canvas scene: Camera, OrbitControls, lights, story nodes, session lines, constellation lines, black hole, volumetric nebula layers; computes proportional emotionWeights per zone (US-205, US-214)
 │   │   │   ├── StarNode.tsx         # Legacy entry star mesh (pre-US-206); replaced by StoryNode after story pivot
 │   │   │   ├── StoryNode.tsx        # Story star mesh + Html tooltip on hover + "Dopowiedz" elaboration button (US-206)
 │   │   │   ├── BlackHole.tsx        # Black hole at origin: pulsing glow halo, hover insight tooltip, entry-count sizing, disagree flow with 2-round AI dialogue, depth holistic insights; click opens InsightModal; keepOpen/isTooltipHovered tooltip stability, invisible hit mesh, stopPropagation (US-202, US-203, US-205)
@@ -202,7 +202,8 @@ dotflow/
 │   │   │   │   └── PatternSummary.test.tsx  # TC-055–056 (US-102)
 │   │   │   ├── StarField/
 │   │   │   │   ├── SkyModal.test.tsx        # TC-209–215: backdrop, X button, Escape, footer (v1.7)
-│   │   │   │   └── InsightModal.test.tsx    # TC-189–206: button flow, localStorage, note save, elaboration cache (v1.7)
+│   │   │   │   ├── InsightModal.test.tsx    # TC-189–206: button flow, localStorage, note save, elaboration cache (v1.7)
+│   │   │   │   └── LifeAreaZone.test.tsx    # TC-298–309: mesh layer count, label show/hide/edit, onEnter callback (US-214)
 │   │   │   └── ValuesModal/
 │   │   │       └── ValuesModal.test.tsx     # TC-072–083: modal render, edit, remove/restore, add theme, escape hatch, confirm (US-202)
 │   │   ├── hooks/
@@ -757,7 +758,7 @@ graph LR
 - [x] **US-207:** Emotion Intelligence per Story — P1 — `aiService.detectEmotionConfidence()` (never throws, fallback `{emotion:'mixed', confidence:0}`), `EMOTION_DETECTION_SYSTEM_PROMPT`, `emotionColors.ts` (6-emotion hex palette), `storyService.updateStoryEmotion()`, StoryNode uses `meshBasicMaterial` with emotion color, re-classification on "Dopowiedz" with combined content, tooltip timer locked during elaboration — M2.5 ✅ Completed
 - [x] **US-210:** Contextual Follow-Up Between Lines — P1 — `generateFollowUpQuestions(content, apiKey, storyContext?)` with optional past story context; `getRecentStories(excludeEntryId, limit)` in storyService; word count gate >300 words → "Pięknie." inline acknowledgment + "Wróć →" home; `FOLLOW_UP_SYSTEM_PROMPT` rewritten: BETWEEN THE LINES, NEVER restate, language instruction — M2.5 ✅ Completed
 - [x] **US-208:** Life Area Zones — P1 — `aiService.classifyLifeArea()`, `useLifeAreaZones`, `LifeAreaZone.tsx` (sphere overlay, depth-priority hover, ambient pulse), hover-only labels, user-renameable, no default zones — M2.5 ✅ Completed
-- [ ] US-214: Volumetric Nebula Rendering — layered cloud shader, proportional emotional color blending, procedural density noise, ambient drift motion
+- [x] **US-214:** Volumetric Nebula Rendering — P2 — `buildLayers(emotionWeights)` → up to 7 sphere layers per zone (2×N emotions + 1 ambient); each layer animated independently via `useFrame` sin/cos on `axisScale` axes; `ACTIVE_OPACITY_MULTIPLIER=1.6` on hover; `StarField.tsx` computes proportional `emotionWeights` per zone; emotion threshold `> 0.05`; `LifeAreaZone` prop changed from `color: string` to `emotionWeights: Record<string, number>` — M2.5 ✅ Completed
 - [ ] **US-209:** Typed Connection Visualization — P2 — `aiService.classifyConnectionType()`, `connections.type` field, typed line styles (solid/dashed/chain), 3D filter panel, `useConnectionFilter` hook; no Dilts/DISC/MBTI labels visible — M2.5
 - [ ] **FEATURE-015:** Security & privacy messaging — deferred to M3 (end-user context: registration/login, Dotflow-owned AI)
 - [ ] AI communication principles document (`docs/ai_communication_principles.md`) — M2.5 prereq

@@ -389,6 +389,43 @@ it('should throw on non-ok response', async () => {
 
 **When to use:** Any service test that calls native `fetch` directly.
 
+### 4.5 Testing React Three Fiber Components — Mesh Count via querySelectorAll (US-214)
+
+When a Three.js component renders multiple `<mesh>` elements conditionally (e.g., volumetric nebula layers), count them in JSDOM using `querySelectorAll('mesh')`. Three.js JSX elements render as `HTMLUnknownElement` in JSDOM — `querySelectorAll` matches by tag name and works correctly.
+
+```typescript
+// src/__tests__/components/StarField/LifeAreaZone.test.tsx
+vi.mock('@react-three/fiber', () => ({ useFrame: vi.fn() }))
+vi.mock('@react-three/drei', () => ({
+  Html: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}))
+
+it('should render 6 meshes when 2 emotions qualify', () => {
+  // { joy: 0.6, sadness: 0.4 } → 2 emotions × 2 layers + 1 ambient + 1 hit = 6
+  const { container } = render(<LifeAreaZone {...props} emotionWeights={{ joy: 0.6, sadness: 0.4 }} />)
+  expect(container.querySelectorAll('mesh')).toHaveLength(6)
+})
+```
+
+**Layer count formula:** `2 × N_qualifying_emotions + 1 ambient + 1 hit mesh`
+- qualifying = weight > 0.05, max 3 emotions
+- minimum: 2 (empty weights → 0 emotion layers + 1 ambient + 1 hit)
+- maximum: 8 (3 emotions → 6 + 1 + 1)
+
+**`useFrame` mock:** `vi.fn()` — returns a no-op so animation callbacks never fire in tests. Layer refs remain `null` — only the render shape (mesh count) is verified, not animation behavior.
+
+**Important:** `e.distance` is undefined in JSDOM DOM PointerEvent (not a Three.js ThreeEvent). Do not assert on it:
+```typescript
+// WRONG — expect.anything() does NOT match undefined
+expect(onEnter).toHaveBeenCalledWith('label', expect.anything())
+
+// CORRECT — check args individually
+expect(onEnter).toHaveBeenCalledOnce()
+expect(onEnter.mock.calls[0][0]).toBe('label')
+```
+
+**When to use:** Any test that needs to verify the conditional render tree of a React Three Fiber component without running WebGL.
+
 ### 4.4 Mocking Three.js / react-three-fiber in jsdom Tests (US-201)
 
 `@react-three/fiber` uses `ResizeObserver` and WebGL Canvas APIs that jsdom does not implement. Two mocks are required — one global polyfill in setup, one component-level null mock wherever StarField is rendered:
@@ -512,6 +549,7 @@ vi.mocked(supabase.from).mockReturnValue({
 | Testing | RTL cleanup in Vitest (explicit afterEach) | 4.2 |
 | Testing | Mocking global fetch with vi.stubGlobal | 4.3 |
 | Testing | Mocking Three.js / StarField in jsdom tests | 4.4 |
+| Testing | Testing r3f mesh count with querySelectorAll + e.distance pitfall | 4.5 |
 | Supabase | Client initialization pattern | 2.1 |
 | Supabase | Mocking chained calls in tests | 2.2 |
 | React Hooks | localStorage hook with lazy initializer | 5.1 |

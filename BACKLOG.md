@@ -109,30 +109,30 @@ Replace the current soft sphere-style zone rendering with layered volumetric neb
 **I want** life areas to resemble living cosmic nebulae  
 **So that** the sky feels emotional, organic, and visually immersive instead of system-generated
 
-**Status:** 📋 Planned  
+**Status:** ✅ COMPLETED  
 **Story Points:** 8  
 **Priority:** P2
 
 **Acceptance Criteria:**
-- [ ] Zone visuals use layered volumetric fog/cloud rendering instead of sphere-like overlays
-- [ ] Multiple emotions blend proportionally inside the same nebula
-- [ ] No hard color separation or visible gradient bands
-- [ ] Nebula density varies organically using noise distortion
-- [ ] Ambient movement is subtle and slow (breathing/drifting effect)
-- [ ] Zones remain soft and atmospheric — never become solid objects
-- [ ] Existing hover-only label behavior preserved
-- [ ] Existing zone clustering logic preserved
-- [ ] Performance remains stable with 50+ stories
+- [x] Zone visuals use layered volumetric fog/cloud rendering instead of sphere-like overlays
+- [x] Multiple emotions blend proportionally inside the same nebula
+- [x] No hard color separation or visible gradient bands
+- [x] Nebula density varies organically using noise distortion
+- [x] Ambient movement is subtle and slow (breathing/drifting effect)
+- [x] Zones remain soft and atmospheric — never become solid objects
+- [x] Existing hover-only label behavior preserved
+- [x] Existing zone clustering logic preserved
+- [x] Performance remains stable with 50+ stories
 
 **Tasks:**
-- [ ] **TASK-214.1:** Replace sphere-style zone material with layered volumetric cloud shader - 90min
-- [ ] **TASK-214.2:** Add multi-emotion color blending system for nebula rendering - 45min
-- [ ] **TASK-214.3:** Add procedural noise distortion for density variation - 45min
-- [ ] **TASK-214.4:** Add subtle ambient drift/breathing animation - 20min
-- [ ] **TASK-214.5:** Tune opacity falloff to avoid visible hard edges - 20min
-- [ ] **TASK-214.6:** Optimize rendering performance for multiple active nebulae - 30min
-- [ ] **TASK-214.7:** Write tests (/qa) - 30min
-- [ ] **TASK-214.8:** Manual verification - 20min
+- [x] **TASK-214.1:** Replace sphere-style zone material with layered volumetric cloud shader - 90min
+- [x] **TASK-214.2:** Add multi-emotion color blending system for nebula rendering - 45min
+- [x] **TASK-214.3:** Add procedural noise distortion for density variation - 45min
+- [x] **TASK-214.4:** Add subtle ambient drift/breathing animation - 20min
+- [x] **TASK-214.5:** Tune opacity falloff to avoid visible hard edges - 20min
+- [x] **TASK-214.6:** Optimize rendering performance for multiple active nebulae - 30min
+- [x] **TASK-214.7:** Write tests (/qa) - 30min
+- [x] **TASK-214.8:** Manual verification - 20min
 
 ---
 
